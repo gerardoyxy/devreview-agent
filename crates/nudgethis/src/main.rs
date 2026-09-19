@@ -1,10 +1,14 @@
 mod appearance;
+#[cfg(test)]
+mod application_tests;
 mod config;
 mod core;
 mod error;
 mod git;
 mod process;
+mod project;
 mod project_context;
+mod route_review;
 mod server;
 mod store;
 
@@ -23,10 +27,14 @@ struct Cli {
 enum Command {
     /// Create nudgethis.toml and ignore local state. Does not overwrite configuration.
     Init,
+    /// Inspect setup without executing project commands or contacting providers.
+    Doctor,
     /// Start the loopback-only Rust server.
     Start {
         #[arg(long)]
         port: Option<u16>,
+        #[arg(long)]
+        no_execution: bool,
     },
     /// Stop this repository's server and its running agents.
     Stop,
@@ -36,6 +44,9 @@ enum Command {
         id: String,
     },
     Apply {
+        id: String,
+    },
+    Undo {
         id: String,
     },
     Reject {
@@ -67,17 +78,45 @@ async fn main() {
 async fn run() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
-        Command::AgentRun => nudgethis_agent_runtime::run_stdio().await,
-        Command::DemoAgent => demo_agent()?,
+        Command::AgentRun => {
+            ensure!(
+                std::env::var("NUDGETHIS_DISABLE_EXECUTION").as_deref() != Ok("1"),
+                "Execution is disabled"
+            );
+            nudgethis_agent_runtime::run_stdio().await
+        }
+        Command::DemoAgent => {
+            ensure!(
+                std::env::var("NUDGETHIS_DISABLE_EXECUTION").as_deref() != Ok("1"),
+                "Execution is disabled"
+            );
+            demo_agent()?;
+        }
         Command::Init => init(&cli.root)?,
-        Command::Start { port } => {
+        Command::Doctor => println!(
+            "{}",
+            serde_json::to_string_pretty(&project::doctor(
+                &cli.root,
+                &config::Config::load(&cli.root)?
+            )?)?
+        ),
+        Command::Start { port, no_execution } => {
             let mut config = config::Config::load(&cli.root)?;
+            if no_execution {
+                config.execution.enabled = false;
+            }
             if let Some(port) = port {
                 config.server.port = port;
             }
             start(&cli.root, config).await?;
         }
-        Command::Demo { port } => demo(port).await?,
+        Command::Demo { port } => {
+            ensure!(
+                std::env::var("NUDGETHIS_DISABLE_EXECUTION").as_deref() != Ok("1"),
+                "Execution is disabled"
+            );
+            demo(port).await?;
+        }
         command => {
             let cfg = config::Config::load(&cli.root)?;
             let token = std::fs::read_to_string(cli.root.join(".nudgethis/token"))?;
@@ -87,6 +126,7 @@ async fn run() -> Result<()> {
                 Command::Tasks => ("tasks".into(), false),
                 Command::Task { id } => (format!("tasks/{id}"), false),
                 Command::Apply { id } => (format!("tasks/{id}/apply"), true),
+                Command::Undo { id } => (format!("tasks/{id}/undo"), true),
                 Command::Reject { id } => (format!("tasks/{id}/reject"), true),
                 Command::Retry { id } => (format!("tasks/{id}/retry"), true),
                 Command::Cancel { id } => (format!("tasks/{id}/cancel"), true),
@@ -117,12 +157,21 @@ async fn run() -> Result<()> {
 }
 fn init(root: &std::path::Path) -> Result<()> {
     let path = root.join("nudgethis.toml");
+    for file in [&path, &root.join(".gitignore")] {
+        if let Ok(metadata) = std::fs::symlink_metadata(file) {
+            anyhow::ensure!(
+                metadata.is_file() && !metadata.file_type().is_symlink(),
+                "Configuration and ignore files must be regular files"
+            );
+        }
+    }
     if !path.exists() {
+        let contents = toml::to_string_pretty(&project::suggested_config(root)?)?;
         let mut file = std::fs::OpenOptions::new()
             .create_new(true)
             .write(true)
             .open(path)?;
-        file.write_all(toml::to_string_pretty(&config::Config::default())?.as_bytes())?;
+        file.write_all(contents.as_bytes())?;
     }
     let ignore = root.join(".gitignore");
     let text = std::fs::read_to_string(&ignore).unwrap_or_default();
@@ -137,7 +186,7 @@ fn init(root: &std::path::Path) -> Result<()> {
         file.write_all(b"\n.nudgethis/\n")?;
     }
     println!(
-        "Created nudgethis.toml. Review agents and validation commands, then commit configuration before starting."
+        "Configuration ready. Review the detected setup and validation commands in nudgethis.toml. Run nudgethis doctor for a read-only diagnosis."
     );
     Ok(())
 }

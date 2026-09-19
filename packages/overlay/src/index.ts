@@ -1,3 +1,5 @@
+import { createRouteReview } from './route-review.js';
+import { createTaskComposer, createDiagnostics } from './workspace.js';
 import { overlayStyles } from './styles.js';
 import { icon } from './icons.js';
 import { brandLogo } from './brand.js';
@@ -10,11 +12,12 @@ import { createTaskReview } from './review.js';
 
 /** Authenticated SSE over fetch: credentials never appear in a query string. */
 export async function watchTasks(server: string, token: string, onTask: (task: TaskEvent) => void, signal: AbortSignal, onConnection: (connected: boolean, error?: string) => void = () => {}, onAppearance: (value: unknown) => void = () => {}) {
+  let retryDelay = 1000;
   while (!signal.aborted) {
     try {
       const response = await fetch(`${server}/api/events`, { headers: { Authorization: `Bearer ${token}` }, signal });
       if (!response.ok) throw new Error(`Connection failed (${response.status})`);
-      onConnection(true);
+      onConnection(true); retryDelay = 1000;
       const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader();
       let buffer = '';
       try {
@@ -22,6 +25,7 @@ export async function watchTasks(server: string, token: string, onTask: (task: T
           const { value, done } = await reader.read();
           if (done) break;
           buffer += value;
+          if (buffer.length > 1048576) throw new Error('Event stream exceeded its limit');
           let end;
           while ((end = buffer.indexOf('\n\n')) >= 0) {
             const event = buffer.slice(0, end); buffer = buffer.slice(end + 2);
@@ -30,11 +34,13 @@ export async function watchTasks(server: string, token: string, onTask: (task: T
           }
         }
       } finally { await reader.cancel().catch(() => {}); }
+      if (!signal.aborted) onConnection(false);
     } catch (error) { if (signal.aborted) return; onConnection(false, errorMessage(error)); }
     if (!signal.aborted) await new Promise<void>(resolve => {
       const finish = () => { clearTimeout(timer); signal.removeEventListener('abort', finish); resolve(); };
-      const timer = setTimeout(finish, 2000); signal.addEventListener('abort', finish, { once: true });
+      const timer = setTimeout(finish, retryDelay); signal.addEventListener('abort', finish, { once: true });
     });
+    retryDelay = Math.min(retryDelay * 2, 15000);
   }
 }
 
@@ -58,7 +64,7 @@ export function elementContext(element: Element, { captureDom = false } = {}): E
     url: url.href, route: url.pathname, selector, tagName: element.tagName.toLowerCase(),
     text: privateElement ? '' : (cloned.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 1000),
     testId: element.getAttribute('data-testid') || '', ariaLabel: element.getAttribute('aria-label') || '',
-    source: element.getAttribute('data-nudgethis-source') || '',
+    sourceVerified: false, source: element.getAttribute('data-nudgethis-source') || '',
     boundingBox: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
     viewport: { width: innerWidth, height: innerHeight }
   };
@@ -71,6 +77,21 @@ export function elementContext(element: Element, { captureDom = false } = {}): E
     context.domSnippet = cloned.outerHTML.slice(0, 4000);
   }
   return context;
+}
+
+/** Reidentify only a unique target whose captured tag and text still agree. */
+export function resolveElement(context: ElementContext): Element | undefined {
+  if (context.route !== location.pathname || !context.selector) return;
+  try {
+    const matches = document.querySelectorAll(context.selector);
+    if (matches.length !== 1) return;
+    const target = matches[0];
+    if (target.closest('[data-nudgethis-overlay]') || target.tagName.toLowerCase() !== context.tagName) return;
+    if (context.testId && target.getAttribute('data-testid') !== context.testId) return;
+    if (context.ariaLabel && target.getAttribute('aria-label') !== context.ariaLabel) return;
+    if (context.text && elementContext(target).text !== context.text) return;
+    return target;
+  } catch { return; }
 }
 
 export interface OverlayOptions { server?: string; token?: string; enabled?: boolean; modifier?: 'alt' | 'none'; captureDom?: boolean }
@@ -91,30 +112,36 @@ export const NudgeThis = {
     <div class="outline" hidden></div>
     <form class="panel" hidden role="dialog" aria-label="Report a QA issue">
       <div class="head"><strong>What needs to change?</strong><button class="close" type="button" aria-label="Close">${icon('close')}</button></div>
-      <div class="target"></div><label for="request">Your request</label>
+      <div class="target"></div><div class="target-navigation"><button type="button" class="target-parent">Parent</button><button type="button" class="target-child">First child</button><button type="button" class="target-next">Next sibling</button></div><p class="target-hint" role="status"></p><label for="request">Your request</label>
       <textarea id="request" maxlength="8000" required placeholder="Make this wider, move it up, give it more space…"></textarea>
       <label for="agent">Coding agent</label><select id="agent" class="agent-select" aria-label="Coding agent"><option value="">Connect to load agents</option></select>
       <div class="capture-context"></div><p class="hint">The agent works in a separate worktree. You review before applying.</p><p class="error" role="alert" hidden></p>
-      <div class="prompt-actions"><button class="copy-context" type="button">Copy context</button><button class="save" type="submit" disabled>Start conversation</button></div><p class="copy-status" role="status" hidden></p>
+      <div class="prompt-actions"><button class="copy-context" type="button">Copy context</button><button class="save-draft" type="submit" value="draft" disabled>Save draft</button><button class="save" type="submit" value="start" disabled>Start conversation</button></div><p class="copy-status" role="status" hidden></p>
     </form>
     <button class="launcher" type="button" aria-label="Open NudgeThis conversations">${brandLogo()}<span class="dot"></span><span class="label">NudgeThis · connecting</span></button>
-    <dialog class="review-dialog" aria-label="NudgeThis conversations"><div class="review-shell"><header class="review-header"><div class="review-brand">${brandLogo()}<span>NudgeThis</span></div><div class="review-header-actions"><button type="button" class="appearance-button project-context-button">Project context</button><button type="button" class="appearance-button appearance-open">Appearance</button><a class="dashboard-link" target="_blank" rel="noopener">Dashboard</a><button type="button" class="review-close" aria-label="Close conversations">${icon('close')}</button></div></header><div class="review-body"><aside class="review-sidebar"><span class="review-caption">Your changes</span><select class="review-filter" aria-label="Filter conversations"><option value="all">All changes</option><option value="page">This page</option><option value="applied">Applied changes</option></select><div class="review-task-list"></div></aside><div class="review-detail"><p class="review-empty">Your changes and their conversations live here.<br>Hold Alt and right-click an element to start.</p></div></div></div></dialog>`;
+    <dialog class="review-dialog" aria-label="NudgeThis conversations"><div class="review-shell"><header class="review-header"><div class="review-brand">${brandLogo()}<span>NudgeThis</span></div><div class="review-header-actions"><button type="button" class="appearance-button new-change">New change</button><button type="button" class="appearance-button routes-open">Routes</button><button type="button" class="appearance-button workspace-setup">Setup</button><button type="button" class="appearance-button project-context-button">Project context</button><button type="button" class="appearance-button appearance-open">Appearance</button><a class="dashboard-link" target="_blank" rel="noopener">Dashboard</a><button type="button" class="review-close" aria-label="Close conversations">${icon('close')}</button></div></header><div class="review-body"><aside class="review-sidebar"><span class="review-caption">Your changes</span><select class="review-filter" aria-label="Filter conversations"><option value="all">All changes</option><option value="page">This page</option><option value="applied">Applied changes</option></select><div class="review-task-list"></div></aside><div class="review-detail"><p class="review-empty">Your changes and their conversations live here.<br>Hold Alt and right-click an element to start.</p></div></div></div></dialog>`;
     document.documentElement.append(host);
     const $ = <E extends HTMLElement = HTMLElement>(selector: string) => query<E>(shadow, selector);
     $<HTMLAnchorElement>('.dashboard-link').href = `${server}/#token=${encodeURIComponent(token)}`;
     const panel = $<HTMLFormElement>('.panel'), outline = $('.outline'), textarea = $<HTMLTextAreaElement>('textarea'), error = $('.error');
-    let agentsReady = false;
+    let agentsReady = false, executionEnabled = false;
     let selected: Element | undefined, context: ElementContext | undefined, previousFocus: Element | null, saving = false;
     const tasks = new Map<string, TaskSummary>(), markers = new Map<string, HTMLButtonElement>();
     const dialog = $<HTMLDialogElement>('.review-dialog');
     let selectedId: string | undefined, review: ReturnType<typeof createTaskReview> | undefined, refreshTimer: ReturnType<typeof setTimeout> | undefined, refreshSequence = 0, online = false;
     const api: Api = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
-      const response = await fetch(server + endpoint, { ...options, signal: controller.signal,
+      const response = await fetch(server + endpoint, { ...options, signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]),
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } });
       const data = await response.json(); if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`); return data;
     };
     const appearance = createAppearance({ api, target: host, mount: shadow });
     const projectContext = createProjectContext({ api, mount: shadow });
+    const composer = createTaskComposer(shadow, api, task => { update(task); void openReview(task.id); });
+    const diagnostics = createDiagnostics(shadow, api);
+    const routes = createRouteReview(shadow, api, seed => { void composer.open(undefined, seed); });
+    $('.routes-open').onclick = () => { void routes.open(); };
+    $('.new-change').onclick = () => { void composer.open(); };
+    $('.workspace-setup').onclick = () => { void diagnostics.open(); };
     const contextPicker = createContextPicker($('.capture-context'), api);
     $('.project-context-button').onclick = () => { void projectContext.open(); };
     $('.appearance-open').onclick = () => { void appearance.open(); };
@@ -129,9 +156,11 @@ export const NudgeThis = {
           const option = document.createElement('option'); option.value = agent.id; option.textContent = agent.label; select.append(option);
         }
         if ([...select.options].some(option => option.value === previous)) select.value = previous;
-        agentsReady = select.options.length > 0;
-        $<HTMLButtonElement>('.save').disabled = saving || !agentsReady;
-      } catch { agentsReady = false; $<HTMLButtonElement>('.save').disabled = true; }
+        agentsReady = select.options.length > 0; executionEnabled = status.executionEnabled !== false;
+        $('.hint').textContent = executionEnabled ? 'Save a draft or start in a separate workspace. You review before applying.' : 'Execution is disabled. Save a draft without running anything.';
+        $<HTMLButtonElement>('.save').disabled = saving || !agentsReady || !executionEnabled;
+        $<HTMLButtonElement>('.save-draft').disabled = saving || !agentsReady;
+      } catch { agentsReady = false; $<HTMLButtonElement>('.save').disabled = true; $<HTMLButtonElement>('.save-draft').disabled = true; }
     };
     $('.copy-context').onclick = async () => {
       if (!context) return;
@@ -164,7 +193,7 @@ export const NudgeThis = {
         if (selectedId !== id || sequence !== refreshSequence || !dialog.open) return;
         if (!review) {
           $('.review-detail').replaceChildren();
-          review = createTaskReview($('.review-detail'), { api, onMutation: () => { void load(); void refreshReview(); } });
+          review = createTaskReview($('.review-detail'), { api, executionEnabled: () => executionEnabled, onEditDraft: task => { void composer.open(task); }, onMutation: () => { void load(); void refreshReview(); } });
         }
         review.setTask(task);
       } catch (err) {
@@ -182,13 +211,19 @@ export const NudgeThis = {
     $('.review-close').onclick = () => dialog.close();
     $<HTMLSelectElement>('.review-filter').onchange = renderList;
     const position = () => {
+      if (!panel.hidden && context) {
+        if (!selected?.isConnected) selected = resolveElement(context);
+        outline.hidden = !selected;
+        $('.target-hint').textContent = !selected ? 'Target no longer matches. Select it again; your request is preserved.' : context.source ? 'Source hint supplied by this page · unverified' : 'Page element selected. Source file is not verified.';
+        $<HTMLButtonElement>('.save').disabled = saving || !agentsReady || !executionEnabled || !selected;
+      }
       if (selected?.isConnected && !panel.hidden) {
         const rect = selected.getBoundingClientRect();
         Object.assign(outline.style, { left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` });
       }
       for (const [id, marker] of markers) {
         const task = tasks.get(id)!;
-        let target; try { target = document.querySelector(task.context.selector); } catch { /* stale selector */ }
+        const target = resolveElement(task.context);
         marker.hidden = !target || task.context.route !== location.pathname || ['rejected', 'cancelled'].includes(task.status);
         if (target && !marker.hidden) {
           const rect = target.getBoundingClientRect();
@@ -197,18 +232,24 @@ export const NudgeThis = {
       }
     };
     const close = () => { if (saving) return; panel.hidden = true; outline.hidden = true; if (previousFocus instanceof HTMLElement) previousFocus.focus({ preventScroll: true }); };
-    const pick = (target: EventTarget | null) => {
+    const pick = (target: EventTarget | null | undefined, preserve = false) => {
       if (!(target instanceof Element) || target === host || saving) return;
       selected = target; previousFocus = document.activeElement; context = elementContext(target, { captureDom });
       $('.target').textContent = context.selector || context.tagName;
-      textarea.value = ''; error.hidden = true; $('.copy-status').hidden = true; panel.hidden = false; outline.hidden = false;
+      if (!preserve && panel.hidden) textarea.value = ''; error.hidden = true; $('.copy-status').hidden = true; panel.hidden = false; outline.hidden = false;
       const rect = target.getBoundingClientRect();
       panel.style.left = `${Math.max(12, Math.min(rect.left, innerWidth - 372))}px`;
       panel.style.top = `${Math.max(12, Math.min(rect.bottom + 10, innerHeight - 440))}px`;
       panel.style.maxHeight = `${innerHeight - parseFloat(panel.style.top) - 12}px`;
-      void contextPicker.load();
+      if (!preserve) void contextPicker.load();
+      $<HTMLButtonElement>('.target-parent').disabled = !target.parentElement || target.parentElement === document.documentElement;
+      $<HTMLButtonElement>('.target-child').disabled = !target.firstElementChild;
+      $<HTMLButtonElement>('.target-next').disabled = !target.nextElementSibling || target.nextElementSibling === host;
       position(); textarea.focus();
     };
+    $('.target-parent').onclick = () => pick(selected?.parentElement, true);
+    $('.target-child').onclick = () => pick(selected?.firstElementChild, true);
+    $('.target-next').onclick = () => pick(selected?.nextElementSibling, true);
     const contextMenu = (event: MouseEvent) => {
       if (event.composedPath().includes(host) || (modifier === 'alt' && !event.altKey)) return;
       event.preventDefault(); event.stopPropagation(); pick(event.target);
@@ -239,17 +280,22 @@ export const NudgeThis = {
     };
     panel.addEventListener('submit', async event => {
       event.preventDefault(); if (saving || !agentsReady || !textarea.value.trim()) return;
-      saving = true; $<HTMLButtonElement>('.save').disabled = true; error.hidden = true;
+      const draft = (event as SubmitEvent).submitter?.getAttribute('value') !== 'start';
+      if (!draft && (!executionEnabled || !selected?.isConnected)) return;
+      saving = true; $<HTMLButtonElement>('.save').disabled = true; $<HTMLButtonElement>('.save-draft').disabled = true; error.hidden = true;
       try {
-        const response = await fetch(`${server}/api/tasks`, { method: 'POST', signal: controller.signal,
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ request: textarea.value, context, contextIds: contextPicker.value(), agent: $<HTMLSelectElement>('.agent-select').value }) });
+        const response = await fetch(`${server}/api/tasks`, { method: 'POST', signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]),
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ request: textarea.value, draft, kind: 'frontend', context, contextIds: contextPicker.value(), agent: $<HTMLSelectElement>('.agent-select').value }) });
         const data = await response.json(); if (!response.ok) throw new Error(data.error);
         update(data); saving = false; close(); await openReview(data.id);
       } catch (err) { error.textContent = errorMessage(err); error.hidden = false; }
-      finally { saving = false; $<HTMLButtonElement>('.save').disabled = !agentsReady; }
+      finally { saving = false; $<HTMLButtonElement>('.save').disabled = !agentsReady || !executionEnabled; $<HTMLButtonElement>('.save-draft').disabled = !agentsReady; }
     });
     $('.close').addEventListener('click', close);
     document.addEventListener('contextmenu', contextMenu, true); document.addEventListener('keydown', keydown, true);
+    let positionFrame = 0;
+    const schedulePosition = () => { if (!positionFrame) positionFrame = requestAnimationFrame(() => { positionFrame = 0; position(); }); };
+    const observer = new MutationObserver(schedulePosition); observer.observe(document.body, { childList: true, subtree: true, characterData: true });
     window.addEventListener('scroll', position, true); window.addEventListener('resize', position);
     const load = () => fetch(`${server}/api/tasks`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal })
       .then(response => { if (!response.ok) throw new Error('Unable to load tasks'); return response.json(); })
@@ -263,6 +309,6 @@ export const NudgeThis = {
       online = connected; renderList();
       $('.dot').style.background = connected ? 'var(--dr-success)' : 'var(--dr-warning)'; if (connected) { void load(); void loadAgents(); void appearance.load().catch(() => {}); }
     }, value => appearance.receive(value));
-    return { destroy() { clearTimeout(refreshTimer); controller.abort(); appearance.destroy(); projectContext.destroy(); dialog.close(); review?.destroy(); document.removeEventListener('contextmenu', contextMenu, true); document.removeEventListener('keydown', keydown, true); window.removeEventListener('scroll', position, true); window.removeEventListener('resize', position); host.remove(); } };
+    return { destroy() { clearTimeout(refreshTimer); controller.abort(); appearance.destroy(); projectContext.destroy(); dialog.close(); review?.destroy(); document.removeEventListener('contextmenu', contextMenu, true); document.removeEventListener('keydown', keydown, true); window.removeEventListener('scroll', position, true); window.removeEventListener('resize', position); observer.disconnect(); cancelAnimationFrame(positionFrame); composer.destroy(); diagnostics.destroy(); routes.destroy(); host.remove(); } };
   }
 };

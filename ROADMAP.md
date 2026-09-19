@@ -1,65 +1,60 @@
 # NudgeThis roadmap
 
-NudgeThis is a **source alpha**, version `0.2.0-alpha.1`. The current application
-can be built and tested from `main`; it is not a stable release or a packaged
-installer. This roadmap separates implemented behavior from release requirements
-and future capabilities. It is not a delivery-date commitment.
+Version `0.3.0-alpha.1` is an experimental application preview. The current source lives on
+`main`; tagged previews provide native archives with release notes and SHA-256 checksums.
+A working feature or passing application test does not certify an agent or a production deployment.
 
-## Implemented in the alpha
+## Implemented
 
-- A strict TypeScript overlay, dashboard, conversation and review interface.
-- A Rust CLI, HTTP/SSE server, queue, SQLite persistence, Git worktree operations,
-  validation supervisor and agent transports. The compiled runtime needs no Node
-  bridge; build tools and individual providers have their own requirements.
-- Element selection with Alt + right-click, minimized page context, manual source
-  hints and Copy context for agents that accept text.
-- Conversations, public agent replies, follow-ups, patch versions, validation
-  results and explicit Apply/Reject. Agents work in separate Git worktrees.
-- Registered Codex JSONL, local ACP subset and custom stdio transports. These are
-  adapter mechanisms, not certification of arbitrary agents or provider versions.
-- Project context: selected instructions, text skills and reference documents,
-  saved locally with immutable snapshots per change. Text imports do not install
-  executable skills, plugins or supporting tools.
-- Custom light/dark palettes, colors, fonts, local WOFF/WOFF2 uploads and theme
-  import/export, shared across the dashboard and isolated overlay.
-- A deterministic demo, Rust unit tests and black-box integration tests. CI builds
-  and tests on Linux, Windows and macOS. The public landing has a labeled,
-  illustrative browser animation and a real demo screenshot.
+- Strict TypeScript dashboard, isolated overlay, conversations and appearance editors.
+- Rust CLI, HTTP/SSE service, queue, SQLite, Git operations, process supervision and transports.
+  Browser assets are embedded in the executable; Node and Rust are build requirements.
+- General/frontend/backend/test/documentation tasks, optional file references, saved drafts
+  and draft editing with version history. An element selection is optional.
+- Project metadata detection for common frontend/backend frameworks, npm/Bun/pnpm/Yarn
+  suggestions, read-only `doctor`, separate worktree preparation and validation results.
+- Explicit execution-disabled mode for reviewing and preparing work without running commands
+  or agents. Empty validation lists remain visibly unchecked.
+- Local workspace snapshots through a private Git index, retaining uncommitted source without
+  modifying branch/index. Apply checks affected paths; Undo protects later work. Mutation
+  journals retain interruption evidence for manual recovery.
+- Parent/child/sibling selection, minimized context and conservative reidentification of
+  unique matching targets. Source hints are explicitly unverified; Copy context remains available.
+- Persistent instructions, text skills and documents with immutable task snapshots. Importing
+  text does not install executable skills, plugins or referenced tools.
+- Custom light/dark palettes, semantic colors, font roles, local WOFF/WOFF2, sizing, radius
+  and theme import/export. The default blue brand is shared by the landing and application.
+- Route candidate inventory, dynamic URL resolution, manual additions/exclusions, desktop/mobile
+  layout previews, explicit viewport coverage, blocker notes, next-pending navigation,
+  contextual task creation and report export. Scanning is static and bounded, not exhaustive.
+- Queue search/type/status/sort filters, bounded row and diff rendering, patch downloads,
+  keyboard controls, reconnect handling and request timeouts.
+- Default application-only tests with execution disabled. Agent fixtures are opt-in and
+  excluded from default CI. The 0.3 implementation was checked without agents or models.
+- Native packaging/release automation for Linux x64, Windows x64, Apple Silicon and Intel Mac,
+  with install/update/removal guidance. Archives are unsigned preview builds.
 
-## Before a packaged public alpha
+## Next evidence and product milestones
 
-| Priority | Work | Completion evidence |
-| --- | --- | --- |
-| 1 | Test real provider integrations | Record exact provider versions and run selection → conversation → follow-up → validation → Apply, plus cancellation and failure handling, in disposable repositories. Start with Codex and a second independent integration. Current automated peers are simulated. |
-| 2 | Build installable releases | Produce platform-specific binaries with embedded frontend assets, checksums, release notes and installation/uninstall instructions. Verify them on clean systems without Node or Rust installed; document Git and provider prerequisites. Signing/notarization and update handling need an explicit distribution policy. |
-| 3 | Reduce setup friction | Walk through setup with a new user and real local applications. Document framework-specific injection, worktree dependency setup, Windows executable/wrapper behavior and failure recovery. |
-| 4 | Complete release validation | Record browser, keyboard, responsive, accessibility and saved-theme checks against the release build; verify existing data migration and backups. Do not treat protocol fixtures or a landing animation as evidence of real provider compatibility. |
+| Work | Acceptance boundary |
+| --- | --- |
+| Real provider compatibility | Opt-in disposable-project checks with exact agent/version results; never infer compatibility from configured adapters, application tests or simulations. |
+| Distribution maturity | Signing/notarization, broader operating-system checks, native installers, documented rollback and a deliberate update policy. Current archives are portable previews. |
+| Framework depth | Evidence-based source mapping, router AST adapters, nested/generated route resolution, real application integration examples and language-aware file references. |
+| Visual verification | Opt-in redacted screenshots, post-HMR checks, before/after evidence and fuller mobile device emulation. Current coverage records manual review. |
+| Recovery and scale | More automated recovery only when file state proves the action, snapshot retention controls, API pagination, review sessions and conflict visualization. |
+| Agent depth | Native resume, interactive ACP permissions, image context and additional transport capability negotiation with versioned evidence. |
+| Interchange | Export/import review sessions and carefully scoped MCP/GitHub integration. Team/cloud execution and remote agents need separate workflow and security design. |
 
-These are release requirements, not reasons to hide working source on a development
-branch. Tagged releases will identify exactly which builds and integrations were
-verified. No npm launcher, installer or binary release is currently published.
+## Current limits
 
-## Product work after the current alpha
+Route candidates and selectors are hints, not verified runtime/source identities. A mobile
+frame changes layout width but does not emulate touch, user agent or hardware. Progress
+only counts explicitly reviewed viewports and becomes outdated when the source changes;
+rescan to begin a fresh checklist. Worktrees do not inherit ignored dependencies and are
+not operating-system sandboxes. Apply does not commit, push or certify the visual result.
 
-| Order | Capability | Acceptance boundary |
-| --- | --- | --- |
-| 1 | Reliable element identity and selection | Reidentify targets after DOM changes with explicit confidence; add parent/child navigation and multi-select. A task ID or CSS selector alone is not persistent element identity. |
-| 2 | Safe Undo and continuous review | Store before/after file state and refuse to overwrite later user changes. Support successive changes without requiring a clean committed checkout for every new task. Retry and Reject do not undo an applied patch. |
-| 3 | Screenshots and visual verification | Add opt-in, redacted capture and before/after artifacts. Track applied and visually verified separately, including hot-reload/render failures. Current validation runs commands only. |
-| 4 | Framework and agent depth | Add evidence-based source mapping, framework integration guides, interactive ACP permissions and native session resume. Publish compatibility results per tested provider/version. |
-| 5 | Review sessions and interchange | Group feedback, make conflicts visible, export review data and add MCP tools where useful. GitHub integration, remote agents, Docker support and team/cloud features need their own security and workflow design. |
-
-Automatic Apply, autonomous QA and broad provider claims depend on the earlier
-review and recovery work. They are not present in this alpha.
-
-## Current constraints
-
-New tasks start from clean, committed HEAD. Worktrees do not inherit installed
-dependencies and are not operating-system sandboxes. Apply changes files without
-committing, pushing, confirming hot reload or verifying the visual result. The
-`nudgethis` command, configuration names and integration identifiers remain for
-compatibility with earlier source builds.
-
-Read [security boundaries](SECURITY.md), [agent capabilities](docs/agents.md),
-[architecture](docs/architecture.md) and [contribution guidance](CONTRIBUTING.md)
-before extending or deploying the local runtime.
+The CLI/configuration/state identifiers still use `nudgethis` for compatibility. No automatic
+updater, universal agent certification, autonomous visual QA or stable-release claim is made.
+Read [security](SECURITY.md), [route review](docs/route-review.md), [recovery](docs/recovery.md)
+and [installation](docs/install.md) before extending or distributing the application.

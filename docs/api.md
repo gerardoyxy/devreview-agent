@@ -6,20 +6,24 @@ Browser calls must also use an explicitly allowed loopback Origin.
 
 | Method | Route | Result |
 | --- | --- | --- |
-| GET | `/api/status` | Branch, HEAD, adapter, workers, validation commands |
+| GET | `/api/status` | Branch, HEAD, configured agents, executionEnabled, setup/validation commands |
+| GET | `/api/diagnostics` | Read-only framework, package-manager and executable availability report |
 | GET | `/api/tasks` | Task summaries, newest first |
-| POST | `/api/tasks` | Create and enqueue; returns 202 |
+| POST | `/api/tasks` | Create a draft or enqueue; returns 202 |
 | GET | `/api/tasks/QA-1` | Context, patch, validation, messages, activity, revision summaries |
 | POST | `/api/tasks/QA-1/messages` | Send a follow-up; returns 202 |
 | GET | `/api/tasks/QA-1/revisions/1` | Historical patch, validation and context snapshot for version 1 |
+| POST | `/api/tasks/QA-1/draft` | Edit a draft with version checking |
+| POST | `/api/tasks/QA-1/start` | Queue a saved draft when execution is enabled |
+| POST | `/api/tasks/QA-1/undo` | Undo an applied patch if affected files are unchanged |
 | POST | `/api/tasks/QA-1/apply` | Apply a ready patch to the active working tree |
 | POST | `/api/tasks/QA-1/reject` | Reject and remove the worktree |
-| POST | `/api/tasks/QA-1/retry` | Discard old worktree and retry from HEAD |
+| POST | `/api/tasks/QA-1/retry` | Discard old worktree and retry from the current workspace |
 | POST | `/api/tasks/QA-1/cancel` | Cancel pending or active work |
 | DELETE | `/api/tasks/QA-1` | Delete an inactive, unapplied task and worktree |
 | GET | `/api/project-context` | Project instructions, skills and reference documents |
 | POST | `/api/project-context` | Validate and replace the project context library |
-| GET | `/api/events` | SSE events named `connected`, `task`, `appearance` and `project-context` |
+| GET | `/api/events` | SSE events named `connected`, `task`, `appearance`, `project-context` and `route-review` |
 
 Use `Content-Type: application/json` for POST, and `{}` for actions. A task body (optional `agent` selects a configured ID):
 
@@ -39,7 +43,8 @@ Use `Content-Type: application/json` for POST, and `{}` for actions. A task body
 ```
 
 URLs are stripped of credentials, query strings and fragments. Extra fields are
-ignored; the server does not accept commands or repository paths from task bodies.
+ignored; the server does not accept executable commands or a repository root from task bodies.
+Optional `references` are safe relative file hints, not an allowlist or file-reading request.
 Payloads are limited to 32 KB. A conflict or invalid lifecycle action returns 409.
 
 SSE uses `fetch` with the authorization header, rather than putting a token in
@@ -139,3 +144,36 @@ are not broadcast. No account-level or cross-repository synchronization is provi
 
 `POST /api/shutdown` with `{}` stops the server and cancels active agents. The Rust CLI's
 `stop` command uses it. `GET /api/status` additionally reports `runtime: "rust"`.
+
+## Drafts and execution control
+
+Creation accepts `kind` (`frontend`, `backend`, `tests`, `documentation`, `general`),
+`draft: true` and up to 32 `references`. Element `context` is optional. Requests are limited
+to 8000 characters. Drafts do not snapshot source, create worktrees or execute anything.
+POST `/api/tasks/QA-1/draft` accepts the same fields plus `attempt`; it records the previous
+version and increments the draft attempt. POST `/start` captures the current workspace.
+Execution-disabled servers return 403 for execution, start, follow-up and retry requests.
+
+`validationStatus` is `not_run`, `not_configured`, `running`, `passed` or `failed`.
+`setupChecks` records preparation separately. An empty check list never implies a pass.
+Applied tasks include an `undo` before/after record; older tasks may not have one.
+Interrupted Apply/Undo becomes `recovery_required`. See [recovery](recovery.md).
+
+## Route review
+
+GET `/api/route-review` returns `{version:1,revision:0,origin:"",routes:[],...}` initially.
+POST accepts the last-read `revision` and one operation:
+
+| action | Fields |
+| --- | --- |
+| `scan` | `origin`: exact configured loopback origin; starts a fresh checklist |
+| `add` | `path`: concrete URL path without query or fragment |
+| `resolve` | `id`, `path`: map a route candidate to a real URL |
+| `remove` | `id`: exclude a route from coverage |
+| `review` | `id`, `viewport` (`desktop`/`mobile`), `status` (`pending`/`reviewed`/`blocked`), `width`, optional `note` |
+
+Review notes are limited to 2000 characters; blocked records require a reason. Reviewed
+records require a concrete path and a width of 320–480 px for mobile or 1024–2560 px for
+desktop. The server records time and `method: manual-browser-review`. It validates record
+shape and width, not the truth of a human review. Stale revisions return 409. The selected
+origin is never fetched by Rust; the browser loads the preview. [Coverage semantics](route-review.md).

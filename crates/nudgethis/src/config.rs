@@ -10,6 +10,32 @@ pub struct Config {
     pub validation: Validation,
     pub agents: Vec<Agent>,
     pub default_agent: String,
+    pub setup: Setup,
+    pub execution: Execution,
+}
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(default, deny_unknown_fields, rename_all = "camelCase")]
+pub struct Setup {
+    pub commands: Vec<String>,
+    pub timeout: u64,
+}
+impl Default for Setup {
+    fn default() -> Self {
+        Self {
+            commands: vec![],
+            timeout: 120_000,
+        }
+    }
+}
+#[derive(Clone, Deserialize, Serialize)]
+#[serde(default, deny_unknown_fields)]
+pub struct Execution {
+    pub enabled: bool,
+}
+impl Default for Execution {
+    fn default() -> Self {
+        Self { enabled: true }
+    }
 }
 #[derive(Clone, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields, rename_all = "camelCase")]
@@ -89,6 +115,11 @@ impl Default for Config {
                 timeout: agent_timeout(),
             }],
             default_agent: "codex".into(),
+            setup: Setup {
+                commands: vec![],
+                timeout: 120_000,
+            },
+            execution: Execution::default(),
         }
     }
 }
@@ -101,6 +132,9 @@ pub fn valid_id(id: &str) -> bool {
             .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == b'_' || c == b'-')
 }
 impl Config {
+    pub fn execution_enabled(&self) -> bool {
+        self.execution.enabled && std::env::var("NUDGETHIS_DISABLE_EXECUTION").as_deref() != Ok("1")
+    }
     pub fn load(root: &Path) -> Result<Self> {
         let path = root.join("nudgethis.toml");
         let config = if path.exists() {
@@ -116,6 +150,22 @@ impl Config {
         Ok(config)
     }
     pub fn validate(&self) -> Result<()> {
+        ensure!(
+            self.setup.commands.len() <= 16 && self.validation.commands.len() <= 32,
+            "Too many setup or validation commands"
+        );
+        ensure!(
+            self.setup.commands.is_empty() || (1..=3_600_000).contains(&self.setup.timeout),
+            "Invalid setup timeout"
+        );
+        ensure!(
+            self.setup
+                .commands
+                .iter()
+                .chain(&self.validation.commands)
+                .all(|s| !s.trim().is_empty() && s.len() <= 4096),
+            "Invalid setup or validation command"
+        );
         ensure!(
             (1..=8).contains(&self.workers.max_concurrent),
             "Workers must be between 1 and 8"
