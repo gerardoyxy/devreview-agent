@@ -361,6 +361,10 @@ and accent controls. Route review extends the framed workspace to a two-column c
 and preview. Its top progress bar counts reviewed viewports; the list pairs readable desktop
 and mobile states. On phones the checklist and preview stack. Preview scaling preserves
 its selected layout width; the surrounding interface retains the user's saved theme.
+Device browser uses the same native selects and accent action, with explicit dimensions,
+rotation and recorded settings. It opens a separate owned Chromium window. On phones the
+route list collapses behind a labeled toggle so review controls remain reachable; explanatory
+session details are expandable. Loading and unavailable-browser states preserve review notes.
 
 ### Selected object and demonstration
 

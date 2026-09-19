@@ -30,3 +30,8 @@ jobs:
       - name: Application tests (no agents or models)
         run: cargo test --locked -p nudgethis --bin nudgethis
       - run: npm test
+      - name: Chromium device emulation (no agents or models)
+        if: runner.os == 'Linux'
+        env:
+          NUDGETHIS_TEST_BROWSER: /usr/bin/google-chrome
+        run: node --test tests/device-preview.safe.test.js

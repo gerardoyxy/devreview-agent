@@ -36,6 +36,7 @@ export interface ServerStatus {
   executionEnabled?: boolean; validationCommands?: string[]; setupCommands?: string[];
 }
 export interface Diagnostics {
+  deviceBrowser: { available: boolean; browser: string | null };
   project: { frameworks: string[]; backends: string[]; packageManager: string; packageManagerAvailable: boolean; suggestedOrigin: string; warnings: string[]; suggestedSetup: string[]; suggestedValidation: string[] };
   gitAvailable: boolean; configurationExists: boolean; executionEnabled: boolean; validationConfigured: boolean;
   agents: Array<{ id: string; executableAvailable: boolean; authentication: string }>;

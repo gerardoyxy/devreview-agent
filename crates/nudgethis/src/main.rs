@@ -3,6 +3,7 @@ mod appearance;
 mod application_tests;
 mod config;
 mod core;
+mod device_preview;
 mod error;
 mod git;
 mod process;
