@@ -10,9 +10,8 @@ you trust and under your own operating-system account.
 - `.devreview/` contains the token, database, logs, and worktrees. Keep it ignored.
 - Browser comments are JSON data passed to the adapter through stdin. They are
   never interpolated into a shell command.
-- Validation commands come only from trusted `devreview.config.mjs`. Loading that
-  JavaScript configuration and running validation can execute arbitrary code as
-  your OS user. Review repositories and configuration before starting the server.
+- Validation commands come only from trusted `devreview.toml`. TOML is parsed as data. Configured
+  agent executables and validation commands can execute arbitrary code as your OS user. Review repositories and configuration before starting the server.
 - The Codex adapter requests its workspace-write sandbox. Git worktrees isolate
   edits but are **not** an OS or network sandbox. The Rust runtime terminates process groups/jobs on cancellation, but each custom
   or ACP agent must supply filesystem/network isolation. ACP client capabilities
@@ -59,3 +58,11 @@ and protocol IDs, and does not publish reasoning/tool payloads as chat. Interact
 ACP permissions, external filesystem/terminal client operations and native resume
 are not yet implemented. Copy Context writes only the minimized selection/request
 to the clipboard; sending it to another service is a separate user action.
+
+## Appearance data
+
+Themes and uploaded fonts stay in the local database. The API accepts only hex colors,
+bounded font-family names and WOFF/WOFF2 payloads (1 MiB combined); it does not fetch
+user-supplied font URLs. Browser font parsing is still performed by the browser. Imported
+themes are data and cannot provide scripts or executable CSS. Exported themes include
+uploaded fonts; users are responsible for rights to distribute those files.

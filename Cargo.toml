@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/agent-runtime"]
+members = ["crates/agent-runtime", "crates/devreview"]
 resolver = "2"
 
 [workspace.package]
@@ -11,5 +11,5 @@ license = "MIT"
 anyhow = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "process", "io-util", "io-std", "signal", "time", "sync"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "process", "io-util", "io-std", "signal", "time", "sync", "net", "fs"] }
 process-wrap = { version = "10", features = ["tokio1"] }

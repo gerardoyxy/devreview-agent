@@ -1,6 +1,6 @@
 // Deterministic protocol peer, never a real model. Runs on Windows/macOS/Linux.
 import { createInterface } from 'node:readline';
-import { writeFile } from 'node:fs/promises';
+import { writeFile, readFile, unlink, symlink } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 const [mode, flavor = 'normal'] = process.argv.slice(2);
 const emit = value => console.log(JSON.stringify(value));
@@ -32,8 +32,21 @@ if (mode === 'acp') {
   }
 } else {
   let input = ''; for await (const chunk of process.stdin) input += chunk;
-  await writeFile('captured.json', JSON.stringify({ input, args: process.argv.slice(3) }));
-  if (mode === 'timeout') {
+  if (mode !== 'workflow') await writeFile('captured.json', JSON.stringify({ input, args: process.argv.slice(3) }));
+  if (mode === 'workflow') {
+    const task = JSON.parse(input).task;
+    if (flavor === 'question' && task.attempt === 1) { emit({type:'message',text:'Which color?'}); }
+    else if (flavor === 'wait') { emit({type:'message',text:'Working on it.'}); spawn(process.execPath,['-e',"setTimeout(()=>require('fs').writeFileSync('escaped-child.txt','bad'),1500)"],{stdio:'inherit'}); setInterval(()=>{},1000); }
+    else if (flavor === 'secret') await writeFile('.env','SECRET=fixture');
+    else if (flavor === 'symlink') await symlink('/tmp','escape');
+    else if (flavor === 'binary') { await writeFile('asset.bin',Buffer.from([0,2,255,4,0,6]));await unlink('other.txt'); }
+    else {
+      if(task.attempt>1 && flavor==='conversation' && !(await readFile('button.css','utf8')).includes('green'))throw new Error('Previous edit was lost');
+      await writeFile('button.css',`.button { color: green;${task.attempt>1?' border-radius: 14px;':''} }\n`);
+      emit({type:'message',text:task.attempt===1?'I made it green.':'I kept it green and rounded the corners.'});
+      if(flavor==='conversation' && task.attempt>1 && !task.messages.some(m=>m.content==='Also round the corners'))throw new Error('Conversation was lost');
+    }
+  } else if (mode === 'timeout') {
     spawn(process.execPath, ['-e', "setTimeout(()=>require('fs').writeFileSync('escaped-child.txt','bad'),1100)"], { stdio: 'inherit' });
     setInterval(() => {}, 1000);
   } else if (mode === 'flood') {

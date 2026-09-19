@@ -127,7 +127,7 @@ Evidencia principal de la base: `packages/overlay/src/index.js`, `review.js`,
 y las pruebas de workflow, persistence, server y conversations en el commit auditado.
 Los archivos del navegador pasan a `.ts` en esta entrega.
 
-## Arquitectura acordada y alcance de la primera etapa
+## Arquitectura acordada y estado de la migración
 
 Objetivo final:
 
@@ -149,18 +149,21 @@ El DOM, eventos del navegador, selección y extracción inicial de contexto sigu
 TypeScript porque viven en el navegador. Rust valida, reduce, almacena y distribuye
 ese contexto. Rust no elimina los permisos del proveedor ni vuelve local un modelo remoto.
 
-Primera etapa implementada en esta rama:
+Implementado en esta rama:
 
 - Frontend TypeScript `strict`, contratos explícitos y compilación separada.
 - Workspace Cargo; ejecución, timeout, cancelación y normalización de agentes en Rust.
 - Codex JSONL, ACP v1 local por stdio y protocolo JSONL propio para adaptadores externos.
 - Registro de agentes en configuración confiable y selector por nueva tarea.
 - Contexto copiable para entregar manualmente a un agente sin conexión automática.
-- Puente temporal Node → Rust para conservar SQLite, versiones, validación y Git existentes.
+- Servidor HTTP/SSE, CLI, configuración TOML, cola, SQLite, Git, validación y demo en Rust.
+- Biblioteca de transportes integrada directamente en el servidor, sin puente Node.
+- Migración de bases anteriores con respaldo SQLite, recuperación y conservación de mensajes/versiones.
+- Recursos web embebidos en el ejecutable; Node queda para build y pruebas, o requisitos propios de agentes.
+- Apariencia personalizable y persistente: dos paletas, fuentes locales/subidas, tamaño, radio e import/export.
 
-**Aún permanecen en JavaScript:** servidor HTTP/SSE, configuración, cola, persistencia,
-Git, validación, CLI de usuario y scripts de demo/build. La siguiente etapa los sustituye
-por Rust. No es una distribución final sin Node ni una migración completa.
+La migración del runtime está completa. La distribución de binarios por plataforma y la
+publicación de paquetes son trabajo posterior; el repositorio ofrece compilación desde fuente.
 
 ## Compatibilidad con agentes: promesas verificables
 
@@ -188,21 +191,21 @@ Cada integración publicada debe documentar versión, autenticación, capacidade
 
 | Etapa | Entrega | Criterio de salida |
 |---|---|---|
-| M1 — iniciada aquí | TS estricto + ejecutor Rust + registro de agentes + Copy Context | Flujo probado hasta Apply, cancelación de descendientes, rechazo de agente desconocido y pruebas de protocolo. |
-| M2 | Servidor, CLI, SQLite, cola, Git y validación en Rust | Misma API con pruebas de paridad; migración de DB con backup y recuperación; binario de runtime sin Node. |
+| M1 - implementada | TS estricto + ejecutor Rust + registro de agentes + Copy Context | Flujo probado hasta Apply, cancelación de descendientes, rechazo de agente desconocido y pruebas de protocolo. |
+| M2 - implementada | Servidor, CLI, SQLite, cola, Git y validación en Rust | Misma API con pruebas de paridad; migración de DB con backup y recuperación; binario de runtime sin Node. |
 | M3 | Identidad de elemento, multi-select, captura opcional y before/after | Reidentificación con nivel de confianza; captura redactada y límites; degradación clara sin imagen. |
 | M4 | Undo, sesiones y verificación tras Apply | Undo rechaza cambios ajenos; applied/verified separados; detección de HMR/render y resultado visible. |
 | M5 | React/Vite/Next, source mapping y segunda integración real certificada | Archivo/línea con evidencia, fallback DOM, permisos interactivos y smoke tests por proveedor. |
 | M6 | Review sessions, Fix All, exportación, MCP y empaquetado | Conflictos visibles, formatos versionados, artefactos y binarios por plataforma. |
 | Después | QA autónomo, routing automático, equipos y nube | Solo después de medir estabilidad y resolver el flujo central. |
 
-M1 describe el inicio de la migración, no una nueva promesa de fecha o porcentaje del producto.
-Antes de retirar Node en M2, portar los tests de API/seguridad/Git y comparar respuestas
-del servidor antiguo y del nuevo con los mismos fixtures. Mantener un único escritor
-SQLite por repositorio; nunca ejecutar dos colas sobre la misma base.
+M1 y M2 cubren la migración tecnológica, no todas las propuestas de producto. Las pruebas
+anteriores de API, seguridad, Git y persistencia se portaron a pruebas de caja negra contra
+el ejecutable Rust con fixtures equivalentes. No se ejecutan dos colas contra la misma base.
+La [guía de migración](migration.es.md) explica configuración, respaldo y recuperación.
 
 Modelar explícitamente `Project`, `ReviewSession`, `ElementAnchor`, `Task`, `AgentRun`,
-`Message`, `Revision` y `Artifact` en M2/M3, con relación y agente por ejecución.
+`Message`, `Revision` y `Artifact` en M3 y siguientes, con relación y agente por ejecución.
 Persistir identificadores de eventos y soportar reconexión desde un cursor; el SSE
 actual solo notifica que hay que volver a pedir la tarea.
 
@@ -231,13 +234,13 @@ actual solo notifica que hay que volver a pedir la tarea.
 
 No se instalaron agentes de terceros ni se iniciaron sesiones de modelos reales.
 No se cambiaron las credenciales de GitHub ni la configuración global de Git.
-No se implementaron capturas, Undo, migración SQLite a Rust, MCP, nube, equipos,
+No se implementaron capturas, Undo, MCP, nube, equipos,
 auto-apply, publicación npm ni las otras fases por el solo hecho de aparecer en el roadmap.
 
-## Evidencia de esta primera etapa
+## Evidencia de la migración
 
 Verificación local: compilación TypeScript estricta, análisis Rust con Clippy sin
-advertencias, 36 pruebas Node de integración/regresión y 2 pruebas unitarias Rust.
+advertencias, pruebas de caja negra que ejecutan el servidor Rust, pruebas de protocolos y pruebas unitarias Rust. Las pruebas conservan los casos de conflicto, cancelación, conversaciones, versiones y persistencia; añaden backup SQLite y temas.
 Chromium comprobó selector de agente, copia de contexto con y sin sesión, conversación,
 versiones, Apply, persistencia al recargar, dashboard y diseño móvil. Los agentes
 fueron simulados; no se ejecutó un modelo real. La matriz CI repite compilación,

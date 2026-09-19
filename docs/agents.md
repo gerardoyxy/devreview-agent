@@ -1,43 +1,49 @@
-# Agent transports (migration phase 1)
+# Agent transports
 
-The browser UI is TypeScript. `crates/agent-runtime` owns coding-agent subprocesses
-and protocols in Rust. A temporary Node bridge feeds it the existing queue's task
-and isolated worktree. The HTTP server, SQLite, queue, Git and validation are still
-Node modules during this phase; see the [migration review](roadmap-review.es.md).
+TypeScript provides the browser UI; the entire runtime is Rust. The server calls the
+`devreview-agent-runtime` library directly. A separate protocol executable remains for
+integration tests and external callers; no Node bridge is used.
 
 ## Configure trusted executables
 
-Build with `npm ci && npm run build` from this checkout (Node 24.15+, Git and stable
-Rust). The source CLI finds `target/debug/devreview-agent-runtime[.exe]`. Set
-`DEVREVIEW_RUNTIME` to the absolute path of a release binary when using `cargo build --release`.
-This setting is local to the process; it does not change any provider login.
+Build with `npm ci` and `npm run build`. Register installed, authenticated agents in the
+application's trusted `devreview.toml`:
 
-In the target application's trusted `devreview.config.mjs`:
+```toml
+defaultAgent = "codex"
 
-```js
-export default {
-  server: { port: 7331, allowedOrigins: ['http://localhost:5173'] },
-  defaultAgent: 'codex',
-  agents: [
-    { id: 'codex', label: 'Codex', transport: 'codex', command: 'codex' },
-    // Replace these example paths/arguments with an installed, authenticated agent.
-    { id: 'local-acp', label: 'My ACP agent', transport: 'acp', command: '/absolute/path/to/acp-agent', args: [] },
-    { id: 'custom', label: 'My custom agent', transport: 'stdio', command: '/absolute/path/to/adapter', args: [] }
-  ],
-  validation: { commands: ['npm test'] }
-};
+[server]
+port = 7331
+allowedOrigins = ["http://localhost:5173"]
+
+[[agents]]
+id = "codex"
+label = "Codex CLI"
+transport = "codex"
+command = "codex"
+timeout = 600000
+
+# Replace example paths with installed executables, or remove these entries.
+[[agents]]
+id = "local-acp"
+label = "My ACP agent"
+transport = "acp"
+command = "/absolute/path/to/acp-agent"
+args = []
+
+[[agents]]
+id = "custom"
+label = "My custom agent"
+transport = "stdio"
+command = "/absolute/path/to/adapter"
+args = []
 ```
 
-Keep only installed agents in your configuration. Nothing is installed or
-authenticated by this file. Commands, arguments and runtime paths come only from
-trusted local configuration. Browser requests choose an existing agent ID, never
-an executable. A task retains its chosen ID on follow-ups/retry; removing that ID
-from configuration produces an explicit failure instead of silently switching providers.
-Provider credentials stay in each provider's own configuration/environment.
-
-Legacy single-agent `agent: { command: 'codex', model, timeout }` remains supported.
-Custom in-process JavaScript adapters remain possible for the demo and compatibility
-tests, but are not the final plugin API.
+Nothing is installed or authenticated by this file. Executables and arguments come only
+from local configuration. Browser requests select an existing agent ID, never a command.
+Tasks retain their chosen ID. Removing it fails subsequent turns instead of switching providers.
+Each provider keeps its own credentials and runtime requirements. See [migration](migration.es.md)
+for the former `agent` option and in-process JavaScript adapters.
 
 ## Runtime protocol v1
 
@@ -64,9 +70,9 @@ Runtime events:
 ```
 
 Failure emits `{"protocolVersion":1,"type":"error","message":"..."}` and exits
-nonzero. The bridge requires a terminal result as well as exit zero. The input is
+nonzero. The external protocol requires a terminal result and exit zero. Its input is
 limited to 256 KiB, stdout/stderr to 2 MiB each, and timeout to at most one hour.
-Recent conversation is bounded before crossing the bridge; SQLite retains full history.
+The server sends an allowlisted task envelope with up to 128 KB of recent message text; the prompt caps conversation at 48,000 characters. SQLite retains full history.
 Only public messages enter chat. Reasoning and raw tool payloads are not rendered.
 
 The runtime uses Unix process groups or Windows Job Objects. Completion, cancellation,

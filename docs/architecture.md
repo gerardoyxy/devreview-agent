@@ -2,106 +2,88 @@
 
 ```mermaid
 flowchart LR
-  App[Local development app] --> Overlay[Element picker + comment]
-  Overlay -->|Authenticated HTTP| Server[Loopback server]
-  Server --> Store[(SQLite tasks + audit)]
-  Server --> Queue[Worker queue]
-  Queue --> Git[Detached Git worktree]
-  Git --> Bridge[Temporary Node bridge]
-  Bridge --> Runtime[Rust agent runtime]
+  App[Local app] --> Overlay[TypeScript overlay + review modal]
+  Dashboard[TypeScript dashboard] --> API[Rust HTTP + SSE]
+  Overlay -->|Bearer token| API
+  API --> Store[(SQLite tasks, conversations, versions, appearance)]
+  API --> Queue[Rust worker queue]
+  Queue --> Git[Rust Git worktree operations]
+  Git --> Runtime[Rust agent transport library]
   Runtime --> Agent[Codex / ACP / custom stdio]
-  Agent --> Validation[Trusted validation commands]
-  Validation --> Review[Diff + results]
-  Review -->|Explicit Apply| WorkingTree[Active working tree]
+  Agent --> Validation[Rust command supervisor]
+  Validation --> Review[Patch + validation results]
+  Review -->|Explicit Apply| Checkout[Active working tree]
 ```
 
-The browser modules are strict TypeScript, compiled into `dist/browser`. The Rust
-workspace owns agent execution and protocol translation. The HTTP, queue, SQLite,
-Git and validation modules remain ESM JavaScript during phase 1. The target is a
-Rust backend with embedded browser assets; see the [migration review](roadmap-review.es.md).
+`devreview` is one executable with embedded, compiled browser assets. No Node bridge or
+JavaScript backend remains. Node is used by build scripts and the black-box test harness;
+fixture agents are deterministic test peers, not production dependencies.
 
-| Directory | Responsibility |
+| Path | Responsibility |
 | --- | --- |
-| `packages/overlay` | Browser context capture, comment UI, element status |
-| `packages/server` | Authenticated HTTP/SSE and review dashboard |
-| `packages/core` | Trusted config, lifecycle, per-repository server lock |
-| `packages/queue` | Persistent tasks, status transitions, concurrency, audit |
-| `packages/git` | Worktrees, patches, conflicts, cleanup |
-| `packages/agent-sdk` | Temporary Node bridge to the native agent runtime |
-| `crates/agent-runtime` | Rust process lifecycle, Codex/ACP/custom protocols |
-| `packages/contracts` | Strict browser/API types; schema generation planned in phase 2 |
-| `packages/validation` | Trusted shell commands and results |
-| `packages/cli` | Local developer commands |
-| `packages/shared` | Input validation, process management, serialization |
+| `crates/devreview/src/main.rs` | CLI, setup, shutdown and disposable Rust demo |
+| `config.rs` | Trusted TOML configuration and registered agents |
+| `server.rs` | Axum loopback HTTP, bounded JSON, auth, origin/Host validation, SSE and assets |
+| `core.rs` | Repository ownership, lifecycle, queue, concurrency, messages and actions |
+| `store.rs` | SQLite, WAL-aware migration backup, tasks/messages/revisions/audit/preferences |
+| `git.rs` | Detached worktrees, safe patch collection, apply checks and cleanup |
+| `process.rs` | Bounded, cancellable validation/Git subprocesses with process groups/jobs |
+| `appearance.rs` | Appearance schema constraints and uploaded-font limits |
+| `crates/agent-runtime` | Reusable Rust transport library plus protocol-test executable |
+| `packages/overlay` | TypeScript capture, review and shared appearance editor |
+| `packages/server/public` | Dashboard HTML/CSS/TypeScript, embedded at Rust compile time |
+| `packages/contracts` | Strict browser API types, checked against black-box HTTP behavior |
+| `tests` | Node test client invoking real Rust binaries and disposable Git fixtures |
 
-## Lifecycle
+## Lifecycle and consistency
 
 `pending → analyzing → working → validating → ready → applying → applied`
 
-Terminal/review states also include `failed`, `cancelled`, `conflict`, and `rejected`.
-An agent reply without a patch enters `awaiting_feedback`. A follow-up starts a new
-attempt in the existing worktree and sends the conversation as prompt context.
-SQLite records state changes and audit entries. Interrupted active states become
-failed on recovery. No automatic apply, commit, push, or model retry occurs.
+Other review states are `awaiting_feedback`, `failed`, `cancelled`, `conflict`, `rejected`.
+An agent reply without a patch waits for feedback. Follow-ups increment the attempt and reuse
+the worktree, except after Apply/Reject. Retry starts from committed HEAD. The latest requested
+attempt must match the stored version before a UI action runs. CLI actions target the latest.
 
-The queue limits concurrent agent processes. Git metadata operations and Apply
-are serialized. Independent tasks can run simultaneously, but two patches touching
-the same local file cannot overwrite each other. A patch is collected before
-validation and compared afterward; validation that modifies source fails the task.
+Queue actions serialize through a control mutex. A bounded number of turns run concurrently.
+Git worktree metadata and application of patches serialize separately. Process cancellation
+stops the tree before the turn completes. A cancellation token spans agent and validation.
+The server's stop token cancels active work; SQLite recovers interrupted active states as failed.
 
-## Agent adapters
+SQLite preserves the Node alpha's JSON task rows and additive message/revision tables.
+Task update, audit insertion and terminal revision write share one transaction. Version 0
+databases receive a SQLite backup, including committed WAL data, before the schema transaction.
+Reopening version 1 does not duplicate messages or backups. Future schema versions are refused.
+Earlier patch contents remain available; Apply/Reject update their version's status.
 
-Production transports execute through Rust. [Transport configuration and limitations](agents.md)
-describe per-task selection, protocol v1, and the ACP subset. The in-process interface
-below is retained for compatibility and deterministic demo adapters.
+The agent receives an allowlisted task envelope and at most 128 KB of recent message text;
+the shared prompt also caps conversation at 48,000 characters. Full history remains in SQLite.
+No provider credentials, browser-supplied commands or raw prior process logs enter this envelope.
 
-Any object with this interface can be passed to `startServer({ root, agent })`:
+## Agent transports
 
-```ts
-interface CodingAgent {
-  name: string;
-  run(input: {
-    task: {
-      id: string; request: string; context: Record<string, unknown>;
-      messages: Array<{ role: 'user' | 'assistant'; content: string }>;
-    };
-    cwd: string; // isolated worktree
-    signal: AbortSignal;
-    onMessage(text: string): void; // emit public replies while the agent runs
-  }): Promise<{ output?: string; stderr?: string; message?: string }>;
-}
-```
+The queue calls `devreview-agent-runtime` directly as a Rust library. Each turn runs one
+configured executable in its isolated worktree. Codex JSONL, the supported ACP v1 subset and
+custom JSONL normalize public responses into chat events. See [agents](agents.md).
+There is no in-process JavaScript adapter API. Existing adapters can expose the stdio protocol
+in any language; their own runtime is independent of DevReview.
 
-An adapter must honor cancellation, edit only `cwd`, and return after all its
-children stop. It must not commit, push, or mutate the active checkout. Worktree
-isolation is not a security boundary: each adapter needs its own sandbox.
+## Appearance
 
-The Rust Codex transport invokes `codex exec --sandbox workspace-write --json -` and
-passes context through stdin. Its model is left to local Codex configuration;
-`agent.model` can explicitly select one. No provider API key is stored by DevReview.
-See [Codex non-interactive mode](https://developers.openai.com/codex/noninteractive/).
+A versioned JSON document stores both palettes, mode, three font roles, base size, radius
+and optional base64 WOFF/WOFF2 files. Authenticated updates persist in SQLite and publish
+`appearance` SSE notifications. Reconnecting clients refetch preferences. Clients with an
+unsaved preview retain it until Save/Cancel; there is no collaborative merge or optimistic
+revision control for themes, so the last saved theme wins.
 
-Only completed `agent_message` items from Codex JSONL become chat messages;
-reasoning, command logs and tool output are not inserted into the conversation.
-Adapters can alternatively return a final `message`. The CLI starts a separate
-invocation for each turn, with recent conversation text (up to 48,000 characters)
-and the original request; it does not attach to Codex App or resume another task's
-CLI session. Full stored history stays available in the UI.
+Semantic CSS variables propagate through the dashboard and DevReview Shadow DOM. The host
+application's root is never changed by the overlay. Fonts load through `FontFace` from bytes,
+without public unauthenticated font endpoints or external font URLs. Custom themes can choose
+any RGB colors; the editor reports several text contrast pairs and does not guarantee an
+entire custom theme meets WCAG.
 
-SQLite uses additive `messages` and `revisions` tables. Revisions record a turn's
-patch and validation when it finishes; a later Apply/Reject updates that revision's
-status without replacing its diff. Follow-ups and retries keep older revisions.
-Applied/rejected worktrees are recreated from committed HEAD when continued.
+## Remaining product work
 
-## Next milestones
-
-1. Complete the Rust core/server/SQLite/Git migration with API parity.
-2. Add stable element identity, multi-select and opt-in visual artifacts.
-3. Add safe Undo and verification after hot reload.
-4. Add framework evidence, verified provider integrations, MCP and packaging.
-
-The complete [72-item audit](roadmap-review.es.md) separates existing, partial and
-future features. `Copy context` is a manual fallback, not an automatic agent adapter.
-
-The [original project brief](PROJECT.md) describes the broader vision; it is not
-a claim that every roadmap item is implemented in this alpha.
+Stable element identity, multi-select, opt-in screenshots, Undo, post-HMR verification,
+framework evidence, broader provider compatibility and packaging remain separate milestones.
+Rust HTTP models currently retain the existing JSON schema; generating TypeScript contracts
+from typed Rust models remains a follow-up, not a runtime dependency on JavaScript.

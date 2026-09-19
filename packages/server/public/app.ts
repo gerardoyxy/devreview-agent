@@ -1,3 +1,4 @@
+import { createAppearance, themeDefaults } from '../../overlay/src/appearance.js';
 import type { Task, TaskSummary, ServerStatus, TaskStatus } from '../../contracts/src/index.js';
 import { errorMessage, query } from '../../contracts/src/index.js';
 import { watchTasks } from '../../overlay/src/index.js';
@@ -14,6 +15,9 @@ async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(path, { ...options, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } });
   const data = await response.json(); if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`); return data;
 }
+const defaults = document.createElement('style'); defaults.textContent = themeDefaults; document.head.append(defaults);
+const appearance = createAppearance({ api, target: document.documentElement, mount: document.body });
+$('#appearance-button').onclick = () => { void appearance.open(); };
 const review = createTaskReview($('#task-review').attachShadow({ mode: 'open' }), { api, onMutation: () => void refresh() });
 function render() {
   const count = (status: TaskStatus) => tasks.filter(task => task.status === status).length;
@@ -63,6 +67,7 @@ async function connect() {
   if (!token) { $<HTMLDialogElement>('#connect-dialog').showModal(); return; }
   try {
     const status = await api<ServerStatus>('/api/status');
+    await appearance.load();
     $('#branch').textContent = `branch / ${status.repository.branch}`;
     const playground = status.playgroundUrl || '/playground';
     for (const id of ['#playground-link', '#inspect-link']) $<HTMLAnchorElement>(id).href = `${playground}#token=${encodeURIComponent(token)}`;
@@ -70,8 +75,8 @@ async function connect() {
     connection = new AbortController();
     void watchTasks(location.origin, token, () => void refresh(), connection.signal, online => {
       $('#connection').textContent = online ? 'Connected to localhost' : 'Reconnecting…';
-      $('.status-dot').style.background = online ? '#6a994e' : '#caa16b'; if (online) void refresh();
-    });
+      $('.status-dot').style.background = online ? 'var(--dr-success)' : 'var(--dr-warning)'; if (online) { void refresh(); void appearance.load().catch(() => {}); }
+    }, value => appearance.receive(value));
   } catch (error) { showError(errorMessage(error)); $('#connection').textContent = 'Disconnected'; $<HTMLDialogElement>('#connect-dialog').showModal(); }
 }
 $<HTMLInputElement>('#search').addEventListener('input', render);
