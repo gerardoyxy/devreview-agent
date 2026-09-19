@@ -1,6 +1,7 @@
 import { build } from 'esbuild';
 import { cp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
+import { buildMobileIcons } from './build-brand.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const output = new URL('../dist/site/', import.meta.url);
@@ -9,6 +10,7 @@ await mkdir(output, { recursive: true });
 await cp(new URL('../apps/site/public/', import.meta.url), output, { recursive: true });
 await cp(new URL('../assets/brand/nudgethis-icon.svg', import.meta.url), new URL('assets/favicon.svg', output));
 await cp(new URL('../assets/brand/nudgethis.svg', import.meta.url), new URL('assets/nudgethis.svg', output));
+await buildMobileIcons(new URL('assets/', output));
 await build({
   absWorkingDir: root,
   entryPoints: ['apps/site/site.ts', 'apps/site/site.css'],
