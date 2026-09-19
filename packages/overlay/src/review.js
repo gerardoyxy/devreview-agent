@@ -52,13 +52,14 @@ export function createTaskReview(root, { api, onMutation = () => {} }) {
     $('.dr-wait').hidden = !$('.dr-wait').textContent;
     $('.dr-actions').replaceChildren();
     const action = (name, label, primary = false) => {
+      const attempt = task.attempt;
       const button = node('button', primary ? 'dr-primary' : 'dr-secondary', label); button.disabled = busy;
       button.onclick = async () => {
         const id = task.id;
         if (name === 'apply' && !window.confirm(`Apply ${id} to your working tree? Files will change without a commit.`)) return;
         busy = true; controls(); error('');
         try {
-          await api(`/api/tasks/${id}/${name}`, { method: 'POST', body: '{}' });
+          await api(`/api/tasks/${id}/${name}`, { method: 'POST', body: JSON.stringify({ attempt }) });
           const updated = await api(`/api/tasks/${id}`); if (task?.id === id) setTask(updated);
           onMutation(id);
         } catch (err) { if (task?.id === id) error(err.message); }
@@ -123,10 +124,10 @@ export function createTaskReview(root, { api, onMutation = () => {} }) {
   }
   $('.dr-composer').onsubmit = async event => {
     event.preventDefault(); if (busy || $('.dr-send').disabled || !$('textarea').value.trim()) return;
-    const id = task.id, content = $('textarea').value;
+    const id = task.id, content = $('textarea').value, attempt = task.attempt;
     busy = true; controls(); error('');
     try {
-      const updated = await api(`/api/tasks/${id}/messages`, { method: 'POST', body: JSON.stringify({ content }) });
+      const updated = await api(`/api/tasks/${id}/messages`, { method: 'POST', body: JSON.stringify({ content, attempt }) });
       if (drafts.get(id) === content) drafts.delete(id);
       if (task?.id === id) { if ($('textarea').value === content) $('textarea').value = ''; setTask(updated); }
       onMutation(id);

@@ -30,6 +30,9 @@ test('follow-ups keep the conversation, previous edits, and historical diffs', a
   assert.equal(second.status, 'ready'); assert.equal(second.attempt, 2);
   assert.match(second.diff, /green; border-radius: 14px/);
   assert.equal(core.store.revision(task.id, 1).diff, first);
+  await assert.rejects(core.queue.action(task.id, 'apply', 1), /newer version/);
+  await assert.rejects(core.queue.message(task.id, 'A stale message', 1), /newer version/);
+  assert.match(await readFile(path.join(root, 'button.css'), 'utf8'), /color: red/);
   assert.deepEqual(seen[1].map(message => message.content), ['Make the button green', 'I made it green.', 'Also round the corners']);
   const detail = core.store.details(task.id);
   assert.equal(detail.messages.length, 4); assert.equal(detail.revisions.length, 2);
@@ -147,6 +150,8 @@ test('conversation and revision endpoints enforce authentication and message val
   await finished(app, task.id);
   const detail = await fetch(endpoint, { headers }).then(res => res.json());
   assert.equal(detail.messages.at(-1).role, 'user'); assert.equal(detail.revisions.length, 2);
+  assert.equal((await fetch(endpoint + '/apply', { method: 'POST', headers, body: '{"attempt":1}' })).status, 409);
+  assert.equal((await fetch(endpoint + '/messages', { method: 'POST', headers, body: '{"content":"stale","attempt":1}' })).status, 409);
   const revision = await fetch(endpoint + '/revisions/1', { headers }).then(res => res.json());
   assert.match(revision.diff, /green/);
   assert.equal((await fetch(endpoint + '/revisions/999', { headers })).status, 404);

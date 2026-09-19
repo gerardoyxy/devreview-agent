@@ -76,8 +76,8 @@ export async function startServer(options = {}) {
       if (match && req.method === 'GET' && !match[2]) { send(res, 200, core.store.details(match[1])); return; }
       if (match && req.method === 'POST' && match[2]) {
         const body = await jsonBody(req);
-        if (match[2] === 'messages') { send(res, 202, await core.queue.message(match[1], body?.content)); return; }
-        send(res, 200, await core.queue.action(match[1], match[2])); return;
+        if (match[2] === 'messages') { send(res, 202, await core.queue.message(match[1], body?.content, body?.attempt)); return; }
+        send(res, 200, await core.queue.action(match[1], match[2], body?.attempt)); return;
       }
       if (match && req.method === 'DELETE' && !match[2]) { send(res, 200, await core.queue.action(match[1], 'delete')); return; }
       throw new AppError('Not found', 404);
