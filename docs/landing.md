@@ -7,9 +7,11 @@ The personal repository is `gerardoyxy/devreview-agent`; do not switch or reuse
 
 ## Current status
 
-The approved blue landing is implemented. The `Landing` workflow currently builds a
-reviewable artifact; it does not publish the website. GitHub Pages and the custom
-domain have not been activated by this project.
+The approved blue landing is implemented. The `Landing` workflow builds a review
+artifact for matching pushes and pull requests, and publishes `dist/site` only
+on pushes to `feat/typescript-rust-agent-runtime`. The `github-pages` environment
+is restricted to that branch. The custom domain is `nudgethis.click`; activation
+requires the DNS records below and GitHub certificate provisioning.
 
 Public DNS checked on September 18, 2026 pointed the apex to
 `162.255.119.84` and `www` to `parkingpage.namecheap.com`. The authoritative
@@ -71,7 +73,8 @@ password or API key belongs in this repository or in chat.
 
 ## After the migration is merged
 
-Move the Pages production branch to `main` and update the landing's source/setup
+Update the Landing workflow deployment conditions and the `github-pages`
+environment branch policy to `main`. Also update the landing's source/setup
 links, which currently target `feat/typescript-rust-agent-runtime`. Keep the
 canonical URL as `https://nudgethis.click/` once that is the deployed domain.
 
