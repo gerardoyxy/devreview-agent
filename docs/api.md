@@ -50,6 +50,11 @@ endpoint. Content must contain 1–8000 characters. The server assigns the `user
 role; clients cannot inject assistant messages. A running turn or unresolved
 conflict returns 409 without storing the attempted message.
 
+Actions and messages also accept `attempt`, the version displayed by the client.
+The in-page modal and dashboard send this value so a stale review cannot apply or
+discard a newer version. A mismatch returns 409. CLI commands without this field
+act on the latest version by task ID.
+
 Agent replies cause a `task` SSE notification immediately, even before execution
 finishes. Refetch the full task to read messages. A reply without any patch enters
 `awaiting_feedback` and can accept another message. Existing tasks from the first
