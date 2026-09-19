@@ -108,7 +108,7 @@ impl Config {
         } else {
             ensure!(
                 !root.join("devreview.config.mjs").exists(),
-                "Legacy devreview.config.mjs found. Migrate its values to devreview.toml (see docs/migration.es.md); executable JavaScript configuration is no longer loaded."
+                "Legacy devreview.config.mjs found. Migrate its values to devreview.toml (see docs/migration.md); executable JavaScript configuration is no longer loaded."
             );
             Self::default()
         };

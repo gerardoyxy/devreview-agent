@@ -42,7 +42,7 @@ args = []
 Nothing is installed or authenticated by this file. Executables and arguments come only
 from local configuration. Browser requests select an existing agent ID, never a command.
 Tasks retain their chosen ID. Removing it fails subsequent turns instead of switching providers.
-Each provider keeps its own credentials and runtime requirements. See [migration](migration.es.md)
+Each provider keeps its own credentials and runtime requirements. See [migration](migration.md)
 for the former `agent` option and in-process JavaScript adapters.
 
 ## Runtime protocol v1

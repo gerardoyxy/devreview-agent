@@ -133,7 +133,7 @@ this temporary HTTP API; see [agents](agents.md).
 `POST /api/appearance` validates and saves a version-1 theme, then broadcasts `appearance`
 with that document. Both require the same token/Origin checks as task APIs. Appearance
 payloads have a separate 2 MiB limit; uploaded WOFF/WOFF2 data totals at most 1 MiB.
-See [appearance schema](design.es.md). No uploaded-font URL is exposed without authentication.
+See [appearance schema](appearance.md). No uploaded-font URL is exposed without authentication.
 Clients refetch preferences after reconnecting. The last save wins; unsaved local previews
 are not broadcast. No account-level or cross-repository synchronization is provided.
 

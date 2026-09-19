@@ -7,7 +7,7 @@ Each task has its own conversation, live public agent replies, diff, validation 
 persistent version history. Agents edit isolated Git worktrees. You explicitly apply reviewed
 changes to your branch, without automatic commits or pushes.
 
-[Español](README.es.md) · [Agents](docs/agents.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Migration](docs/migration.es.md) · [Security](SECURITY.md)
+[Agents](docs/agents.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Migration](docs/migration.md) · [Security](SECURITY.md)
 
 The project and repository are **NudgeThis**. Its English [static landing](apps/site/README.md)
 builds with `npm run build:site` and is published at [nudgethis.click](https://nudgethis.click/).
@@ -156,7 +156,7 @@ styles stay inside DevReview's Shadow DOM and do not restyle the inspected appli
 The default blue identity is shared by the landing, dashboard and overlay: self-hosted
 Archivo, fine borders and compact controls. Saved custom themes keep their own colors and fonts.
 Design work used [Impeccable](https://github.com/pbakaus/impeccable).
-[Design system](DESIGN.md) · [Appearance details](docs/design.es.md).
+[Design system](DESIGN.md) · [Appearance details](docs/appearance.md).
 
 ## Git and persistence
 
