@@ -13,12 +13,16 @@ Tu aplicación o el agente elegido pueden tener sus propios requisitos, incluido
 
 [English](README.md) · [Migración](docs/migration.es.md) · [Agentes](docs/agents.md) · [Roadmap validado](docs/roadmap-review.es.md)
 
+El repositorio se llama **NudgeThis**. La alpha actual está en
+`feat/typescript-rust-agent-runtime`, pendiente de integrarse a `main`.
+El CLI conserva el comando `nudgethis` por compatibilidad.
+
 ## Compilar y probar sin cuenta de agente
 
 Requisitos de desarrollo: Git, Node.js 24.15+ y Rust estable con compilador C.
 
 ```bash
-git clone https://github.com/gerardoyxy/nudgethis.git
+git clone --branch feat/typescript-rust-agent-runtime https://github.com/gerardoyxy/nudgethis.git
 cd nudgethis
 npm ci
 npm run build

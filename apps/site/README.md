@@ -1,7 +1,7 @@
 # NudgeThis landing
 
-An English static landing for the NudgeThis brand. The application UI shares the NudgeThis name; CLI and repository
-identifiers remain NudgeThis. This site does not rename CLI commands, connect to a
+An English static landing for the NudgeThis brand. The application UI and repository share the NudgeThis name;
+CLI identifiers remain NudgeThis for compatibility. This site does not rename CLI commands, connect to a
 local application, or invoke agents. It introduces the current alpha honestly and
 links to the branch containing the Rust implementation.
 
