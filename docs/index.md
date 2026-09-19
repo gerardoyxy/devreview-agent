@@ -20,7 +20,8 @@ have their own requirements. Git is needed for assisted code changes; GitHub is 
 
 1. Open your project and its local preview.
 2. [Select one or more elements](selection-controls.md), or create a workspace request.
-3. Describe the change and choose the [project context](../README.md#project-context) to share.
+3. Describe the change, or use [Tools & elements](tool-palette.md) to prepare it visually.
+   Choose the [project context](../README.md#project-context) to share.
 4. Start a conversation with your [configured agent](agents.md), or save a draft.
 5. Review the replies, diff and checks, then explicitly apply the change.
 6. [Save a version](saved-versions.md) and [publish to GitHub](branch-publish.md) when ready.

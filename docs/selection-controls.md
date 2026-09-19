@@ -4,6 +4,9 @@ Open **Selection controls** from the dashboard toolbar, the page overlay's **Con
 button, or its conversations window. Selection only opens a request; it never starts an
 agent or applies a code change.
 
+The overlay's [Tools & elements palette](tool-palette.md) prepares color, size, spacing,
+corner and text requests for your selection, or a component insertion anchored to one element.
+
 ## Select a group
 
 1. Choose **Select multiple** in the page overlay, then click or tap each element.

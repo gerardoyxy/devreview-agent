@@ -1,6 +1,6 @@
 # NudgeThis roadmap
 
-The current release is `0.6.0-alpha.1`, an unsigned alpha available as portable archives
+The current release is `0.7.0-alpha.1`, an unsigned alpha available as portable archives
 for Windows, Linux and macOS. See [installation](docs/install.md) and the
 [release notes](docs/release-notes.md).
 
@@ -11,6 +11,7 @@ for Windows, Linux and macOS. See [installation](docs/install.md) and the
 | Getting started | Portable launcher, local project library, goal diagnosis, HTML/CSS, Astro and React starters, reviewed preview commands | [Start a project](docs/project-starter.md) |
 | Terminal setup | Checksum-verified per-user installers, selectable versions, CLI instructions and a manual WSL workflow | [Terminal installation](docs/terminal-install.md), [WSL](docs/wsl.md) |
 | Visual feedback | Single, multiple and area selection, configurable mouse/keyboard input, group review and Copy context | [Selection controls](docs/selection-controls.md) |
+| Visual workbench | Tools and component examples, contextual request preparation, insertion placement, favorite tools and left/right docking | [Tools & elements](docs/tool-palette.md) |
 | Conversations | General, frontend, backend, test and documentation requests; drafts, follow-ups, changes and persistent history | [Usage](README.md#conversations-and-review) |
 | Project context | Instructions, text skills and documents with selected, versioned snapshots | [Project context](README.md#project-context) |
 | Design preferences | Custom application themes and fonts, reusable My Style profiles and suggestions from repeated CSS corrections | [Appearance](docs/appearance.md), [My Style](docs/my-style.md) |

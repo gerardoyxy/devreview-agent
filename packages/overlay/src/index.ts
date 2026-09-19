@@ -3,6 +3,7 @@ import { createBranchPublish } from './branch-publish.js';
 import { createSavedVersions } from './versions.js';
 import { createMyStyle } from './my-style.js';
 import { createElementSelection } from './multi-selection.js';
+import { createToolPalette } from './tool-palette.js';
 import { createSelectionControls, defaultSelectionControls, validSelectionControls, pointerLabel, keyboardLabel, type SelectionControls } from './selection-controls.js';
 import { createRouteReview } from './route-review.js';
 import { createTaskComposer, createDiagnostics } from './workspace.js';
@@ -126,13 +127,13 @@ export const NudgeThis = {
     <div class="outline" hidden></div>
     <form class="panel" hidden role="dialog" aria-label="Report a QA issue">
       <div class="head"><strong>What needs to change?</strong><button class="close" type="button" aria-label="Close">${icon('close')}</button></div>
-      <div class="target"></div><div class="selection-summary" hidden><ol class="selection-items"></ol><button class="edit-selection" type="button">Add more elements</button></div><div class="target-navigation"><button type="button" class="target-parent">Parent</button><button type="button" class="target-child">First child</button><button type="button" class="target-next">Next sibling</button></div><p class="target-hint" role="status"></p><label for="request">Your request</label>
+      <div class="target"></div><div class="selection-summary" hidden><ol class="selection-items"></ol><button class="edit-selection" type="button">Add more elements</button></div><div class="target-navigation"><button type="button" class="target-parent">Parent</button><button type="button" class="target-child">First child</button><button type="button" class="target-next">Next sibling</button></div><p class="target-hint" role="status"></p><button type="button" class="palette-target">${icon('palette')} Tools &amp; elements</button><label for="request">Your request</label>
       <textarea id="request" maxlength="8000" required placeholder="Make this wider, move it up, give it more space…"></textarea>
       <label for="agent">Coding agent</label><select id="agent" class="agent-select" aria-label="Coding agent"><option value="">Connect to load agents</option></select>
       <div class="capture-context"></div><p class="hint">The agent works in a separate worktree. You review before applying.</p><p class="error" role="alert" hidden></p>
       <div class="prompt-actions"><button class="style-target" type="button">My Style</button><button class="copy-context" type="button">Copy context</button><button class="save-draft" type="submit" value="draft" disabled>Save draft</button><button class="save" type="submit" value="start" disabled>Start conversation</button></div><p class="copy-status" role="status" hidden></p>
     </form>
-    <div class="overlay-tools"><button type="button" class="pick-launcher" aria-pressed="false">Pick element</button><button type="button" class="multiple-launcher" aria-pressed="false">Select multiple</button><button type="button" class="area-launcher" aria-pressed="false">Select area</button><button type="button" class="controls-launcher" aria-label="Selection controls">Controls</button><button class="launcher" type="button" aria-label="Open NudgeThis conversations">${brandLogo()}<span class="dot"></span><span class="label">NudgeThis · connecting</span></button></div><p class="pick-notice" role="status" hidden>Click or tap an element · Escape to cancel</p>
+    <div class="overlay-tools"><button type="button" class="pick-launcher" aria-pressed="false">Pick element</button><button type="button" class="multiple-launcher" aria-pressed="false">Select multiple</button><button type="button" class="area-launcher" aria-pressed="false">Select area</button><button type="button" class="controls-launcher" aria-label="Selection controls">Controls</button><button type="button" class="palette-launcher" aria-label="Open tools and elements" aria-expanded="false">${icon('palette')} Palette</button><button class="launcher" type="button" aria-label="Open NudgeThis conversations">${brandLogo()}<span class="dot"></span><span class="label">NudgeThis · connecting</span></button></div><p class="pick-notice" role="status" hidden>Click or tap an element · Escape to cancel</p>
     <dialog class="review-dialog" aria-label="NudgeThis conversations"><div class="review-shell"><header class="review-header"><div class="review-brand">${brandLogo()}<span>NudgeThis</span></div><div class="review-header-actions"><button type="button" class="appearance-button new-change">New change</button><button type="button" class="appearance-button branch-open">Branch &amp; publish</button><button type="button" class="appearance-button versions-open">Saved versions</button><button type="button" class="appearance-button routes-open">Routes</button><button type="button" class="appearance-button preview-open">Preview</button><button type="button" class="appearance-button workspace-setup">Setup</button><button type="button" class="appearance-button project-context-button">Project context</button><button type="button" class="appearance-button selection-open">Selection controls</button><button type="button" class="appearance-button my-style-open">My Style</button><button type="button" class="appearance-button appearance-open">Appearance</button><a class="dashboard-link" target="_blank" rel="noopener">Dashboard</a><button type="button" class="review-close" aria-label="Close conversations">${icon('close')}</button></div></header><div class="review-body"><aside class="review-sidebar"><span class="review-caption">Your changes</span><select class="review-filter" aria-label="Filter conversations"><option value="all">All changes</option><option value="page">This page</option><option value="applied">Applied changes</option></select><div class="branch-guide"></div><div class="version-reminder"></div><div class="review-task-list"></div></aside><div class="review-detail"><p class="review-empty">Your changes and their conversations live here.<br><span class="selection-hint"></span></p></div></div></div></dialog>`;
     document.documentElement.append(host);
     const $ = <E extends HTMLElement = HTMLElement>(selector: string) => query<E>(shadow, selector);
@@ -141,6 +142,7 @@ export const NudgeThis = {
     let agentsReady = false, executionEnabled = false, currentBranch = '', workspaceKey = '';
     let selected: Element | undefined, context: ElementContext | undefined, previousFocus: Element | null, saving = false;
     let selectionStarted = false;
+    let palette: ReturnType<typeof createToolPalette> | undefined;
     const tasks = new Map<string, TaskSummary>(), markers = new Map<string, HTMLButtonElement>();
     const dialog = $<HTMLDialogElement>('.review-dialog');
     let selectedId: string | undefined, review: ReturnType<typeof createTaskReview> | undefined, refreshTimer: ReturnType<typeof setTimeout> | undefined, refreshSequence = 0, online = false;
@@ -232,7 +234,7 @@ export const NudgeThis = {
       if (!dialog.open) dialog.showModal();
       renderList(); await refreshReview();
     };
-    $('.launcher').onclick = () => { selectionInput.cancel(); void openReview(); };
+    $('.launcher').onclick = () => { palette?.close(); selectionInput.cancel(); void openReview(); };
     $('.review-close').onclick = () => dialog.close();
     $<HTMLSelectElement>('.review-filter').onchange = renderList;
     const position = () => {
@@ -250,6 +252,7 @@ export const NudgeThis = {
     const close = () => { if (saving) return; panel.hidden = true; selectionInput.clear(); selectionStarted = false; if (previousFocus instanceof HTMLElement) previousFocus.focus({ preventScroll: true }); };
     const openSelection = () => {
       if (!selected || !context) return;
+      palette?.close();
       if (document.activeElement !== host) previousFocus = document.activeElement;
       error.hidden = true; $('.copy-status').hidden = true; panel.hidden = false;
       const rect = selected.getBoundingClientRect();
@@ -275,8 +278,11 @@ export const NudgeThis = {
       $<HTMLButtonElement>('.save').disabled = saving || !agentsReady || !executionEnabled || !valid;
       $<HTMLButtonElement>('.save-draft').disabled = saving || !agentsReady || !valid;
       $<HTMLButtonElement>('.copy-context').disabled = saving || !valid;
+      $<HTMLButtonElement>('.palette-target').disabled = saving;
+      palette?.sync();
     };
     const keydown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && palette?.isOpen()) { event.preventDefault(); event.stopImmediatePropagation(); palette.close(true); return; }
       if (event.key === 'Escape') close();
       if (event.key === 'Tab' && !panel.hidden && !dialog.open) {
         const focusable = [...panel.querySelectorAll<HTMLElement>('button:not(:disabled),textarea,select:not(:disabled),input:not(:disabled),summary')].filter(element => element.getClientRects().length > 0);
@@ -319,15 +325,32 @@ export const NudgeThis = {
       host, shadow, controls: () => selectionControls,
       available: () => !saving && !shadow.querySelector('dialog[open]'),
       capture: element => elementContext(element, { captureDom }), resolve: resolveElement,
-      onChange: syncSelection, onReview: openSelection, onPicking: () => { panel.hidden = true; }, onCancel: () => { panel.hidden = true; selectionStarted = false; }
+      onChange: syncSelection, onReview: openSelection, onPicking: () => { palette?.close(); panel.hidden = true; }, onCancel: () => { panel.hidden = true; selectionStarted = false; }
     });
+    palette = createToolPalette({
+      shadow,
+      beforeOpen: () => { selectionInput.cancel(); panel.hidden = true; selectionInput.refresh(); },
+      selection: () => ({ count: selectionInput.count(), valid: selectionInput.valid(), busy: saving }),
+      prepare: request => {
+        selectionInput.refresh();
+        if (saving || !selectionInput.valid()) return false;
+        const combined = [textarea.value.trim(), request].filter(Boolean).join('\n\n');
+        if (combined.length > textarea.maxLength) return false;
+        textarea.value = combined; selectionInput.review(); return true;
+      },
+      resume: () => { selectionInput.review(); },
+      pick: () => { $('.pick-launcher').click(); },
+      style: () => { selectionInput.refresh(); if (!selectionInput.count() || selectionInput.valid()) void myStyle.open(selectionInput.context()); },
+      history: () => { void openReview(); }
+    });
+    $('.palette-target').onclick = () => palette?.open();
     const selectionEditor = createSelectionControls(shadow, api, value => {
       selectionControls = value; selectionInput.cancel();
       const hint = shadow.querySelector('.selection-hint');
       if (hint) hint.textContent = `${pointerLabel(value)} to select, or use Pick element.`;
       $('.pick-launcher').title = `${pointerLabel(value)} · Focused element: ${keyboardLabel(value)}`;
     }, fallbackControls);
-    const openControls = () => { selectionInput.cancel(); void selectionEditor.open(); };
+    const openControls = () => { palette?.close(); selectionInput.cancel(); void selectionEditor.open(); };
     $('.controls-launcher').onclick = openControls; $('.selection-open').onclick = openControls;
     if (token) void selectionEditor.load().catch(() => {});
     document.addEventListener('keydown', keydown, true);
@@ -347,6 +370,6 @@ export const NudgeThis = {
       online = connected; renderList();
       $('.dot').style.background = connected ? 'var(--dr-success)' : 'var(--dr-warning)'; if (connected) { flow.start(); void versions.refresh(); void load(); void loadAgents(); void appearance.load().catch(() => {}); void selectionEditor.load().catch(() => {}); }
     }, value => appearance.receive(value), value => selectionEditor.receive(value), () => { void versions.refresh(); void refreshReview(); }, () => { void flow.refresh(); }, () => flow.receiveGitHub());
-    return { destroy() { clearTimeout(refreshTimer); controller.abort(); flow.destroy(); versions.destroy(); appearance.destroy(); projectContext.destroy(); dialog.close(); review?.destroy(); selectionInput.destroy(); selectionEditor.destroy(); document.removeEventListener('keydown', keydown, true); window.removeEventListener('scroll', position, true); window.removeEventListener('resize', position); observer.disconnect(); cancelAnimationFrame(positionFrame); composer.destroy(); myStyle.destroy(); diagnostics.destroy(); preview.destroy(); routes.destroy(); host.remove(); } };
+    return { destroy() { clearTimeout(refreshTimer); controller.abort(); flow.destroy(); versions.destroy(); appearance.destroy(); projectContext.destroy(); dialog.close(); review?.destroy(); selectionInput.destroy(); selectionEditor.destroy(); palette?.destroy(); document.removeEventListener('keydown', keydown, true); window.removeEventListener('scroll', position, true); window.removeEventListener('resize', position); observer.disconnect(); cancelAnimationFrame(positionFrame); composer.destroy(); myStyle.destroy(); diagnostics.destroy(); preview.destroy(); routes.destroy(); host.remove(); } };
   }
 };

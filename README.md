@@ -9,11 +9,15 @@ Each task has its own conversation, agent replies, diff, validation results and
 persistent version history. Agents edit isolated Git worktrees. You explicitly apply reviewed
 changes to your branch, without automatic commits or pushes.
 
+Open [Tools & elements](docs/tool-palette.md) for visual adjustments and component examples.
+Choose colors, sizing, spacing or an insertion point; the palette prepares an editable
+request and keeps the normal review-before-apply workflow.
+
 [Website](https://nudgethis.click/) · [Documentation](https://nudgethis.click/docs/) · [Install](docs/install.md) · [Terminal](docs/terminal-install.md) · [WSL](docs/wsl.md) · [Agents](docs/agents.md) · [API](docs/api.md) · [Security](SECURITY.md)
 
 ## Start without a project
 
-Download the [portable alpha](https://github.com/gerardoyxy/nudgethis/releases/tag/v0.6.0-alpha.1),
+Download the [portable alpha](https://github.com/gerardoyxy/nudgethis/releases/tag/v0.7.0-alpha.1),
 extract it and open NudgeThis. Choose **Start from an idea**, **Use a starter** or
 **Open a project**. The local welcome helps choose HTML/CSS, Astro or React + TypeScript,
 records your goals in Project context and creates a fresh folder after review.

@@ -79,11 +79,11 @@ The published installer defaults to the release linked on the website. To choose
 specific published version, use `--version` in a shell or `-Version` in PowerShell:
 
 ```sh
-sh nudgethis-install.sh --version 0.6.0-alpha.1
+sh nudgethis-install.sh --version 0.7.0-alpha.1
 ```
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy RemoteSigned -File .\nudgethis-install.ps1 -Version 0.6.0-alpha.1
+powershell -NoProfile -ExecutionPolicy RemoteSigned -File .\nudgethis-install.ps1 -Version 0.7.0-alpha.1
 ```
 
 Stop running NudgeThis services and back up local state before changing versions. Download

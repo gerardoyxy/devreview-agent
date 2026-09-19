@@ -10,6 +10,7 @@ const pages = [
   ['project-starter', 'docs/project-starter.md', 'Create a project', 'Start'],
   ['overview', 'README.md', 'Use an existing project', 'Work'],
   ['selection-controls', 'docs/selection-controls.md', 'Select elements', 'Work'],
+  ['tool-palette', 'docs/tool-palette.md', 'Tools & elements', 'Work'],
   ['agents', 'docs/agents.md', 'Connect an agent', 'Work'],
   ['my-style', 'docs/my-style.md', 'My Style', 'Work'],
   ['appearance', 'docs/appearance.md', 'Colors & fonts', 'Work'],

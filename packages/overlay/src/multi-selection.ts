@@ -1,6 +1,7 @@
 import type { ElementContext, ElementTarget } from '../../contracts/src/index.js';
 import { bindSelectionInput, type SelectionMode, type SelectionRect } from './selection-input.js';
 import type { SelectionControls } from './selection-controls.js';
+import { icon } from './icons.js';
 
 const limit = 20;
 const atomic = 'button,a,input,textarea,select,summary,[role="button"],[role="link"],[contenteditable],svg,img,video,canvas,iframe';
@@ -122,7 +123,10 @@ export function createElementSelection(options: {
     armed: value => {
       mode = value; surface.hidden = value !== 'area';
       for (const [name, label] of [['single', 'Pick element'], ['multiple', 'Select multiple'], ['area', 'Select area']] as const) {
-        const button = $(`.${name === 'single' ? 'pick' : name}-launcher`); button.setAttribute('aria-pressed', String(value === name)); button.textContent = value === name ? (name === 'single' ? 'Cancel picking' : name === 'area' ? 'Cancel area' : 'Picking multiple') : label;
+        const button = $(`.${name === 'single' ? 'pick' : name}-launcher`);
+        const title = value === name ? (name === 'single' ? 'Cancel picking' : name === 'area' ? 'Cancel area' : 'Picking multiple') : label;
+        button.setAttribute('aria-pressed', String(value === name)); button.setAttribute('aria-label', title);
+        button.innerHTML = `${icon(name === 'single' ? 'pointer' : name)}<span>${title}</span>`;
       }
       $('.pick-notice').hidden = !value;
       $('.pick-notice').textContent = value === 'area' ? 'Drag around the elements · Escape to cancel' : value === 'multiple' ? 'Click or tap elements · Review selection when ready' : 'Click or tap an element · Escape to cancel';
@@ -139,7 +143,7 @@ export function createElementSelection(options: {
   $('.pick-launcher').onclick = () => input.toggle('single');
   $('.multiple-launcher').onclick = () => input.toggle('multiple');
   $('.area-launcher').onclick = () => input.toggle('area');
-  return { context, valid, count: () => items.length, primary: () => items[0]?.element, refresh, clear,
+  return { context, valid, count: () => items.length, primary: () => items[0]?.element, refresh, clear, review,
     replace: (element: Element) => change([element], false, false),
     cancel: () => { input.cancel(); reviewing = true; tray.hidden = true; hover.hidden = true; },
     destroy() { input.destroy(); markup.remove(); }
