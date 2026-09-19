@@ -11,6 +11,13 @@ Browser calls must also use an explicitly allowed loopback Origin.
 | GET | `/api/versions` | Pending applied corrections, local saved-version history and Git author defaults |
 | POST | `/api/versions/preview` | Review selected corrections without staging or updating the branch |
 | POST | `/api/versions/save` | Explicitly create the reviewed local commit; never pushes |
+| GET | `/api/workspace` | Local Git readiness, branch, HEAD, branch choices and dirty counts |
+| POST | `/api/workspace/initialize` | Explicitly initialize local Git; no upload |
+| GET | `/api/workspace/initial-files` | Eligible first-version paths and author defaults |
+| POST | `/api/workspace/initial-preview` | Review selected first-version files |
+| POST | `/api/workspace/branch` | Guarded create/switch of a local branch |
+| GET | `/api/github` | Session account, target and cached branch publication status; no network |
+| POST | `/api/github` | Explicit account, repository, publishing, proposal and merge actions |
 | GET | `/api/device-preview` | Browser availability, fixed profiles and the last opened device session |
 | POST | `/api/device-preview` | Explicitly open/configure or close the owned Chromium browser |
 | GET | `/api/tasks` | Task summaries, newest first |
@@ -28,7 +35,7 @@ Browser calls must also use an explicitly allowed loopback Origin.
 | DELETE | `/api/tasks/QA-1` | Delete an inactive, unapplied task and worktree |
 | GET | `/api/project-context` | Project instructions, skills and reference documents |
 | POST | `/api/project-context` | Validate and replace the project context library |
-| GET | `/api/events` | SSE events including `connected`, `task`, `appearance`, `project-context`, `route-review` and `versions` |
+| GET | `/api/events` | SSE events including `connected`, `task`, `appearance`, `project-context`, `route-review`, `versions`, `workspace` and `github` |
 
 Use `Content-Type: application/json` for POST, and `{}` for actions. A task body (optional `agent` selects a configured ID):
 
@@ -278,3 +285,45 @@ active hooks and other Git conflicts return 409. Preview and save may take longe
 ordinary requests, particularly with configured signing. UI requests allow 150 seconds.
 `versions` SSE events carry `{changed:true}` and prompt a fresh GET. These endpoints are
 available in execution-disabled mode and never invoke an agent or push a branch.
+
+## Local workspace and GitHub
+
+`GET /api/workspace` returns `id`, `kind`, `ready`, `branch`, `head`, `branches`,
+`defaultBranch`, `defaultSource`, `dirty: {staged, unstaged, untracked}`, `operation` and
+`rootHint`. Kinds are `missing_git`, `no_repository`, `unavailable`, `nested_folder`,
+`unborn`, `detached` and `ready`. Counts are porcelain status entries, not lines. Status
+polling disables optional Git index writes. `/api/status` includes this `workspace` plus
+`executionConfigured`; effective `executionEnabled` also requires a ready workspace.
+
+Initialize with `{"confirm":true,"branch":"main"}` (4 KiB limit). First-file discovery
+returns `{files, excluded, identity, repository}`; review selected paths with
+`{"files":[".gitignore","src/app.ts"]}` (64 KiB limit). The resulting plan uses
+`/api/versions/save` and has `initial: true`, with an empty parent and changes list.
+For branch changes send `{"action":"create","name":"improve-checkout",
+"expected":{"branch":"main","head":"current-sha"},"carryChanges":false}`.
+`switch` instead selects an existing local branch; the body limit is 4 KiB. Successful
+mutations emit `workspace` events with `{changed:true}`. External Git changes are polled
+by clients and do not generate a server event on their own.
+
+GitHub actions use `POST /api/github` with a 16 KiB body limit:
+
+| `action` | Required fields / behavior |
+| --- | --- |
+| `connect` | `username`, `method: "cli"` or `"token"`; token method also needs `token`. Validates the selected identity. |
+| `disconnect` | Clears the session credential and in-memory reviews. |
+| `target` | `repository: "owner/name"`; verifies write access and records the selected repository. |
+| `create` | `account`, `name`, Boolean `private`, `confirm: true`; explicitly creates an empty personal repository. |
+| `refresh` | Reads remote branch/PR state and stores `{branch, head, checkedAt, proposal}`. |
+| `preview` | Returns a server-held publication plan with `id`, account/target/visibility, branch/head/remoteHead, commits, files, diff, dirty counts and default-branch notice. |
+| `publish` | `previewId`; checks the reviewed destination and pushes exactly that SHA without force. |
+| `propose` | `account`, `targetId`, `private`, `base`, `branch`, `head`, `title`, `body`; requires the current version to be published. Reuses an existing open PR. |
+| `merge-preview` | `number`; returns target/proposal, head/baseHead, diff, checks/status/reviewDecision and `canMerge`. Already merged returns `{merged:true, proposal}`. |
+| `merge` | `number`, `previewId`, `method: "merge"`, `"squash"` or `"rebase"`; rereads rules/checks/versions and uses an allowed repository method. |
+
+`GET /api/github` returns `{available, account, target, suggestedTarget, last}` without
+fetching remote state. Tokens are never returned or persisted. Target metadata includes
+`id`, `fullName`, `private`, `defaultBranch`, `url` and allowed merge methods. Ten-minute
+reviews are scoped to the current server session. `github` events contain only
+`{changed:true}`; consumers refetch status. GitHub operations use bounded process/network
+timeouts; browser requests allow five minutes. These endpoints work with agent execution
+disabled. See [Branch & publish](branch-publish.md) for review limits and recovery.

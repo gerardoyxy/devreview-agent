@@ -6,6 +6,7 @@ mod core;
 mod device_preview;
 mod error;
 mod git;
+mod github;
 mod my_style;
 mod process;
 mod project;
@@ -15,6 +16,7 @@ mod selection;
 mod server;
 mod store;
 mod versions;
+mod workspace;
 
 use anyhow::{Result, ensure};
 use clap::{Parser, Subcommand};

@@ -3,15 +3,15 @@ use crate::{config::Config, core::validate_input, git::Repository, project, stor
 use serde_json::{Value, json};
 use std::{fs, path::PathBuf};
 
-struct Temp(PathBuf);
+pub(crate) struct Temp(pub(crate) PathBuf);
 impl Temp {
-    fn new() -> Self {
+    pub(crate) fn new() -> Self {
         let path =
             std::env::temp_dir().join(format!("nudgethis-application-{}", rand::random::<u64>()));
         fs::create_dir(&path).unwrap();
         Self(dunce::canonicalize(path).unwrap())
     }
-    fn write(&self, name: &str, data: impl AsRef<[u8]>) {
+    pub(crate) fn write(&self, name: &str, data: impl AsRef<[u8]>) {
         let path = self.0.join(name);
         fs::create_dir_all(path.parent().unwrap()).unwrap();
         fs::write(path, data).unwrap();
@@ -22,7 +22,7 @@ impl Drop for Temp {
         let _ = fs::remove_dir_all(&self.0);
     }
 }
-async fn repo() -> (Temp, Repository) {
+pub(crate) async fn repo() -> (Temp, Repository) {
     let dir = Temp::new();
     let repository = Repository::new(dir.0.clone(), dir.0.join(".nudgethis"));
     repository

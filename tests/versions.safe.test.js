@@ -87,7 +87,7 @@ test('Save version: auth, malformed selections, identity, hook policy and signin
   assert.equal((await save(app, plan, 'first\nsecond')).status, 400);
   const hooks = path.join(app.root, '.nudgethis/custom-hooks'); await mkdir(hooks);
   const hook = path.join(hooks, 'pre-commit'); await writeFile(hook, '#!/bin/sh\nexit 1\n'); await chmod(hook, 0o755); app.git('config', 'core.hooksPath', hooks);
-  assert.match((await save(app, plan)).data.error, /commit hooks/);
+  assert.match((await save(app, plan)).data.error, /Git hooks/);
   app.git('config', 'core.hooksPath', path.join(app.root, '.nudgethis/no-hooks'));
   app.git('config', 'commit.gpgSign', 'true'); app.git('config', 'gpg.program', path.join(app.root, 'does-not-exist'));
   assert.match((await save(app, plan)).data.error, /signing/); assert.equal(app.git('rev-parse', 'HEAD'), base);

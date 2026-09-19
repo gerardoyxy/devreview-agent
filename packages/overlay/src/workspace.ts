@@ -46,7 +46,7 @@ export function createTaskComposer(mount: HTMLElement | ShadowRoot, api: Api, on
     try {
       const status = await api<ServerStatus>('/api/status'); enabled = status.executionEnabled !== false;
       const select = $<HTMLSelectElement>('#nt-provider'); select.replaceChildren(...(status.agents || []).map(a => { const option = element('option', a.label); option.value = a.id; return option; })); select.value = task?.agent || status.agent;
-      $('.nt-mode').textContent = enabled ? 'Save a draft without running anything, or start a change with the selected agent. You review files before applying.' : 'Execution is disabled. Drafts, project context and review remain available. No agent or setup command will run.';
+      $('.nt-mode').textContent = status.workspace && !status.workspace.ready ? 'Set up local version history in Branch & publish before starting changes. You can save drafts and project context now.' : enabled ? 'Save a draft without running anything, or start a change with the selected agent. You review files before applying.' : 'Execution is disabled. Drafts, project context and review remain available. No agent or setup command will run.';
       await picker.load(task ? task.projectContext ?? null : undefined, seed?.contextIds); $<HTMLTextAreaElement>('#nt-request').focus();
     } catch (error) { enabled = false; showError(errorMessage(error)); }
     finally { busy = false; controls(); }

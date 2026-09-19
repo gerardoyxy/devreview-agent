@@ -1,3 +1,4 @@
+import { createBranchPublish } from '../../overlay/src/branch-publish.js';
 import { createSavedVersions } from '../../overlay/src/versions.js';
 import { createMyStyle } from '../../overlay/src/my-style.js';
 import { createSelectionControls } from '../../overlay/src/selection-controls.js';
@@ -17,7 +18,7 @@ const $ = <E extends HTMLElement = HTMLElement>(selector: string) => query<E>(do
 const params = new URLSearchParams(location.hash.slice(1));
 let token = params.get('token') || sessionStorage.getItem('nudgethis-token') || '';
 if (params.has('token')) { sessionStorage.setItem('nudgethis-token', token); history.replaceState(null, '', location.pathname); }
-let executionEnabled = false, visibleLimit = 40;
+let executionEnabled = false, executionConfigured = false, currentBranch = '', workspaceKey = '', visibleLimit = 40;
 const activeStatuses = ['pending', 'analyzing', 'preparing', 'working', 'validating', 'applying', 'undoing'];
 let tasks: TaskSummary[] = [], filter = 'all', selectedId: string | undefined, connection: AbortController | undefined, refreshing = false, refreshAgain = false;
 const element = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] => { const node = document.createElement(tag); if (className) node.className = className; if (text !== undefined) node.textContent = text; return node; };
@@ -41,10 +42,18 @@ const routes = createRouteReview(document.body, api, seed => { void composer.ope
 $('#routes-button').onclick = () => { void routes.open(); };
 $('#new-task').onclick = () => { void composer.open(); };
 $('#setup-button').onclick = () => { void diagnostics.open(); };
-const versions = createSavedVersions(document.body, api, () => { void refresh(); });
+const versions = createSavedVersions(document.body, api, () => { void refresh(); void flow.refresh(); }, () => { void flow.open('github'); });
+const flow = createBranchPublish(document.body, api, { onWorkspace: w => {
+  currentBranch = w.branch; executionEnabled = executionConfigured && w.ready;
+  $('#branch').textContent = w.branch ? `branch / ${w.branch}` : 'Local workspace';
+  $('#execution-note').hidden = executionEnabled; $('#execution-note').textContent = !w.ready ? 'Set up local version history to start changes. Drafts and project context remain available.' : 'Execution is disabled. Save drafts and review changes without running agents or setup commands.';
+  const key = `${w.id}:${w.kind}:${w.branch}`; if (workspaceKey && workspaceKey !== key) void refresh(); workspaceKey = key;
+}, onSaved: () => { void refresh(); }, openVersions: () => { void versions.open(); } });
+flow.attachNotice($('#branch-guide'));
+$('#branch-button').onclick = () => { void flow.open(); };
 versions.attachReminder($('#version-reminder'));
 $('#versions-button').onclick = () => { void versions.open(); };
-const review = createTaskReview($('#task-review').attachShadow({ mode: 'open' }), { api, onSaveVersions: () => { void versions.open(); }, executionEnabled: () => executionEnabled, onEditDraft: task => { $<HTMLDialogElement>('#detail-dialog').close(); void composer.open(task); }, onMutation: () => void refresh() });
+const review = createTaskReview($('#task-review').attachShadow({ mode: 'open' }), { api, currentBranch: () => currentBranch, onSaveVersions: () => { void versions.open(); }, executionEnabled: () => executionEnabled, onEditDraft: task => { $<HTMLDialogElement>('#detail-dialog').close(); void composer.open(task); }, onMutation: () => void refresh() });
 function render() {
   const count = (status: TaskStatus) => tasks.filter(task => task.status === status).length;
   $('#draft-count').textContent = String(count('draft')); $('#all-count').textContent = String(tasks.length); $('#ready-count').textContent = String(count('ready')); $('#applied-count').textContent = String(count('applied'));
@@ -67,7 +76,7 @@ function render() {
     const info = element('div');
     const title = element('button', 'task-title', task.request); title.onclick = () => openTask(task.id);
     const subtitle = element('div', 'task-subtitle');
-    subtitle.append(element('span', '', task.id), element('span', '', '·'), element('code', '', task.context.route || task.kind || 'General'), element('span', '', `${task.files.length} file${task.files.length === 1 ? '' : 's'}`));
+    subtitle.append(element('span', '', task.id), element('span', '', '·'), element('code', '', task.context.route || task.kind || 'General'), element('span', '', `${task.files.length} file${task.files.length === 1 ? '' : 's'}${task.baseBranch ? ` · ${task.baseBranch}` : ''}`));
     info.append(title, subtitle);
     const review = element('button', 'review-button', 'Review'); review.onclick = () => openTask(task.id);
     const mark = element('span', 'task-icon'); mark.innerHTML = icon(task.status === 'applied' ? 'check' : 'pointer');
@@ -98,19 +107,19 @@ async function connect() {
   if (!token) { $<HTMLDialogElement>('#connect-dialog').showModal(); return; }
   try {
     const status = await api<ServerStatus>('/api/status');
-    executionEnabled = status.executionEnabled !== false;
+    executionConfigured = status.executionConfigured ?? status.executionEnabled !== false; executionEnabled = status.executionEnabled !== false;
     $('#execution-note').hidden = executionEnabled; $('#execution-note').textContent = 'Execution is disabled. Save drafts and review changes without running agents or setup commands.';
     await appearance.load();
     await selectionEditor.load();
     $('#branch').textContent = `branch / ${status.repository.branch}`;
     const playground = status.playgroundUrl || '/playground';
     for (const id of ['#playground-link', '#inspect-link']) $<HTMLAnchorElement>(id).href = `${playground}#token=${encodeURIComponent(token)}`;
-    await refresh();
+    await refresh(); flow.start();
     connection = new AbortController();
     void watchTasks(location.origin, token, () => void refresh(), connection.signal, online => {
       $('#connection').textContent = online ? 'Connected to localhost' : 'Reconnecting…';
       $('.status-dot').style.background = online ? 'var(--dr-success)' : 'var(--dr-warning)'; if (online) { void refresh(); void appearance.load().catch(() => {}); void selectionEditor.load().catch(() => {}); }
-    }, value => appearance.receive(value), value => selectionEditor.receive(value), () => { void versions.refresh(); void refresh(); });
+    }, value => appearance.receive(value), value => selectionEditor.receive(value), () => { void versions.refresh(); void refresh(); }, () => { void flow.refresh(); }, () => flow.receiveGitHub());
   } catch (error) { showError(errorMessage(error)); $('#connection').textContent = 'Disconnected'; $<HTMLDialogElement>('#connect-dialog').showModal(); }
 }
 const resetFilter = () => { visibleLimit = 40; render(); };

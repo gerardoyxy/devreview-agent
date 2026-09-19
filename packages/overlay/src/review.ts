@@ -15,7 +15,7 @@ const node = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string,
 const time = (value: string) => new Date(value).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 /** Shared conversation/review UI, mounted in the overlay or dashboard's shadow root. */
-export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutation = () => {}, executionEnabled = () => true, onEditDraft, onSaveVersions }: { api: Api; onSaveVersions?: () => void; onMutation?: (id: string) => void; executionEnabled?: () => boolean; onEditDraft?: (task: Task) => void }) {
+export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutation = () => {}, executionEnabled = () => true, onEditDraft, onSaveVersions, currentBranch = () => undefined }: { api: Api; currentBranch?: () => string | undefined; onSaveVersions?: () => void; onMutation?: (id: string) => void; executionEnabled?: () => boolean; onEditDraft?: (task: Task) => void }) {
   const style = node('style'); style.textContent = styles; root.append(style);
   const view = node('section', 'dr-review');
   view.innerHTML = `<div class="dr-heading"><h2 class="dr-title"></h2><div class="dr-state"></div><div class="dr-meta"></div></div>
@@ -58,7 +58,7 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
     $('.dr-actions').replaceChildren();
     const action = (name: string, label: string, primary = false) => {
       const attempt = task.attempt;
-      const button = node('button', primary ? 'dr-primary' : 'dr-secondary', label); button.disabled = busy || (['start','retry'].includes(name) && !executionEnabled());
+      const button = node('button', primary ? 'dr-primary' : 'dr-secondary', label); button.disabled = busy || (['start','retry'].includes(name) && !executionEnabled()) || (['apply','undo'].includes(name) && currentBranch() !== undefined && !!task.baseBranch && task.baseBranch !== currentBranch());
       button.onclick = async () => {
         const id = task.id;
         if (name === 'apply' && !window.confirm(`Apply ${id} to your working tree? ${task.validationStatus === 'passed' ? 'Configured checks passed.' : 'This patch has not passed configured validation.'} Files will change without a commit.`)) return;
@@ -101,7 +101,7 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
     task = next;
     $('.dr-state').textContent = `${task.id} · ${taskStatusLabels[task.status] || task.status} · revision ${task.attempt}${task.savedVersion ? ' · Saved in Git' : task.versionSavePending ? ' · Save needs attention' : ''}`;
     $('.dr-title').textContent = task.request;
-    $('.dr-meta').textContent = `${task.agent} · ${task.kind || 'frontend'} · ${task.context.route || 'Workspace task'}${task.context.selector ? ' · ' + task.context.selector : ''}${task.snapshotIncludesLocalChanges ? ' · Includes local edits' : ''}`;
+    $('.dr-meta').textContent = `${task.agent} · ${task.kind || 'frontend'} · ${task.context.route || 'Workspace task'}${task.context.selector ? ' · ' + task.context.selector : ''}${task.baseBranch ? ` · Branch: ${task.baseBranch}${currentBranch() !== undefined && currentBranch() !== task.baseBranch ? ' (return to this branch to apply)' : ''}` : ''}${task.snapshotIncludesLocalChanges ? ' · Includes local edits' : ''}`;
     error(task.error || task.cleanupWarning);
     const log = $('.dr-messages'), stick = log.scrollHeight - log.scrollTop - log.clientHeight < 80 || !renderedMessages.size;
     for (const message of task.messages || []) {

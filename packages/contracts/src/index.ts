@@ -34,9 +34,20 @@ export interface AgentDescriptor {
   capabilities: { automatic: boolean; streaming: boolean; resume: boolean; images: boolean };
 }
 export interface ServerStatus {
+  workspace?: WorkspaceState; executionConfigured?: boolean;
   repository: { branch: string; head: string }; agent: string; agents?: AgentDescriptor[]; playgroundUrl?: string | null;
   executionEnabled?: boolean; validationCommands?: string[]; setupCommands?: string[];
 }
+export interface WorkspaceState {
+  id: string; kind: 'missing_git' | 'no_repository' | 'unavailable' | 'nested_folder' | 'unborn' | 'detached' | 'ready';
+  ready: boolean; branch: string; head: string; defaultBranch: string; defaultSource: string; branches: string[];
+  dirty: { staged: number; unstaged: number; untracked: number }; operation: string; rootHint: string;
+}
+export interface GitHubTarget { id: number; fullName: string; private: boolean; defaultBranch: string; url: string; allowMerge: boolean; allowSquash: boolean; allowRebase: boolean }
+export interface GitHubProposal { number: number; title: string; state: string; merged: boolean; draft: boolean; head: string; branch: string; base: string; mergeable: boolean | null; mergeState: string; url: string }
+export interface GitHubStatus { available: boolean; account: string | null; target: GitHubTarget | null; suggestedTarget: string; last: { branch: string; head: string; checkedAt: string; proposal: GitHubProposal | null } | null }
+export interface PublishPreview { id: string; account: string; target: GitHubTarget; branch: string; head: string; remoteHead: string; commits: Array<{ sha: string; title: string }>; files: string[]; diff: string; dirty: WorkspaceState['dirty']; updatesMain: boolean }
+export interface MergePreview { id: string; target: GitHubTarget; proposal: GitHubProposal; canMerge: boolean; head: string; baseHead: string; diff: string; reviewDecision: string | null; checks: Array<{ name: string; status: string; conclusion: string | null }>; status: string; merged?: boolean }
 export interface Diagnostics {
   deviceBrowser: { available: boolean; browser: string | null };
   project: { frameworks: string[]; backends: string[]; packageManager: string; packageManagerAvailable: boolean; suggestedOrigin: string; warnings: string[]; suggestedSetup: string[]; suggestedValidation: string[] };

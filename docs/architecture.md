@@ -27,6 +27,9 @@ default tests run application fixtures with execution disabled. Agent fixtures a
 | `core.rs` | Repository ownership, lifecycle, queue, concurrency, messages and actions |
 | `store.rs` | SQLite, WAL-aware migration backup, tasks/messages/revisions/audit/preferences |
 | `git.rs` | Detached worktrees, safe patch collection, apply checks and cleanup |
+| `workspace.rs` | Missing-Git/no-history onboarding, explicit initialization and guarded branch changes |
+| `versions.rs` | Private-index first/applied commit reviews, exact saves and interruption journal |
+| `github.rs` | Selected-account GitHub CLI/API access, reviewed publishing, proposals and merge gates |
 | `process.rs` | Bounded, cancellable validation/Git subprocesses with process groups/jobs |
 | `appearance.rs` | Appearance schema constraints and uploaded-font limits |
 | `crates/agent-runtime` | Reusable Rust transport library plus protocol-test executable |
@@ -121,3 +124,21 @@ precedes that ref update. Index installation completes the transaction; interrup
 retains evidence and blocks ambiguous retries. No push, reset or agent execution is involved.
 See [Saved versions](saved-versions.md) for limits and recovery. API tests use deterministic
 file patches with execution disabled; Chromium tests exercise dashboard and mobile overlay.
+
+## Branches and publishing
+
+Startup probes the folder instead of requiring a first commit. Git-dependent execution
+waits for a ready workspace; drafts and context remain accessible. The shared TypeScript
+branch guide polls read-only Git status without optional index writes and consumes local
+workspace notifications. Branch mutations validate expected HEAD, dirty state, active work
+and recovery before non-forced checkout. First-commit saves reuse the version journal.
+
+GitHub sessions and ten-minute reviews live only in server memory. The `gh` CLI obtains an
+explicitly chosen account credential and performs bounded REST/GraphQL calls; it never switches
+the global active account. Exact HTTPS Git transfers use per-process credentials and clear
+tracing/credential helpers, refuse URL rewrites and use one explicit branch refspec.
+SQLite stores target metadata, last-checked branch status and publication receipts, not tokens.
+Merge gates combine REST checks/status/mergeability with GraphQL review decisions and recheck
+reviewed head/base before calling GitHub. Merge never resets local files or branches.
+The test-only HTTP transport points at a local API fixture; Git transfers use local bare
+repositories. It is not an externally configurable production endpoint. See [the guide](branch-publish.md).

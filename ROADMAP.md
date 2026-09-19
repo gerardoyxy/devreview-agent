@@ -10,6 +10,11 @@ A working feature or passing application test does not certify an agent or a pro
 - Source after `0.4.0-alpha.1`: guided Review & save, editable commit names, explicit author,
   local Git version history and safe preservation of unrelated staging. Publishing stays
   separate; hooks and mixed edits use the user's Git client. See [Saved versions](docs/saved-versions.md).
+- Source after `0.4.0-alpha.1`: no-repository onboarding, reviewed first commit, branch
+  education/create/switch, live indicators, explicit GitHub account/repository selection,
+  reviewed publication, editable pull requests and gated merge. GitHub API simulations and
+  local bare-repository tests accompany Chromium UI checks; live service policies remain
+  a separate verification boundary. See [Branch & publish](docs/branch-publish.md).
 - Strict TypeScript dashboard, isolated overlay, conversations and appearance editors.
 - Rust CLI, HTTP/SSE service, queue, SQLite, Git operations, process supervision and transports.
   Browser assets are embedded in the executable; Node and Rust are build requirements.
@@ -58,7 +63,7 @@ A working feature or passing application test does not certify an agent or a pro
 | Basic workflow completion | Guided first project connection, real framework fixtures, clearer recovery/retention and broader accessibility/install checks. See the [foundation evidence map](docs/foundations.md). |
 | Recovery and scale | More automated recovery only when file state proves the action, snapshot retention controls, API pagination, review sessions and conflict visualization. |
 | Agent depth | Native resume, interactive ACP permissions, image context and additional transport capability negotiation with versioned evidence. |
-| Interchange | Export/import review sessions and carefully scoped MCP/GitHub integration. Team/cloud execution and remote agents need separate workflow and security design. |
+| Interchange | Export/import review sessions, scoped MCP integration and deeper GitHub workflows beyond branch publishing/PR/merge. Team/cloud execution and remote agents need separate workflow and security design. |
 
 ## Current limits
 

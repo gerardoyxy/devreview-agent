@@ -22,6 +22,7 @@ pub struct Core {
     pub device_preview: crate::device_preview::DevicePreview,
     pub(crate) control: tokio::sync::Mutex<()>,
     pub(crate) version_previews: Mutex<HashMap<String, crate::versions::Plan>>,
+    pub(crate) github: tokio::sync::Mutex<crate::github::Hub>,
     active: Mutex<HashMap<String, Active>>,
     wake: Notify,
     pub stop: CancellationToken,
@@ -47,6 +48,7 @@ impl Core {
     pub async fn open(root: &Path, config: Config) -> Result<Arc<Self>> {
         config.validate()?;
         let root = dunce::canonicalize(root)?;
+        crate::workspace::ignore_state(&root)?;
         let state = root.join(".nudgethis");
         if !state.exists() {
             let mut builder = std::fs::DirBuilder::new();
@@ -68,8 +70,13 @@ impl Core {
         writeln!(lock, "{}", std::process::id())?;
         drop(lock);
         let repository = Repository::new(root, state.clone());
-        repository.inspect().await?;
-        repository.git(&["check-ignore","--quiet","--no-index",".nudgethis/token"],&repository.root,"").await.map_err(|_| anyhow::anyhow!("Ignore .nudgethis/ before starting. Run nudgethis init, then commit the configuration."))?;
+        let workspace = crate::workspace::probe(&repository).await?;
+        if matches!(
+            crate::workspace::text(&workspace, "kind"),
+            "ready" | "unborn" | "detached"
+        ) {
+            repository.git(&["check-ignore","--quiet","--no-index",".nudgethis/token"],&repository.root,"").await.map_err(|_| anyhow::anyhow!("Ignore .nudgethis/ before starting. Run nudgethis init, then commit the configuration."))?;
+        }
         // Refuse symlinked state files before opening secrets or SQLite.
         for name in [
             "token",
@@ -108,6 +115,7 @@ impl Core {
             device_preview: crate::device_preview::DevicePreview::default(),
             control: tokio::sync::Mutex::new(()),
             version_previews: Mutex::new(HashMap::new()),
+            github: tokio::sync::Mutex::new(crate::github::Hub::default()),
             active: Mutex::new(HashMap::new()),
             wake: Notify::new(),
             stop: CancellationToken::new(),
@@ -139,6 +147,9 @@ impl Core {
                                     || core.active.lock().unwrap().contains_key(&id)
                                 {
                                     continue;
+                                }
+                                if core.repository.inspect().await.is_err() {
+                                    break;
                                 }
                                 let cancel = core.stop.child_token();
                                 let (done, rx) = watch::channel(false);

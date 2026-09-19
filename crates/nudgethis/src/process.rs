@@ -30,8 +30,24 @@ pub async fn run_env(
     cancel: &CancellationToken,
     environment: &[(&str, &str)],
 ) -> Result<Output> {
+    run_scoped(command, args, cwd, input, timeout, cancel, environment, &[]).await
+}
+#[allow(clippy::too_many_arguments)]
+pub async fn run_scoped(
+    command: &str,
+    args: &[String],
+    cwd: &Path,
+    input: &[u8],
+    timeout: u64,
+    cancel: &CancellationToken,
+    environment: &[(&str, &str)],
+    remove_environment: &[&str],
+) -> Result<Output> {
     ensure!(!cancel.is_cancelled(), "Cancelled");
     let mut cmd = CommandWrap::with_new(command, |cmd| {
+        for name in remove_environment {
+            cmd.env_remove(name);
+        }
         #[cfg(windows)]
         if command.eq_ignore_ascii_case("cmd.exe") && args.len() == 4 && args[2] == "/C" {
             // Validation is trusted shell text; cmd.exe does not use argv quoting rules.

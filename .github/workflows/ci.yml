@@ -35,4 +35,4 @@ jobs:
         if: runner.os == 'Linux'
         env:
           NUDGETHIS_TEST_BROWSER: /usr/bin/google-chrome
-        run: node --test tests/device-preview.safe.test.js tests/selection-browser.safe.test.js tests/my-style-browser.safe.test.js tests/versions-browser.safe.test.js
+        run: node --test tests/device-preview.safe.test.js tests/selection-browser.safe.test.js tests/my-style-browser.safe.test.js tests/versions-browser.safe.test.js tests/branch-publish-browser.safe.test.js

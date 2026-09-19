@@ -221,6 +221,14 @@ the dashboard and overlay. Publishing to GitHub remains separate. See
 [Saved versions](docs/saved-versions.md) for author details, hooks, signing and recovery.
 This flow is available in current source; the `0.4.0-alpha.1` download predates it.
 
+**Branch & publish** also supports projects without Git history: keep drafts and context,
+explicitly enable local history, review files and save a first version. The guide explains
+branches, offers create/switch/continue, and refreshes when another tool changes the branch.
+GitHub is optional. Choose an account and destination, review and publish saved commits,
+prepare an editable pull request, then merge only after checks and required reviews permit it.
+This optional flow needs GitHub CLI; it leaves global account settings untouched. See
+[Branches, local history and GitHub](docs/branch-publish.md) for limits and recovery.
+
 SQLite keeps tasks, drafts, conversations, versions, project context, route coverage and
 appearance. Legacy migration creates a WAL-aware backup before schema changes. Tokens
 and snapshot refs are local development state; never publish them with a mirror push.

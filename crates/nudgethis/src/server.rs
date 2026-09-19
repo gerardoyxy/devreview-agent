@@ -184,6 +184,32 @@ async fn route(app: &App, req: Request) -> Result<Response, ApiError> {
         "Local token required",
     )?;
     let core = &app.core;
+    if path == "/api/github" && method == Method::GET {
+        return Ok(json(core.github_status().await?));
+    }
+    if path == "/api/github" && method == Method::POST {
+        return Ok(json(core.github_action(body(req, 16384).await?).await?));
+    }
+    if path == "/api/workspace" && method == Method::GET {
+        return Ok(json(core.workspace().await?));
+    }
+    if path == "/api/workspace/initialize" && method == Method::POST {
+        return Ok(json(
+            core.initialize_workspace(body(req, 4096).await?).await?,
+        ));
+    }
+    if path == "/api/workspace/initial-files" && method == Method::GET {
+        return Ok(json(core.initial_files().await?));
+    }
+    if path == "/api/workspace/initial-preview" && method == Method::POST {
+        return Ok(json(
+            core.preview_initial_version(body(req, 65536).await?)
+                .await?,
+        ));
+    }
+    if path == "/api/workspace/branch" && method == Method::POST {
+        return Ok(json(core.change_branch(body(req, 4096).await?).await?));
+    }
     if path == "/api/versions" && method == Method::GET {
         return Ok(json(core.versions().await?));
     }
@@ -332,9 +358,10 @@ async fn route(app: &App, req: Request) -> Result<Response, ApiError> {
             .into_response());
     }
     if path == "/api/status" && method == Method::GET {
+        let workspace = core.workspace().await?;
         let agents:Vec<_>=core.config.agents.iter().map(|a|json!({"id":a.id,"label":if a.label.is_empty(){&a.id}else{&a.label},"transport":a.transport,"capabilities":{"automatic":true,"streaming":true,"resume":false,"images":false}})).collect();
         return Ok(json(
-            json!({"repository":core.repository.inspect().await?,"agent":core.config.default_agent,"agents":agents,"executionEnabled":core.config.execution_enabled(),"setupCommands":core.config.setup.commands,"validationCommands":core.config.validation.commands,"workers":core.config.workers.max_concurrent,"playgroundUrl":null,"runtime":"rust"}),
+            json!({"repository":{"head":workspace["head"],"branch":workspace["branch"]},"workspace":workspace,"agent":core.config.default_agent,"agents":agents,"executionEnabled":core.config.execution_enabled() && workspace["ready"]==true,"executionConfigured":core.config.execution_enabled(),"setupCommands":core.config.setup.commands,"validationCommands":core.config.validation.commands,"workers":core.config.workers.max_concurrent,"playgroundUrl":null,"runtime":"rust"}),
         ));
     }
     if path == "/api/shutdown" && method == Method::POST {

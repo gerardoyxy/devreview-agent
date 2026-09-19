@@ -32,7 +32,11 @@ From your application's repository root:
 /path/to/nudgethis start --no-execution
 ```
 
-Use a repository with at least one commit. `init` adds `.nudgethis/` to `.gitignore` and
+The `0.4.0-alpha.1` archive requires a repository with at least one commit. Current source
+also opens folders without Git history: **Branch & publish** guides local initialization
+and a reviewed first version, while drafts and context remain available beforehand.
+Git is needed to run changes; GitHub CLI is optional for the separate publishing workflow.
+See [the branch guide](branch-publish.md). `init` adds `.nudgethis/` to `.gitignore` and
 suggests commands from project metadata without executing them. Review `nudgethis.toml`.
 The last command opens the local service in review mode: drafts, route review, context,
 appearance, existing Apply/Undo and history remain available; setup, validation and agents

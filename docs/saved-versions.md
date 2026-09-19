@@ -22,7 +22,7 @@ It does not edit repository or global Git settings. Commit names/emails become v
 when you publish; a GitHub private email is supported.
 
 Saving does **not** push, open a pull request, run agents or run validation. Publishing
-remains a separate action in your Git client. Missing/pending/failed checks stay clearly
+is a separate action in [Branch & publish](branch-publish.md) or your Git client. Missing/pending/failed checks stay clearly
 marked during review. The history records saves made here, not every commit from other
 tools or the remote's current publishing status.
 

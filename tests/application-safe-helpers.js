@@ -11,7 +11,7 @@ export const environment = { ...process.env, NUDGETHIS_DISABLE_EXECUTION: '1' };
 export function cli(root, ...args) {
   return spawnSync(binary, ['--root', root, ...args], { encoding: 'utf8', env: environment, timeout: 15000 });
 }
-export async function application({ origins = [], environment: overrides = {} } = {}) {
+export async function application({ origins = [], environment: overrides = {}, repository = 'ready' } = {}) {
   const fixtureEnvironment = { ...environment, ...overrides, NUDGETHIS_DISABLE_EXECUTION: '1' };
   const root = await mkdtemp(path.join(tmpdir(), 'nudgethis-application-'));
   const git = (...args) => {
@@ -19,13 +19,14 @@ export async function application({ origins = [], environment: overrides = {} } 
     if (result.status !== 0) throw new Error(result.stderr);
     return result.stdout;
   };
-  git('init', '-b', 'main');
-  git('config', 'core.autocrlf', 'false');
+  if (repository !== 'none') { git('init', '-b', 'main'); git('config', 'core.autocrlf', 'false'); }
   await writeFile(path.join(root, '.gitignore'), '.nudgethis/\n');
   await writeFile(path.join(root, 'example.txt'), 'Application-only fixture\n');
   await writeFile(path.join(root, 'nudgethis.toml'), '[execution]\nenabled = false\n' + (origins.length ? `\n[server]\nallowedOrigins = ${JSON.stringify(origins)}\n` : ''));
-  git('add', '--', '.');
-  git('-c', 'user.name=Application Test', '-c', 'user.email=test@example.invalid', '-c', 'commit.gpgSign=false', 'commit', '-m', 'Application fixture');
+  if (repository === 'ready') {
+    git('add', '--', '.');
+    git('-c', 'user.name=Application Test', '-c', 'user.email=test@example.invalid', '-c', 'commit.gpgSign=false', 'commit', '-m', 'Application fixture');
+  }
   let child, address, token;
   const stopped = () => new Promise((resolve, reject) => {
     if (child.exitCode !== null || child.signalCode !== null) return resolve();

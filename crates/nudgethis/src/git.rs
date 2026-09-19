@@ -57,7 +57,14 @@ impl Repository {
             400,
             "Start NudgeThis at the repository root",
         )?;
-        let head = self.git(&["rev-parse", "HEAD"], &self.root, "").await?;
+        let head = self
+            .git(&["rev-parse", "HEAD"], &self.root, "")
+            .await
+            .map_err(|_| crate::error::Error {
+                status: 409,
+                message: "Save your first version in Branch & publish before starting changes"
+                    .into(),
+            })?;
         let branch = self
             .git(&["symbolic-ref", "--short", "HEAD"], &self.root, "")
             .await?;

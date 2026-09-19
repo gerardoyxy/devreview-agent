@@ -114,7 +114,7 @@ async fn config(repo: &Repository, key: &str) -> Result<String> {
     )?;
     Ok(result.stdout.trim().to_owned())
 }
-async fn identity(repo: &Repository) -> Result<Value> {
+pub(crate) async fn identity(repo: &Repository) -> Result<Value> {
     Ok(json!({"name":config(repo,"user.name").await?,"email":config(repo,"user.email").await?}))
 }
 fn validate_identity(value: &Value) -> Result<()> {
@@ -139,7 +139,7 @@ fn validate_identity(value: &Value) -> Result<()> {
         "Enter a valid author email. A GitHub private email is also supported",
     )
 }
-async fn git_path(repo: &Repository, name: &str) -> Result<PathBuf> {
+pub(crate) async fn git_path(repo: &Repository, name: &str) -> Result<PathBuf> {
     let result = plain(repo, &["rev-parse", "--git-path", name]).await?;
     check(result.code == 0, 409, "Cannot locate Git metadata")?;
     let path = PathBuf::from(result.stdout.trim());
@@ -150,7 +150,11 @@ async fn git_path(repo: &Repository, name: &str) -> Result<PathBuf> {
     })
 }
 async fn index_hash(repo: &Repository, path: &Path) -> Result<String> {
-    let meta = fs::symlink_metadata(path)?;
+    let meta = match fs::symlink_metadata(path) {
+        Ok(meta) => meta,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(String::new()),
+        Err(e) => return Err(e.into()),
+    };
     check(
         meta.is_file() && !meta.file_type().is_symlink(),
         409,
@@ -189,14 +193,28 @@ async fn ready(repo: &Repository) -> Result<()> {
         409,
         "Resolve the conflicting files before saving a version",
     )?;
+    no_hooks(
+        repo,
+        &[
+            "pre-commit",
+            "prepare-commit-msg",
+            "commit-msg",
+            "post-commit",
+            "reference-transaction",
+        ],
+    )
+    .await?;
+    // Custom hooksPath is resolved by rev-parse --git-path hooks, without our normal hooks override.
+    let split = plain(repo, &["rev-parse", "--shared-index-path"]).await?;
+    check(
+        split.code == 0 && split.stdout.trim().is_empty(),
+        409,
+        "Turn off Git split index before using Save version",
+    )
+}
+pub(crate) async fn no_hooks(repo: &Repository, names: &[&str]) -> Result<()> {
     let hooks = git_path(repo, "hooks").await?;
-    for name in [
-        "pre-commit",
-        "prepare-commit-msg",
-        "commit-msg",
-        "post-commit",
-        "reference-transaction",
-    ] {
+    for name in names {
         let path = hooks.join(name);
         if let Ok(meta) = fs::metadata(path) {
             #[cfg(unix)]
@@ -209,17 +227,11 @@ async fn ready(repo: &Repository) -> Result<()> {
             check(
                 !active,
                 409,
-                "This repository uses commit hooks. Save through your Git client so those checks can run; NudgeThis will not bypass them",
+                "This repository uses Git hooks. Complete this operation in your Git client so those checks can run; NudgeThis will not bypass them",
             )?;
         }
     }
-    // Custom hooksPath is resolved by rev-parse --git-path hooks, without our normal hooks override.
-    let split = plain(repo, &["rev-parse", "--shared-index-path"]).await?;
-    check(
-        split.code == 0 && split.stdout.trim().is_empty(),
-        409,
-        "Turn off Git split index before using Save version",
-    )
+    Ok(())
 }
 async fn entries(
     repo: &Repository,
@@ -254,7 +266,7 @@ fn matches_entry(entry: Option<&Value>, state: &Value) -> bool {
         }
     }
 }
-async fn pending(repo: &Repository, store: &Store, state: &Value) -> Result<Vec<Value>> {
+pub(crate) async fn pending(repo: &Repository, store: &Store, state: &Value) -> Result<Vec<Value>> {
     let records = store.saved_versions()?;
     let saved: BTreeSet<_> = records
         .iter()
@@ -325,9 +337,97 @@ async fn apply_to_index(repo: &Repository, index: &Path, changes: &[Value]) -> R
         .into())
 }
 impl Core {
+    pub async fn preview_initial_version(&self, input: Value) -> Result<Value> {
+        let _control = self.control.lock().await;
+        let _mutation = self.repository.mutation.lock().await;
+        self.idle_workspace()?;
+        let repo = &self.repository;
+        let state = crate::workspace::state(repo).await?;
+        check(
+            text(&state, "head").is_empty(),
+            409,
+            "The first version already exists. Refresh the workspace",
+        )?;
+        ready(repo).await?;
+        check(
+            repo.git(&["ls-files", "--stage"], &repo.root, "")
+                .await?
+                .is_empty(),
+            409,
+            "Some files are already staged. Save the first version in your Git client, then refresh",
+        )?;
+        let files = input["files"]
+            .as_array()
+            .ok_or_else(|| conflict("Select the files for your first version"))?;
+        check(
+            !files.is_empty() && files.len() <= 200,
+            400,
+            "Choose between 1 and 200 files for the first version",
+        )?;
+        let paths: Vec<_> = files.iter().filter_map(Value::as_str).collect();
+        check(
+            paths.len() == files.len()
+                && paths.iter().copied().collect::<BTreeSet<_>>().len() == paths.len()
+                && paths.iter().all(|p| crate::workspace::source_file(p)),
+            400,
+            "Select unique source files; private and generated files are excluded",
+        )?;
+        let after = repo.file_states(&input["files"]).await?;
+        check(
+            after.as_object().unwrap().values().all(|v| !v.is_null()),
+            409,
+            "Some selected files no longer exist. Refresh the list",
+        )?;
+        let index_path = git_path(repo, "index").await?;
+        let original_hash = index_hash(repo, &index_path).await?;
+        let id = format!("{:032x}", rand::random::<u128>());
+        let dir = repo.state.join(format!("version-{id}"));
+        fs::create_dir(&dir)?;
+        let result: Result<Plan> = async {
+            let index=dir.join("preview-index"); let env=[("GIT_INDEX_FILE",index.to_str().unwrap())];
+            repo.git_env(&["read-tree","--empty"],&repo.root,"",&env).await?;
+            let mut add=vec!["add","--"]; add.extend(paths);
+            repo.git_env(&add,&repo.root,"",&env).await?;
+            let tree=repo.git_env(&["write-tree"],&repo.root,"",&env).await?.trim().to_owned();
+            let actual=entries(repo,&tree,&input["files"].as_array().unwrap().iter().map(|p|p.as_str().unwrap().to_owned()).collect::<Vec<_>>()).await?;
+            check(after.as_object().unwrap().iter().all(|(p,s)|matches_entry(actual.get(p),s)),409,"Git filters changed the selected files during review. Save the first version in your Git client")?;
+            let empty=repo.git(&["mktree"],&repo.root,"").await?;
+            let diff=repo.git(&["diff","--binary","--no-ext-diff","--no-textconv",empty.trim(),&tree,"--"],&repo.root,"").await?;
+            check(diff.len()<=524_288,409,"The first version exceeds the 512 KiB review limit. Choose fewer files or use your Git client")?;
+            check(crate::workspace::state(repo).await?==state && repo.file_states(&input["files"]).await?==after && index_hash(repo,&index_path).await?==original_hash,409,"Files or Git changed while preparing the first version. Review again")?;
+            Ok(Plan {created:Instant::now(),dir:dir.clone(),data:json!({"id":id,"initial":true,"repository":state,"tree":tree,"files":input["files"],"changes":[],"diff":diff,"suggestedMessage":"Start project history","identity":identity(repo).await?,"expiresInSeconds":600}),changes:vec![],after,index_hash:original_hash})
+        }.await;
+        if result.is_err() {
+            let _ = fs::remove_dir_all(&dir);
+        }
+        let plan = result?;
+        let result = plan.data.clone();
+        let mut previews = self.version_previews.lock().unwrap();
+        previews.retain(|_, p| {
+            let keep = p.created.elapsed().as_secs() < 600;
+            if !keep {
+                let _ = fs::remove_dir_all(&p.dir);
+            }
+            keep
+        });
+        if previews.len() >= 12 {
+            let _ = fs::remove_dir_all(dir);
+            return Err(conflict(
+                "Close older reviews and wait a few minutes before opening another",
+            ));
+        }
+        previews.insert(id, plan);
+        Ok(result)
+    }
     pub async fn versions(&self) -> Result<Value> {
         let _control = self.control.lock().await;
         self.reconcile_versions().await?;
+        let workspace = crate::workspace::probe(&self.repository).await?;
+        if workspace["kind"] != "ready" {
+            return Ok(
+                json!({"repository":{"head":workspace["head"],"branch":workspace["branch"]},"pending":[],"history":self.store.saved_versions()?.into_iter().map(public_record).collect::<Vec<_>>(),"identity":{"name":"","email":""}}),
+            );
+        }
         let state = self.repository.inspect().await?;
         let pending = pending(&self.repository, &self.store, &state).await?;
         let history = self.store.saved_versions()?;
@@ -471,10 +571,7 @@ impl Core {
         {
             let repo = &self.repository;
             let branch = format!("refs/heads/{}", text(&record, "branch"));
-            let Ok(head) = repo
-                .git(&["rev-parse", "--verify", &branch], &repo.root, "")
-                .await
-            else {
+            let Ok(head) = branch_head(repo, &branch).await else {
                 continue;
             };
             let index = git_path(repo, "index").await?;
@@ -592,6 +689,20 @@ struct IndexLock {
     file: Option<fs::File>,
     remove: bool,
 }
+/// A missing ref is a valid starting point for the first commit; other read failures are not.
+async fn branch_head(repo: &Repository, branch: &str) -> Result<String> {
+    let result = plain(repo, &["show-ref", "--verify", "--hash", branch]).await?;
+    if result.code == 0 {
+        return Ok(result.stdout.trim().to_owned());
+    }
+    let exists = plain(repo, &["show-ref", "--verify", "--quiet", branch]).await?;
+    check(
+        exists.code == 1,
+        409,
+        "Cannot confirm the branch after saving. Inspect Git before retrying",
+    )?;
+    Ok(String::new())
+}
 impl Drop for IndexLock {
     fn drop(&mut self) {
         self.file.take();
@@ -610,7 +721,8 @@ async fn save(
     let state = &plan.data["repository"];
     let files = &plan.data["files"];
     check(
-        repo.inspect().await? == *state && repo.file_states(files).await? == plan.after,
+        crate::workspace::state(repo).await? == *state
+            && repo.file_states(files).await? == plan.after,
         409,
         "Your branch or files changed since review. Review again before saving",
     )?;
@@ -634,8 +746,19 @@ async fn save(
         "Your staged changes changed since review. Review again",
     )?;
     let next_index = plan.dir.join("next-index");
-    fs::copy(&index, &next_index)?;
-    apply_to_index(repo, &next_index, &plan.changes).await?;
+    if text(state, "head").is_empty() {
+        let env = [("GIT_INDEX_FILE", next_index.to_str().unwrap())];
+        repo.git_env(
+            &["read-tree", text(&plan.data, "tree")],
+            &repo.root,
+            "",
+            &env,
+        )
+        .await?;
+    } else {
+        fs::copy(&index, &next_index)?;
+        apply_to_index(repo, &next_index, &plan.changes).await?;
+    }
     let final_hash = index_hash(repo, &next_index).await?;
     let author_name = text(author, "name").trim();
     let author_email = text(author, "email").trim();
@@ -651,12 +774,10 @@ async fn save(
         409,
         "Cannot read Git signing configuration",
     )?;
-    let mut args = vec![
-        "commit-tree",
-        text(&plan.data, "tree"),
-        "-p",
-        text(state, "head"),
-    ];
+    let mut args = vec!["commit-tree", text(&plan.data, "tree")];
+    if !text(state, "head").is_empty() {
+        args.extend(["-p", text(state, "head")]);
+    }
     if signing.stdout.trim() == "true" {
         args.push("-S");
     }
@@ -666,7 +787,7 @@ async fn save(
         .trim()
         .to_owned();
     check(
-        repo.inspect().await? == *state
+        crate::workspace::state(repo).await? == *state
             && repo.file_states(files).await? == plan.after
             && index_hash(repo, &index).await? == plan.index_hash,
         409,
@@ -698,9 +819,7 @@ async fn save(
         .await
         .is_err()
     {
-        let head = repo
-            .git(&["rev-parse", "--verify", &branch], &repo.root, "")
-            .await?;
+        let head = branch_head(repo, &branch).await?;
         if head.trim() != commit {
             if head.trim() == text(state, "head") {
                 guard.remove = true;
