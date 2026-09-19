@@ -10,6 +10,7 @@ mod process;
 mod project;
 mod project_context;
 mod route_review;
+mod selection;
 mod server;
 mod store;
 

@@ -107,8 +107,11 @@ Put the token in an ignored local development environment file. Configure the ex
 origin: `localhost` and `127.0.0.1` differ. A restrictive application CSP must permit the local
 DevReview script, API connection and overlay styles; adjust only your development policy.
 
-Use Alt + right-click, or focus an element and press Alt + Shift + D. Set `modifier: 'none'`
-for ordinary right-click. Select an agent and start a conversation, or use **Copy context**
+Use **Pick element** and click/tap your target, Alt + right-click, or focus an element
+and press Alt + Shift + D. Open **Selection controls** in the overlay or dashboard to
+choose your mouse button, modifiers and keyboard shortcut. Preferences persist locally
+for this repository and update connected overlays. See [selection controls](docs/selection-controls.md).
+Set `modifier: 'none'` for ordinary right-click before preferences are saved. Select an agent and start a conversation, or use **Copy context**
 to paste the minimized request into any agent that accepts text.
 
 ## Conversations and review

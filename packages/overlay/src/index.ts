@@ -1,3 +1,5 @@
+import { bindSelectionInput } from './selection-input.js';
+import { createSelectionControls, defaultSelectionControls, validSelectionControls, pointerLabel, keyboardLabel, type SelectionControls } from './selection-controls.js';
 import { createRouteReview } from './route-review.js';
 import { createTaskComposer, createDiagnostics } from './workspace.js';
 import { overlayStyles } from './styles.js';
@@ -11,7 +13,7 @@ import { errorMessage, query } from '../../contracts/src/index.js';
 import { createTaskReview } from './review.js';
 
 /** Authenticated SSE over fetch: credentials never appear in a query string. */
-export async function watchTasks(server: string, token: string, onTask: (task: TaskEvent) => void, signal: AbortSignal, onConnection: (connected: boolean, error?: string) => void = () => {}, onAppearance: (value: unknown) => void = () => {}) {
+export async function watchTasks(server: string, token: string, onTask: (task: TaskEvent) => void, signal: AbortSignal, onConnection: (connected: boolean, error?: string) => void = () => {}, onAppearance: (value: unknown) => void = () => {}, onSelection: (value: unknown) => void = () => {}) {
   let retryDelay = 1000;
   while (!signal.aborted) {
     try {
@@ -30,6 +32,7 @@ export async function watchTasks(server: string, token: string, onTask: (task: T
           while ((end = buffer.indexOf('\n\n')) >= 0) {
             const event = buffer.slice(0, end); buffer = buffer.slice(end + 2);
             if (event.startsWith('event: appearance\n')) onAppearance(JSON.parse(event.slice(event.indexOf('data: ') + 6)));
+            if (event.startsWith('event: selection-controls\n')) onSelection(JSON.parse(event.slice(event.indexOf('data: ') + 6)));
             if (event.startsWith('event: task\n')) onTask(JSON.parse(event.slice(event.indexOf('data: ') + 6)));
           }
         }
@@ -94,16 +97,20 @@ export function resolveElement(context: ElementContext): Element | undefined {
   } catch { return; }
 }
 
-export interface OverlayOptions { server?: string; token?: string; enabled?: boolean; modifier?: 'alt' | 'none'; captureDom?: boolean }
+export interface OverlayOptions { server?: string; token?: string; enabled?: boolean; modifier?: 'alt' | 'none'; selection?: Pick<SelectionControls, 'pointer' | 'keyboard'>; captureDom?: boolean }
 
 export const DevReview = {
-  init({ server = 'http://127.0.0.1:7331', token, enabled = false, modifier = 'alt', captureDom = false }: OverlayOptions = {}) {
+  init({ server = 'http://127.0.0.1:7331', token, enabled = false, modifier = 'alt', selection, captureDom = false }: OverlayOptions = {}) {
     if (!enabled || !['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) return { destroy() {} };
     if (document.querySelector('[data-devreview-overlay]')) throw new Error('DevReview is already initialized');
     const serverUrl = new URL(server);
     if (!['localhost', '127.0.0.1', '[::1]'].includes(serverUrl.hostname) || !['http:', 'https:'].includes(serverUrl.protocol)) throw new Error('DevReview requires a loopback server');
     token ||= ''; // Copy-context mode also works without a server session.
     server = serverUrl.origin;
+    const fallbackControls = { ...defaultSelectionControls(), ...(selection || {}) };
+    if (!selection && modifier === 'none') fallbackControls.pointer.modifiers = [];
+    if (!validSelectionControls(fallbackControls)) throw new Error('Invalid selection controls');
+    let selectionControls = fallbackControls;
     const controller = new AbortController();
     const host = document.createElement('div'); host.dataset.devreviewOverlay = '';
     host.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:2147483647;';
@@ -118,8 +125,8 @@ export const DevReview = {
       <div class="capture-context"></div><p class="hint">The agent works in a separate worktree. You review before applying.</p><p class="error" role="alert" hidden></p>
       <div class="prompt-actions"><button class="copy-context" type="button">Copy context</button><button class="save-draft" type="submit" value="draft" disabled>Save draft</button><button class="save" type="submit" value="start" disabled>Start conversation</button></div><p class="copy-status" role="status" hidden></p>
     </form>
-    <button class="launcher" type="button" aria-label="Open NudgeThis conversations">${brandLogo()}<span class="dot"></span><span class="label">NudgeThis · connecting</span></button>
-    <dialog class="review-dialog" aria-label="NudgeThis conversations"><div class="review-shell"><header class="review-header"><div class="review-brand">${brandLogo()}<span>NudgeThis</span></div><div class="review-header-actions"><button type="button" class="appearance-button new-change">New change</button><button type="button" class="appearance-button routes-open">Routes</button><button type="button" class="appearance-button workspace-setup">Setup</button><button type="button" class="appearance-button project-context-button">Project context</button><button type="button" class="appearance-button appearance-open">Appearance</button><a class="dashboard-link" target="_blank" rel="noopener">Dashboard</a><button type="button" class="review-close" aria-label="Close conversations">${icon('close')}</button></div></header><div class="review-body"><aside class="review-sidebar"><span class="review-caption">Your changes</span><select class="review-filter" aria-label="Filter conversations"><option value="all">All changes</option><option value="page">This page</option><option value="applied">Applied changes</option></select><div class="review-task-list"></div></aside><div class="review-detail"><p class="review-empty">Your changes and their conversations live here.<br>Hold Alt and right-click an element to start.</p></div></div></div></dialog>`;
+    <div class="overlay-tools"><button type="button" class="pick-launcher" aria-pressed="false">Pick element</button><button type="button" class="controls-launcher" aria-label="Selection controls">Controls</button><button class="launcher" type="button" aria-label="Open NudgeThis conversations">${brandLogo()}<span class="dot"></span><span class="label">NudgeThis · connecting</span></button></div><p class="pick-notice" role="status" hidden>Click or tap an element · Escape to cancel</p>
+    <dialog class="review-dialog" aria-label="NudgeThis conversations"><div class="review-shell"><header class="review-header"><div class="review-brand">${brandLogo()}<span>NudgeThis</span></div><div class="review-header-actions"><button type="button" class="appearance-button new-change">New change</button><button type="button" class="appearance-button routes-open">Routes</button><button type="button" class="appearance-button workspace-setup">Setup</button><button type="button" class="appearance-button project-context-button">Project context</button><button type="button" class="appearance-button selection-open">Selection controls</button><button type="button" class="appearance-button appearance-open">Appearance</button><a class="dashboard-link" target="_blank" rel="noopener">Dashboard</a><button type="button" class="review-close" aria-label="Close conversations">${icon('close')}</button></div></header><div class="review-body"><aside class="review-sidebar"><span class="review-caption">Your changes</span><select class="review-filter" aria-label="Filter conversations"><option value="all">All changes</option><option value="page">This page</option><option value="applied">Applied changes</option></select><div class="review-task-list"></div></aside><div class="review-detail"><p class="review-empty">Your changes and their conversations live here.<br><span class="selection-hint"></span></p></div></div></div></dialog>`;
     document.documentElement.append(host);
     const $ = <E extends HTMLElement = HTMLElement>(selector: string) => query<E>(shadow, selector);
     $<HTMLAnchorElement>('.dashboard-link').href = `${server}/#token=${encodeURIComponent(token)}`;
@@ -207,7 +214,7 @@ export const DevReview = {
       if (!dialog.open) dialog.showModal();
       renderList(); await refreshReview();
     };
-    $('.launcher').onclick = () => void openReview();
+    $('.launcher').onclick = () => { selectionInput.cancel(); void openReview(); };
     $('.review-close').onclick = () => dialog.close();
     $<HTMLSelectElement>('.review-filter').onchange = renderList;
     const position = () => {
@@ -250,10 +257,6 @@ export const DevReview = {
     $('.target-parent').onclick = () => pick(selected?.parentElement, true);
     $('.target-child').onclick = () => pick(selected?.firstElementChild, true);
     $('.target-next').onclick = () => pick(selected?.nextElementSibling, true);
-    const contextMenu = (event: MouseEvent) => {
-      if (event.composedPath().includes(host) || (modifier === 'alt' && !event.altKey)) return;
-      event.preventDefault(); event.stopPropagation(); pick(event.target);
-    };
     const keydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') close();
       if (event.key === 'Tab' && !panel.hidden && !dialog.open) {
@@ -262,7 +265,6 @@ export const DevReview = {
         if (event.shiftKey && shadow.activeElement === first) { event.preventDefault(); last?.focus(); }
         else if (!event.shiftKey && shadow.activeElement === last) { event.preventDefault(); first.focus(); }
       }
-      if (event.altKey && event.shiftKey && event.code === 'KeyD') { event.preventDefault(); pick(document.activeElement); }
     };
     const update = (task: TaskEvent) => {
       if ('deleted' in task) {
@@ -292,7 +294,24 @@ export const DevReview = {
       finally { saving = false; $<HTMLButtonElement>('.save').disabled = !agentsReady || !executionEnabled; $<HTMLButtonElement>('.save-draft').disabled = !agentsReady; }
     });
     $('.close').addEventListener('click', close);
-    document.addEventListener('contextmenu', contextMenu, true); document.addEventListener('keydown', keydown, true);
+    const selectionInput = bindSelectionInput({
+      host, controls: () => selectionControls,
+      available: () => !saving && !shadow.querySelector('dialog[open]'),
+      select: element => pick(element),
+      armed: value => { $('.pick-launcher').setAttribute('aria-pressed', String(value)); $('.pick-launcher').textContent = value ? 'Cancel picking' : 'Pick element'; $('.pick-notice').hidden = !value; },
+      hover: element => { if (!element) { position(); if (panel.hidden) outline.hidden = true; return; } const rect = element.getBoundingClientRect(); outline.hidden = false; Object.assign(outline.style, { left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` }); }
+    });
+    const selectionEditor = createSelectionControls(shadow, api, value => {
+      selectionControls = value; selectionInput.cancel();
+      const hint = shadow.querySelector('.selection-hint');
+      if (hint) hint.textContent = `${pointerLabel(value)} to select, or use Pick element.`;
+      $('.pick-launcher').title = `${pointerLabel(value)} · Focused element: ${keyboardLabel(value)}`;
+    }, fallbackControls);
+    $('.pick-launcher').onclick = () => selectionInput.toggle();
+    const openControls = () => { selectionInput.cancel(); void selectionEditor.open(); };
+    $('.controls-launcher').onclick = openControls; $('.selection-open').onclick = openControls;
+    if (token) void selectionEditor.load().catch(() => {});
+    document.addEventListener('keydown', keydown, true);
     let positionFrame = 0;
     const schedulePosition = () => { if (!positionFrame) positionFrame = requestAnimationFrame(() => { positionFrame = 0; position(); }); };
     const observer = new MutationObserver(schedulePosition); observer.observe(document.body, { childList: true, subtree: true, characterData: true });
@@ -307,8 +326,8 @@ export const DevReview = {
     renderList();
     if (token) void watchTasks(server, token, update, controller.signal, connected => {
       online = connected; renderList();
-      $('.dot').style.background = connected ? 'var(--dr-success)' : 'var(--dr-warning)'; if (connected) { void load(); void loadAgents(); void appearance.load().catch(() => {}); }
-    }, value => appearance.receive(value));
-    return { destroy() { clearTimeout(refreshTimer); controller.abort(); appearance.destroy(); projectContext.destroy(); dialog.close(); review?.destroy(); document.removeEventListener('contextmenu', contextMenu, true); document.removeEventListener('keydown', keydown, true); window.removeEventListener('scroll', position, true); window.removeEventListener('resize', position); observer.disconnect(); cancelAnimationFrame(positionFrame); composer.destroy(); diagnostics.destroy(); routes.destroy(); host.remove(); } };
+      $('.dot').style.background = connected ? 'var(--dr-success)' : 'var(--dr-warning)'; if (connected) { void load(); void loadAgents(); void appearance.load().catch(() => {}); void selectionEditor.load().catch(() => {}); }
+    }, value => appearance.receive(value), value => selectionEditor.receive(value));
+    return { destroy() { clearTimeout(refreshTimer); controller.abort(); appearance.destroy(); projectContext.destroy(); dialog.close(); review?.destroy(); selectionInput.destroy(); selectionEditor.destroy(); document.removeEventListener('keydown', keydown, true); window.removeEventListener('scroll', position, true); window.removeEventListener('resize', position); observer.disconnect(); cancelAnimationFrame(positionFrame); composer.destroy(); diagnostics.destroy(); routes.destroy(); host.remove(); } };
   }
 };

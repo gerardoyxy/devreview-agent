@@ -357,6 +357,49 @@ impl Store {
             .transpose()?
             .unwrap_or(Value::Null))
     }
+    pub fn selection_controls(&self) -> Result<Value> {
+        let data: Option<String> = self
+            .db
+            .lock()
+            .unwrap()
+            .query_row(
+                "SELECT data FROM preferences WHERE key='selection-controls'",
+                [],
+                |r| r.get(0),
+            )
+            .optional()?;
+        Ok(data
+            .map(|s| serde_json::from_str(&s))
+            .transpose()?
+            .unwrap_or(Value::Null))
+    }
+    pub fn save_selection_controls(&self, mut value: Value) -> Result<Value> {
+        crate::selection::validate(&value)?;
+        let mut db = self.db.lock().unwrap();
+        let tx = db.transaction()?;
+        let previous: Option<String> = tx
+            .query_row(
+                "SELECT data FROM preferences WHERE key='selection-controls'",
+                [],
+                |r| r.get(0),
+            )
+            .optional()?;
+        let previous: Value = previous
+            .map(|s| serde_json::from_str(&s))
+            .transpose()?
+            .unwrap_or(Value::Null);
+        let revision = previous["revision"].as_u64().unwrap_or(0);
+        check(
+            value["revision"] == revision,
+            409,
+            "Selection controls changed in another window. Close and reopen Selection controls before saving.",
+        )?;
+        value["revision"] = (revision + 1).into();
+        tx.execute("INSERT INTO preferences(key,data) VALUES('selection-controls',?) ON CONFLICT(key) DO UPDATE SET data=excluded.data", [value.to_string()])?;
+        tx.commit()?;
+        self.emit("selection-controls", value.clone());
+        Ok(value)
+    }
     pub fn save_preference(&self, value: &Value) -> Result<()> {
         self.db.lock().unwrap().execute("INSERT INTO preferences(key,data) VALUES('appearance',?) ON CONFLICT(key) DO UPDATE SET data=excluded.data", [value.to_string()])?;
         self.emit("appearance", value.clone());
