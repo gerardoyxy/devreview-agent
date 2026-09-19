@@ -42,7 +42,11 @@ See [the design system](../../DESIGN.md).
 - Self-hosted Archivo, 400, 700 and 900; see `public/assets/FONT-LICENSE.txt` (OFL).
 - `history.png` is a real screenshot of the deterministic Rust demo, showing the
   current blue NudgeThis interface and its archived patch/context. The hero example is authored HTML.
-- The favicon is a geometric pointer with a selection corner.
+- The favicon and visible brand icons use the canonical cursor with a four-point
+  star at its tip: `assets/brand/nudgethis-icon.svg` at the repository root. The
+  build copies it to `dist/site/assets/favicon.svg` and the transparent mark,
+  `assets/brand/nudgethis.svg`, to `dist/site/assets/nudgethis.svg`. The moving
+  demonstration pointer is a separate functional illustration.
 
 The font files were sourced from `@fontsource/archivo`; they are vendored with their
 license so production visitors do not contact a font service.

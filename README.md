@@ -1,3 +1,5 @@
+<p><img src="assets/brand/nudgethis-icon.svg" width="80" height="80" alt="NudgeThis cursor and star logo"></p>
+
 # NudgeThis
 
 **Point at your UI. Tell your coding agent what to change.**

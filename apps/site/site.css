@@ -16,3 +16,7 @@ h2,h3{font-weight:700;letter-spacing:-.03em}h2{font-size:clamp(32px,3.7vw,56px);
 
 .demo-caption-row .demo-steps{position:static;display:flex;justify-content:flex-start;gap:14px;margin:0;flex-wrap:wrap}.demo-caption-row .demo-steps button{padding:0;border:0;border-bottom:1px solid transparent;border-radius:0;background:transparent;font:400 12px/1.5 Archivo,sans-serif;color:var(--muted)}.demo-caption-row .demo-steps button[aria-current]{border-bottom-color:var(--accent);color:var(--accent);font-weight:700}
 @media(max-width:600px){.demo-caption-row .demo-steps{gap:10px}.demo-caption-row .demo-steps button{font-size:11px}}
+
+/* Shared cursor-and-star brand mark. */
+.wordmark,.demo-conversation-header strong{display:inline-flex;align-items:center;gap:10px}.brand-mark{display:block;flex:none;width:32px;height:32px}.site-header .brand-mark{width:36px;height:36px}.demo-conversation-header strong{gap:8px}.demo-conversation-header .brand-mark{width:24px;height:24px}@media(max-width:600px){.site-header .brand-mark{width:28px;height:28px}.site-header .wordmark{gap:8px}.demo-conversation-header .brand-mark{width:20px;height:20px}}
+@media(max-width:360px){.site-header .wordmark{margin-left:16px;font-size:22px;gap:6px}.site-header .brand-mark{width:24px;height:24px}.site-header nav{padding-right:16px;gap:12px}.site-header nav a{white-space:nowrap}}

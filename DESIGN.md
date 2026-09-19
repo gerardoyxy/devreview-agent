@@ -153,6 +153,21 @@ spacing:
   26: "26px"
   28: "28px"
 components:
+  brand-mark:
+    backgroundColor: "transparent"
+    textColor: "{colors.landing-light-accent}"
+  brand-icon:
+    backgroundColor: "{colors.landing-light-accent}"
+    textColor: "{colors.landing-light-on-accent}"
+  brand-star:
+    textColor: "{colors.landing-light-selection}"
+  app-brand-icon:
+    backgroundColor: "var(--dr-accent)"
+    textColor: "var(--dr-onAccent)"
+    width: "28px"
+    height: "28px"
+  app-brand-star:
+    textColor: "var(--dr-warningSoft)"
   landing-source-button:
     backgroundColor: "#ffffff"
     textColor: "{colors.landing-light-text}"
@@ -223,6 +238,8 @@ The documented application palette, font and radius are defaults. Saved reposito
 - User-controlled application appearance, including independent light and dark palettes.
 
 Implementation sources: `apps/site/site.css`, `apps/site/public/index.html`, `apps/site/demo.ts`, `packages/overlay/src/appearance.ts`, `styles.ts`, `review.ts`, `project-context.ts`, `fonts.ts`, and `packages/server/public/style.css` plus `index.html`.
+
+Logo sources: `assets/brand/nudgethis.svg`, `assets/brand/nudgethis-icon.svg`, and the shared SVG import in `packages/overlay/src/brand.ts`.
 
 ## Colors
 
@@ -297,9 +314,19 @@ The documented surfaces have no box-shadow vocabulary. Fine borders, pale or dar
 
 Use modest rectangles: the default application radius and landing controls share a 6px starting point, while the landing's browser and conversation frames use 7px. Application radius is user-adjustable from 0–24px. Appearance/context editor controls use 0.6 times that saved radius, badges 0.65 times it. Status dots and avatars are circles. Selection handles are small squares; the live inspection outline uses a fine, lightly tinted box.
 
-Most container and control boundaries are one pixel. Live inspection outlines and review-tab selection are two pixels. Icons are inline outlined SVGs, typically 20px in the app and 24px on the landing, with a 1.7 stroke and rounded caps/joins. Letter avatars identify participants; they are not substitutes for action icons.
+Most container and control boundaries are one pixel. Live inspection outlines and review-tab selection are two pixels. Functional icons are inline outlined SVGs, typically 20px in the app and 24px on the landing, with a 1.7 stroke and rounded caps/joins. Letter avatars identify participants; they are not substitutes for action icons.
 
 ## Components
+
+### Cursor and star logo
+
+The brand mark pairs a cursor with a four-point star at its tip. `assets/brand/nudgethis.svg` is the transparent mark: an ultramarine cursor and lemon star with an ultramarine outline. `assets/brand/nudgethis-icon.svg` is the compact icon: a white cursor and lemon star on an ultramarine tile. Both preserve a square `0 0 96 96` viewBox, a three-unit stroke and rounded joins; the tile has a 20-unit corner radius. Preserve this geometry when scaling.
+
+The landing and README use the icon's fixed brand colors. The application embeds the same trusted SVG through `packages/overlay/src/brand.ts`. In `packages/overlay/src/styles.ts` and `packages/server/public/style.css`, `--nt-logo-background` maps to `--dr-accent`, `--nt-logo-cursor` to `--dr-onAccent`, and `--nt-logo-star` to `--dr-warningSoft`. Saved appearance controls all three; the logo does not override a user's palette.
+
+The landing header uses a 36px icon, reducing to 28px at 600px and 24px at 360px. Its demonstration header uses 24px, reducing to 20px at 600px; the footer uses 32px. Dashboard and overlay conversation headers use 28px, the playground uses 32px, and the overlay launcher uses 24px. The README displays the icon at 80px. Marks alongside the NudgeThis name are decorative for assistive technology; the README image has descriptive alternative text.
+
+Both landing and local application favicons use the canonical icon. `scripts/build-site.js` copies it to `dist/site/assets/favicon.svg` and the transparent mark to `dist/site/assets/nudgethis.svg`; the local server embeds the icon from its canonical source. The landing's moving demonstration pointer remains a separate functional illustration.
 
 ### Buttons
 
@@ -336,6 +363,7 @@ The landing runs one bounded 13-second point/tell/review/apply sequence with man
 ## Do's and Don'ts
 
 ### Do:
+- **Do** reuse the canonical cursor-and-star SVG geometry and keep embedded application logo colors bound to saved appearance roles.
 - **Do** inherit application colors, fonts, text size and corner radius through the saved appearance variables.
 - **Do** keep selected objects, their conversation and the current review decision visually connected.
 - **Do** pair state color with readable status text and preserve visible keyboard focus.

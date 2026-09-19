@@ -4,6 +4,7 @@ on:
     branches: [main]
     paths:
       - 'apps/site/**'
+      - 'assets/brand/**'
       - 'scripts/build-site.js'
       - 'package.json'
       - 'package-lock.json'
@@ -13,6 +14,7 @@ on:
   pull_request:
     paths:
       - 'apps/site/**'
+      - 'assets/brand/**'
       - 'scripts/build-site.js'
       - 'package.json'
       - 'package-lock.json'
