@@ -2,6 +2,7 @@
 
 Version `0.3.0-alpha.2` is an experimental application preview. The current source lives on
 `main`; tagged previews provide native archives with release notes and SHA-256 checksums.
+Selection controls are available on `main` and are not included in the `v0.3.0-alpha.2` archives.
 A working feature or passing application test does not certify an agent or a production deployment.
 
 ## Implemented
@@ -18,6 +19,8 @@ A working feature or passing application test does not certify an agent or a pro
 - Local workspace snapshots through a private Git index, retaining uncommitted source without
   modifying branch/index. Apply checks affected paths; Undo protects later work. Mutation
   journals retain interruption evidence for manual recovery.
+- Configurable mouse buttons/modifiers and recorded keyboard shortcuts, one-time click/tap
+  picking, a gesture test area, and persistent selection preferences synchronized across windows.
 - Parent/child/sibling selection, minimized context and conservative reidentification of
   unique matching targets. Source hints are explicitly unverified; Copy context remains available.
 - Persistent instructions, text skills and documents with immutable task snapshots. Importing
