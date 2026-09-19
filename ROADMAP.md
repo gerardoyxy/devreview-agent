@@ -2,7 +2,7 @@
 
 Version `0.3.0-alpha.2` is an experimental application preview. The current source lives on
 `main`; tagged previews provide native archives with release notes and SHA-256 checksums.
-Selection controls are available on `main` and are not included in the `v0.3.0-alpha.2` archives.
+Selection controls and My Style are available on `main` and are not included in the `v0.3.0-alpha.2` archives.
 A working feature or passing application test does not certify an agent or a production deployment.
 
 ## Implemented
@@ -27,6 +27,9 @@ A working feature or passing application test does not certify an agent or a pro
   text does not install executable skills, plugins or referenced tools.
 - Custom light/dark palettes, semantic colors, font roles, local WOFF/WOFF2, sizing, radius
   and theme import/export. The default blue brand is shared by the landing and application.
+- My Style: branching visual choices, live component previews, portable profiles, scoped
+  rules and explicit/default style context with immutable task snapshots. Repeated supported
+  CSS corrections become suggestions only; users inspect evidence and accept their scope.
 - Route candidate inventory, dynamic URL resolution, manual additions/exclusions, desktop/mobile
   layout previews, explicit viewport coverage, blocker notes, next-pending navigation,
   contextual task creation and report export. Scanning is static and bounded, not exhaustive.
@@ -47,6 +50,7 @@ A working feature or passing application test does not certify an agent or a pro
 | Real provider compatibility | Opt-in disposable-project checks with exact agent/version results; never infer compatibility from configured adapters, application tests or simulations. |
 | Distribution maturity | Signing/notarization, broader operating-system checks, native installers, documented rollback and a deliberate update policy. Current archives are portable previews. |
 | Framework depth | Evidence-based source mapping, router AST adapters, nested/generated route resolution, real application integration examples and language-aware file references. |
+| Style learning depth | Selector-aware evidence, utility-class/token adapters and semantic technique recognition. Current suggestions detect exact supported CSS values locally; they do not infer personal intent or train a model. |
 | Visual verification | Opt-in redacted screenshots, post-HMR checks, before/after evidence and per-device review matrices. Chromium emulation exists; physical-device and Safari/WebKit behavior still need separate checks. |
 | Basic workflow completion | Guided first project connection, real framework fixtures, clearer recovery/retention and broader accessibility/install checks. See the [foundation evidence map](docs/foundations.md). |
 | Recovery and scale | More automated recovery only when file state proves the action, snapshot retention controls, API pagination, review sessions and conflict visualization. |
