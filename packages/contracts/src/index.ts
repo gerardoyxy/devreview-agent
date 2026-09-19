@@ -1,4 +1,4 @@
-/** Browser/API contracts. Phase 2 will generate these from the Rust API schema. */
+/** Browser/API contracts shared by the TypeScript clients; exercised against the Rust HTTP API. */
 export type TaskStatus = 'pending' | 'analyzing' | 'working' | 'validating' | 'ready' | 'awaiting_feedback' | 'applying' | 'applied' | 'failed' | 'conflict' | 'rejected' | 'cancelled';
 export interface ElementContext {
   url: string; route: string; selector: string; tagName: string; text: string;

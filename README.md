@@ -2,213 +2,178 @@
 
 **Point at your UI. Tell your coding agent what to change.**
 
-NudgeThis is an experimental, local-first visual feedback layer for coding agents. Select an
-element in your running app, describe the problem, and keep reviewing. An agent
-works in a separate Git worktree; you inspect the diff and explicitly apply it.
+Alt + right-click an element in your local application, describe the change, and keep reviewing.
+Each task has its own conversation, live public agent replies, diff, validation results and
+persistent version history. Agents edit isolated Git worktrees. You explicitly apply reviewed
+changes to your branch, without automatic commits or pushes.
 
-Each change has its own conversation, live agent replies, and a persistent history
-of patch versions, all available in a modal inside the page you are reviewing.
+[Español](README.es.md) · [Agents](docs/agents.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Migration](docs/migration.es.md) · [Security](SECURITY.md)
 
-```text
-Alt + right-click → comment → worktree → agent → validation → review → apply
-```
+## Build and try
 
-Your main coding workflow stays where it is. NudgeThis focuses on the small fixes
-you discover during QA: layout, responsive behavior, copy, and broken interactions.
+The frontend is strict TypeScript. The HTTP/SSE server, queue, SQLite, Git operations,
+validation, CLI and agent transports are Rust. Compiled browser assets are embedded in the
+`nudgethis` executable. Node is a build/test dependency, not a NudgeThis runtime dependency.
+Your configured agent or application may independently require Node.
 
-[Español](README.es.md) · [Roadmap review](docs/roadmap-review.es.md) · [Agent transports](docs/agents.md) · [Architecture](docs/architecture.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
-
-## Try it without an agent account
-
-Requirements for the simulated demo: **Node.js 24.15+**, **Git**, and a frontend build.
-Automatic agent execution additionally requires a compiled **Rust** runtime.
-The browser frontend is TypeScript; the backend is migrating to Rust. The HTTP
-server, queue, SQLite and Git layers temporarily remain in Node. See the
-[migration scope](docs/roadmap-review.es.md#arquitectura-acordada-y-alcance-de-la-primera-etapa).
+Build requirements: Git, Node.js 24.15+, stable Rust and a C compiler for bundled SQLite.
 
 ```bash
 git clone https://github.com/gerardoyxy/nudgethis.git
 cd nudgethis
 npm ci
-npm run build:frontend
-npm run demo
+npm run build
+./target/debug/nudgethis demo
 ```
 
-Open the dashboard or playground URL printed in the terminal. Hold **Alt** and
-right-click the **Add teammate** button. Ask to align it right on desktop and make
-it full width on mobile. Review the patch, then choose **Apply**.
+Windows: `target\debug\nudgethis.exe demo`. For a release executable, run
+`cargo build --release --locked` after building the frontend. Use `demo --port 7441`
+if port 7331 is occupied. No npm package or binary release is published yet.
 
-The offline demo uses an explicitly labelled adapter with a predefined layout
-fix and a follow-up that rounds the button corners. It creates a disposable repository and calls no model.
-Stop it with Ctrl+C to clean up. Use `NUDGETHIS_DEMO_PORT=7441 npm run demo` on
-POSIX systems if port 7331 is occupied.
+The demo uses a disposable Git repository and a labelled, deterministic Rust agent. It
+changes `button.css` without model calls. Open the printed Playground link, report the button,
+review the patch, send a follow-up and apply. The capture page is not a live preview of that
+CSS file. Ctrl+C stops the demo and removes its repository.
 
-## Use it on your own application
+## Use with your application
 
-The package is **not published to npm yet**. Run the CLI from this source checkout
-using its absolute path (or use `npm link` if you want the `nudgethis` command).
+Install and authenticate your chosen coding agent locally. Configure its real executable;
+NudgeThis does not install providers or change their accounts. See [agent transports](docs/agents.md).
 
-Before connecting an agent, install stable Rust and run `cargo build --locked` in
-this source checkout. For multiple agents, use the [agent configuration](docs/agents.md).
+From your application's **repository root**:
 
-1. Install and authenticate [Codex CLI](https://developers.openai.com/codex/cli/)
-   in the same environment as Node and Git. NudgeThis reuses that local login.
-2. In the **root of the application repository**, run:
+```bash
+/absolute/path/to/nudgethis init
+# Edit nudgethis.toml, then commit it and .gitignore along with application changes.
+/absolute/path/to/nudgethis start
+```
 
-   ```bash
-   node /absolute/path/to/nudgethis/packages/cli/src/index.js init
-   ```
+Example trusted `nudgethis.toml`:
 
-3. Edit `nudgethis.config.mjs`, then commit the configuration, `.gitignore`, and
-   application changes before starting QA:
+```toml
+defaultAgent = "codex"
 
-   ```js
-   export default {
-     server: {
-       port: 7331,
-       allowedOrigins: ['http://localhost:5173']
-     },
-     workers: { maxConcurrent: 2 },
-     agent: { command: 'codex', timeout: 600000 },
-     validation: {
-       commands: ['npm run lint', 'npm test'],
-       timeout: 120000
-     }
-   };
-   ```
+[server]
+port = 7331
+allowedOrigins = ["http://localhost:5173"]
 
-4. Start your app, then start NudgeThis in a second terminal at that same
-   application's repository root:
+[workers]
+maxConcurrent = 2
 
-   ```bash
-   node /absolute/path/to/nudgethis/packages/cli/src/index.js start
-   ```
+[validation]
+commands = ["npm ci", "npm test"]
+timeout = 120000
 
-5. Open the printed dashboard link. Its fragment contains a **local access token**;
-   the dashboard removes the fragment and stores it in session storage. Find the
-   token in Connection settings or the local `.nudgethis/token` file. Keep it out
-   of source control and production bundles.
-6. Inject the overlay **only in development**. For example, with Vite:
+[[agents]]
+id = "codex"
+label = "Codex CLI"
+transport = "codex"
+command = "codex"
+timeout = 600000
+```
 
-   ```js
-   if (import.meta.env.DEV) {
-     const { NudgeThis } = await import(
-       /* @vite-ignore */ 'http://127.0.0.1:7331/overlay.js'
-     );
-     NudgeThis.init({
-       enabled: true,
-       server: 'http://127.0.0.1:7331',
-       token: import.meta.env.VITE_NUDGETHIS_TOKEN
-     });
-   }
-   ```
+Open the dashboard URL printed by `start`. Its fragment contains a local access token;
+the dashboard removes it and stores the token in session storage. The token is also in
+ignored `.nudgethis/token`. Never commit it or include it in production bundles.
 
-   Put `VITE_NUDGETHIS_TOKEN` in an ignored local development environment file.
-   Add that file to your application's `.gitignore`. `localhost` and `127.0.0.1`
-   are different origins: configure the exact origin you open in the browser.
+Inject the overlay **only in development**, for example with Vite:
 
-Then hold Alt and right-click an element, or focus it and press **Alt + Shift + D**.
-Set `modifier: 'none'` to capture ordinary right-click. Call the returned
-`destroy()` method when unmounting the integration.
+```ts
+if (import.meta.env.DEV) {
+  const { NudgeThis } = await import(
+    /* @vite-ignore */ 'http://127.0.0.1:7331/overlay.js'
+  );
+  const review = NudgeThis.init({
+    enabled: true,
+    server: 'http://127.0.0.1:7331',
+    token: import.meta.env.VITE_NUDGETHIS_TOKEN
+  });
+  // Call review.destroy() when unmounting the integration.
+}
+```
 
-## A conversation for every change
+Put the token in an ignored local development environment file. Configure the exact browser
+origin: `localhost` and `127.0.0.1` differ. A restrictive application CSP must permit the local
+NudgeThis script, API connection and overlay styles; adjust only your development policy.
 
-![Conversation and follow-up inside the reviewed page](docs/conversation.png)
+Use Alt + right-click, or focus an element and press Alt + Shift + D. Set `modifier: 'none'`
+for ordinary right-click. Select an agent and start a conversation, or use **Copy context**
+to paste the minimized request into any agent that accepts text.
 
-Choose a configured agent, then **Start conversation** after describing an issue.
-Use **Copy context** to paste feedback into an agent without an automated connection. The in-page modal has:
+## Conversations and review
 
-- **Conversation:** your requests and public agent replies, updated as the agent works.
-- **Changes:** the current diff, files, and validation results.
-- **History:** earlier patch versions and a timestamped activity log.
+The in-page modal and dashboard show the same **Conversation**, **Changes** and **History**.
+Follow-ups retain previous worktree edits and pass recent conversation context to the agent.
+A question-only reply waits for feedback. Every resulting patch is validated again.
+History keeps prior patches; Apply always targets the current ready version. Stale UI actions
+are rejected. Applied/rejected tasks get a new worktree when continued; commit applied changes
+first. Conflicting tasks require Retry from HEAD.
 
-Close the modal to continue QA. Reopen it from the NudgeThis button or an element's
-task badge. Filter the sidebar by this page or applied changes. The dashboard also
-shows the same conversation and history.
+This is a new conversation with the selected agent, not a connection to an existing chat in
+another application. ACP native resume, interactive permissions and images remain unsupported.
 
-You can draft a follow-up while the agent works and send it when the current turn
-finishes. Follow-ups retain the task's worktree and existing edits, then validate
-the combined patch again. A question-only reply can wait for your answer without
-creating a patch. Applied/rejected tasks start a new worktree when continued;
-commit applied changes first. Conflicting tasks require **Retry from HEAD**.
+## Your colors and typography
 
-Conversation messages and version snapshots persist locally in SQLite. Viewing an
-older version never applies it; Apply always uses the current ready version. This
-is a conversation with the selected agent for that task, not a connection to an
-existing external application chat.
+Open **Appearance** in the dashboard or modal. Customize independent light/dark palettes,
+18 semantic colors, body/heading/code fonts, base text size and corner radius. Choose system
+mode, preview before saving, cancel, reset or import/export a JSON theme. Font family names
+use installed fonts and fallbacks; upload WOFF/WOFF2 for portable local fonts (three files,
+1 MiB combined). No external font service is contacted. Exported themes include uploaded fonts.
 
-## What the alpha includes
+Appearance persists per repository in SQLite and synchronizes through authenticated SSE.
+Contrast notices flag low-contrast combinations without overriding your choices. Overlay
+styles stay inside NudgeThis's Shadow DOM and do not restyle the inspected application.
 
-- A development-only, framework-independent element picker and comment form.
-- Route, selector, text, viewport, and bounding box capture; opt-in sanitized DOM snippets.
-- A localhost API, SQLite task persistence, audit records, and authenticated SSE.
-- Configurable concurrent workers; each task has its own detached Git worktree.
-- A Rust agent runtime for Codex, local ACP v1 (text-only subset), and custom JSONL adapters.
-- A per-task agent selector and portable Copy Context fallback.
-- Configurable validation commands with exit codes, timings, and logs.
-- A dashboard with real status updates, diff review, Apply, Reject, Retry, and Cancel.
-- An in-page conversation modal with live agent feedback and persistent patch history.
-- Serialized application of patches, stale-patch checks, and local-edit protection.
-- An offline demo and automated workflow, API, security-boundary, and persistence tests.
+Visual guidance is adapted from [Taste Skill](https://github.com/Leonxlnx/taste-skill/tree/main/skills/taste-skill);
+its upstream scope is marketing pages, so this redesign preserves the product's existing
+navigation, review flows and framework-independent overlay. [Design decisions](docs/design.es.md).
 
-## Git behavior
+## Git and persistence
 
-Tasks start from **committed HEAD**. Commit or stash all local changes before
-reporting a new task. Dependencies are not copied into worktrees; configure a
-trusted setup/validation command such as `npm ci` when the target project needs it.
+New tasks require a clean checkout at committed HEAD. Dependencies are not copied into
+worktrees; configure trusted setup/validation commands where needed. Apply requires the
+original branch, clean affected files and a successful `git apply --check`. Unrelated local
+edits are preserved. Binary additions/deletions are supported; secret, symlink and submodule
+patches require manual handling. Validation that changes source blocks Apply.
 
-Apply requires the original branch, no local edits to affected files, and a patch
-that passes `git apply --check`. Unrelated edits are preserved. Application changes
-working files **without committing or pushing**; your normal dev server can hot
-reload them. Commit applied changes before reporting another task.
+Retry discards that task's worktree and starts from current HEAD. Reject removes its worktree.
+Stop cancels running processes; interrupted active tasks recover as failed on restart. A stale
+`.nudgethis/server.lock` after a crash requires confirming that the previous server is stopped
+before manual removal. SQLite migration from the Node alpha creates a WAL-aware backup before
+schema changes and preserves task IDs, tokens, messages and patch versions.
 
-Conflicts keep the worktree for inspection. Retry discards that task's previous
-worktree and reruns against the latest committed HEAD. Reject removes its worktree.
-Tasks interrupted by a server stop become failed/cancelled; they do not silently
-rerun an agent. After an unclean process crash, verify no server is running before
-removing the stale `.nudgethis/server.lock` and restarting.
-
-## CLI and API
+## CLI
 
 ```text
-nudgethis init                 nudgethis start
-nudgethis status               nudgethis tasks
-nudgethis task QA-1             nudgethis apply QA-1
-nudgethis reject QA-1           nudgethis retry QA-1
-nudgethis cancel QA-1
+nudgethis init                  nudgethis start [--port 7331]
+nudgethis stop                  nudgethis status
+nudgethis tasks                 nudgethis task QA-1
+nudgethis apply QA-1             nudgethis reject QA-1
+nudgethis retry QA-1             nudgethis cancel QA-1
+nudgethis demo [--port 7441]
 ```
 
-See [API reference](docs/api.md) and [agent adapter contract](docs/architecture.md#agent-adapters).
+Use `--root /absolute/repository` with any repository command. Client commands read the port
+from `nudgethis.toml`; if you override `start --port`, update the config for CLI client use.
 
-## Current limits
+## Limits and development
 
-This is an early alpha. Screenshots, framework source mapping, console/network
-capture, automatic rebase, and visual regression are planned, not implemented.
-There is no dependency-aware scheduling. Windows and macOS are targeted, but the
-initial local verification was performed on Linux/WSL; CI defines all three.
-Each configured agent requires its own installation and authentication. ACP
-interactive permissions, native session resume and images are not implemented yet.
-Automated tests use deterministic protocol peers and do not consume model credits
-or certify compatibility with every provider. The entire backend is not yet Rust.
-
-Core task storage stays local and has no telemetry. The configured coding agent
-may send source code and selected context to its provider. A Git worktree is not
-an OS sandbox; read [SECURITY.md](SECURITY.md) before using agents or validation
-commands in a repository.
-
-## Development
+This remains an alpha. Screenshots, stable element identity, safe Undo, framework source
+mapping, automatic rebase and post-HMR visual verification are future work. The
+[72-item roadmap audit](docs/roadmap-review.es.md) distinguishes implemented and planned work.
+Tests use deterministic agents and do not certify every provider. ACP and custom agents must
+supply their own filesystem/network sandbox; a Git worktree is not an OS sandbox.
 
 ```bash
 npm ci
 npm run build
 npm run check
+cargo fmt --all --check
+cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked
 npm test
-npm run demo
 ```
 
-Node and stable Rust are required to build and test this migration branch. Open issues and
-small pull requests are welcome. APIs and the working name may change before a
-stable release.
+CI runs on Windows, macOS and Linux. [Contributing](CONTRIBUTING.md).
 
 MIT © 2026 gerardoyxy and NudgeThis Agent contributors.

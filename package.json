@@ -8,17 +8,12 @@
   "engines": {
     "node": ">=24.15.0"
   },
-  "bin": {
-    "nudgethis": "packages/cli/src/index.js"
-  },
   "exports": {
-    "./overlay": "./dist/browser/overlay.js",
-    "./core": "./packages/core/src/index.js",
-    "./agent-sdk": "./packages/agent-sdk/src/index.js"
+    "./overlay": "./dist/browser/overlay.js"
   },
   "scripts": {
-    "start": "node packages/cli/src/index.js start",
-    "demo": "node scripts/demo.js",
+    "start": "cargo run --locked --bin nudgethis -- start",
+    "demo": "cargo run --locked --bin nudgethis -- demo",
     "build": "npm run build:frontend && cargo build --locked",
     "build:frontend": "tsc --noEmit && node scripts/build-frontend.js",
     "check": "tsc --noEmit && node scripts/check.js",

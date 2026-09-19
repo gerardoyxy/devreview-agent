@@ -1,16 +1,16 @@
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NudgeThis — Review queue</title><link rel="stylesheet" href="/style.css"></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NudgeThis - Review queue</title><link rel="stylesheet" href="/style.css"></head>
 <body>
   <aside class="sidebar">
     <a class="brand" href="/"><span class="brand-mark">d<span>↗</span></span>nudgethis<span class="alpha">α</span></a>
     <div class="workspace"><span class="eyebrow">LOCAL WORKSPACE</span><strong id="branch">Connecting…</strong><span class="workspace-detail">Your code stays on your machine.</span></div>
     <nav aria-label="Queue filters"><button class="nav-item active" data-filter="all"><span>▤ &nbsp; Review queue</span><b id="all-count">0</b></button><button class="nav-item" data-filter="ready"><span>◉ &nbsp; Ready to apply</span><b id="ready-count">0</b></button><button class="nav-item" data-filter="applied"><span>✓ &nbsp; Applied</span><b id="applied-count">0</b></button></nav>
     <div class="sidebar-note"><span class="note-icon">↗</span><strong>Stay in your QA flow.</strong><p>Mark an issue, leave a note, keep going. Come back when the fix is ready.</p><a id="playground-link" href="/playground">Open the playground <span>↗</span></a></div>
-    <footer class="sidebar-footer"><span class="status-dot"></span><span id="connection">Connecting to localhost</span><small>v0.1.0 · experimental</small></footer>
+    <footer class="sidebar-footer"><span class="status-dot"></span><span id="connection">Connecting to localhost</span><small>v0.2.0 · Rust preview</small></footer>
   </aside>
   <main>
-    <header class="topbar"><span>Workspace <span class="slash">/</span> <strong>Review queue</strong></span><button class="quiet" id="connect-button">Connection settings</button></header>
+    <header class="topbar"><span>Workspace <span class="slash">/</span> <strong>Review queue</strong></span><div class="topbar-actions"><button class="quiet" id="appearance-button">Appearance</button><button class="quiet" id="connect-button">Connection</button></div></header>
     <section class="page-heading"><div><span class="eyebrow">SEE IT. MARK IT. KEEP MOVING.</span><h1>A shorter loop to better code.</h1><p>Your QA feedback, moving from observation to a reviewed fix.</p></div><a class="primary-button" id="inspect-link" href="/playground">Inspect playground <span>↗</span></a></section>
     <section class="metrics" aria-label="Task counts"><div><span>In the queue</span><strong id="metric-open">0</strong><small>Pending & in progress</small></div><div><span>Ready for your review</span><strong id="metric-ready">0</strong><small><i class="mini-dot"></i> Validated changes</small></div><div><span>Applied to your branch</span><strong id="metric-applied">0</strong><small>One less thing to fix</small></div></section>
     <div id="notice" class="notice" role="status" hidden></div>

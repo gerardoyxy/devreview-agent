@@ -17,7 +17,7 @@ Browser calls must also use an explicitly allowed loopback Origin.
 | POST | `/api/tasks/QA-1/retry` | Discard old worktree and retry from HEAD |
 | POST | `/api/tasks/QA-1/cancel` | Cancel pending or active work |
 | DELETE | `/api/tasks/QA-1` | Delete an inactive, unapplied task and worktree |
-| GET | `/api/events` | SSE events named `connected` and `task` |
+| GET | `/api/events` | SSE events named `connected`, `task` and `appearance` |
 
 Use `Content-Type: application/json` for POST, and `{}` for actions. A task body (optional `agent` selects a configured ID):
 
@@ -78,3 +78,16 @@ task is stored. Omission uses `defaultAgent`. The choice is persisted on the tas
 and retained by follow-ups. The browser cannot provide commands or switch the
 provider of an existing conversation. Runtime protocol versions are independent of
 this temporary HTTP API; see [agents](agents.md).
+
+## Appearance and shutdown
+
+`GET /api/appearance` returns the saved appearance document or `null` for defaults.
+`POST /api/appearance` validates and saves a version-1 theme, then broadcasts `appearance`
+with that document. Both require the same token/Origin checks as task APIs. Appearance
+payloads have a separate 2 MiB limit; uploaded WOFF/WOFF2 data totals at most 1 MiB.
+See [appearance schema](design.es.md). No uploaded-font URL is exposed without authentication.
+Clients refetch preferences after reconnecting. The last save wins; unsaved local previews
+are not broadcast. No account-level or cross-repository synchronization is provided.
+
+`POST /api/shutdown` with `{}` stops the server and cancels active agents. The Rust CLI's
+`stop` command uses it. `GET /api/status` additionally reports `runtime: "rust"`.
