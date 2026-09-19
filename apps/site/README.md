@@ -31,13 +31,18 @@ See [the design system](../../DESIGN.md).
 
 - The hero contains a native HTML/CSS example page and conversation, not an iframe.
 - A TypeScript controller advances through Point, Describe, Review, and Apply.
-  The selected button gains padding only at Apply; Review lets the visitor inspect first.
-- Autoplay repeats a six-second sequence while visible: Point (0.7s), Tell (1.5s),
-  Review (2s), and Apply (1.8s). The result appears at 4.2 seconds. Cursor travel,
-  click rings, brisk message entrances and step progress make each action visible.
+  The selected button gains padding and softer corners only at Apply; Review lets
+  the visitor inspect first.
+- Autoplay repeats a 6.5-second sequence while visible: Point (0.85s), Tell (1.25s),
+  Review (1.5s), then Apply, a readable result and a smooth reset (2.9s).
+  The change starts at 3.6 seconds. The branded cursor follows curved paths between
+  selection, the message's send cue, review and the changed button. A traveling
+  connector dot, staggered messages, typing dots, click compression, spring settling
+  and a brief star accent make the sequence visible without external animation libraries.
   Pause, Play, Replay, and individual step controls work with keyboard and touch.
-  Manual step selection pauses autoplay; interacting with the example runs once.
-  The animation clock stops offscreen or when the browser tab is hidden.
+  Manual step selection pauses autoplay; interacting with the example runs once and
+  holds the applied result. Native animation tracks and pointer motion use one clock,
+  so the whole scene freezes when paused, offscreen or in a hidden tab.
 - Reduced-motion preferences and disabled JavaScript show the final static
   illustration. With JavaScript, visitors can still inspect steps manually.
 - The demo is labeled illustrative and makes no agent, API, or localhost requests.
@@ -48,7 +53,8 @@ See [the design system](../../DESIGN.md).
   star at its tip: `assets/brand/nudgethis-icon.svg` at the repository root. The
   build copies it to `dist/site/assets/favicon.svg` and the transparent mark,
   `assets/brand/nudgethis.svg`, to `dist/site/assets/nudgethis.svg`. The moving
-  demonstration pointer is a separate functional illustration.
+  demonstration pointer reuses the transparent mark's cursor-and-star geometry,
+  with a white cursor outline for contrast over the example button.
 - The build also renders PNGs from that SVG: a 32px favicon fallback, a 180px
   Apple touch icon, and 192px/512px home-screen icons referenced by
   `site.webmanifest`. Home-screen images have an opaque blue background so the

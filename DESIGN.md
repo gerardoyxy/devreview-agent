@@ -326,7 +326,7 @@ The landing and README use the icon's fixed brand colors. The application embeds
 
 The landing header uses a 36px icon, reducing to 28px at 600px and 24px at 360px. Its demonstration header uses 24px, reducing to 20px at 600px; the footer uses 32px. Dashboard and overlay conversation headers use 28px, the playground uses 32px, and the overlay launcher uses 24px. The README displays the icon at 80px. Marks alongside the NudgeThis name are decorative for assistive technology; the README image has descriptive alternative text.
 
-Both landing and local application favicons use the canonical icon. `scripts/build-site.js` copies it to `dist/site/assets/favicon.svg` and the transparent mark to `dist/site/assets/nudgethis.svg`; the local server embeds the icon from its canonical source. The landing's moving demonstration pointer remains a separate functional illustration.
+Both landing and local application favicons use the canonical icon. `scripts/build-site.js` copies it to `dist/site/assets/favicon.svg` and the transparent mark to `dist/site/assets/nudgethis.svg`; the local server embeds the icon from its canonical source. The landing's 40px moving pointer reuses the transparent cursor-and-star geometry, with a white cursor outline to remain visible over the blue example button.
 
 ### Buttons
 
@@ -370,7 +370,9 @@ session details are expandable. Loading and unavailable-browser states preserve 
 
 The landing selection box surrounds the example Save changes button with four lemon handles; a continuous thin connector starts at its bottom edge and reaches the conversation. The connector is measured from actual element geometry on resize and disappears after Apply. This is a relationship diagram specific to the demonstration, not general page decoration. The live overlay uses a themeable inspection outline with two corner handles.
 
-The landing repeats a six-second point/tell/review/apply sequence while visible, with the applied result appearing at 4.2 seconds. Manual steps pause autoplay; direct interaction runs once. Pause and replay remain available. Cursor travel, click rings and step progress share the animation clock. Selection, reply and completion cues use short opacity/transform entrances; button padding changes over 260ms using `cubic-bezier(.16, 1, .3, 1)`. Hidden/offscreen state pauses the clock and stops decorative motion. Reduced motion disables transitions and starts at the static applied result with manual navigation still available. Application motion remains restrained; no general entrance-animation system is established.
+The landing uses a coordinated 6.5-second point/tell/review/apply loop. The cursor follows curved paths between the button, message send cue and Apply, with visible click compression. The connector carries a small dot into the conversation; messages and the review row enter in overlapping stages. Apply starts at 3.6 seconds: padding grows, corners soften to 18px, the browser settles after a small lift, and a brief star accent accompanies an inline confirmation. A quiet hold and coordinated reset return all elements to their initial poses before the loop boundary.
+
+One TypeScript clock seeks paused native animation tracks and positions the cursor. All motion freezes on pause, offscreen or in a hidden tab. Manual steps seek stable poses; direct interaction holds the result instead of resetting. Reduced motion starts at the static applied result and supports manual steps, with cursor travel and decorative effects hidden. The layout reserves message space to prevent shifts during typing. Application motion remains restrained; these effects are scoped to the landing illustration.
 
 ## Do's and Don'ts
 

@@ -21,27 +21,41 @@ h2,h3{font-weight:700;letter-spacing:-.03em}h2{font-size:clamp(32px,3.7vw,56px);
 .wordmark,.demo-conversation-header strong{display:inline-flex;align-items:center;gap:10px}.brand-mark{display:block;flex:none;width:32px;height:32px}.site-header .brand-mark{width:36px;height:36px}.demo-conversation-header strong{gap:8px}.demo-conversation-header .brand-mark{width:24px;height:24px}@media(max-width:600px){.site-header .brand-mark{width:28px;height:28px}.site-header .wordmark{gap:8px}.demo-conversation-header .brand-mark{width:20px;height:20px}}
 @media(max-width:360px){.site-header .wordmark{margin-left:16px;font-size:22px;gap:6px}.site-header .brand-mark{width:24px;height:24px}.site-header nav{padding-right:16px;gap:12px}.site-header nav a{white-space:nowrap}}
 
-/* The illustration keeps a brisk rhythm; its clock and click feedback share one timeline. */
-.demo-target{transition:padding .26s cubic-bezier(.16,1,.3,1)}
-.demo-pointer{transform-origin:3px 2px;transition:opacity .12s}
-.demo-click{position:absolute;top:-17px;left:-17px;width:34px;height:34px;border:2px solid var(--accent);border-radius:50%;opacity:0;pointer-events:none;z-index:2}
-.demo-agent-message{transition:opacity .18s ease-out,transform .26s cubic-bezier(.16,1,.3,1)}
-.browser-demo[data-stage=point] .demo-agent-message,.browser-demo[data-stage=describe] .demo-agent-message{transform:translateY(8px)}
-.demo-caption-row .demo-steps button{position:relative;padding-bottom:3px;border-bottom:0}
+/* One coordinated, seekable motion scene; native tracks are driven by demo.ts. */
+.demo-browser,.demo-conversation{position:relative;will-change:transform}
+.demo-browser-bar{gap:24px}
+.demo-browser-status{margin-left:auto;min-width:66px;text-align:right;font-size:11px;font-weight:700;color:var(--accent)}
+.demo-target{--target-py:14px;--target-px:32px;--grow-y:6px;--grow-x:10px}
+.browser-demo .demo-target,.browser-demo[data-stage=applied] .demo-target{padding:calc(var(--target-py) + var(--change,1)*var(--grow-y)) calc(var(--target-px) + var(--change,1)*var(--grow-x));border-radius:calc(6px + var(--change,1)*12px);transition:none}
+.browser-demo[data-enhanced] .demo-target-wrap::after{display:block;transform:scaleY(var(--connection,0));transform-origin:top;opacity:var(--connection,0)}
+.browser-demo[data-enhanced] .demo-target-wrap::before{display:block;opacity:var(--connection,0)}
+.demo-flow{position:absolute;left:calc(50% - 3px);top:calc(100% + 4px);width:6px;height:6px;border-radius:50%;background:var(--selection);border:1px solid var(--accent);transform:translateY(calc(var(--flow,0)*var(--connector-length,72px)));opacity:var(--flow-opacity,0);pointer-events:none;z-index:2}
+.demo-success{position:absolute;left:0;top:calc(100% + 8px);display:flex;align-items:center;gap:5px;color:var(--accent);font-size:11px;font-weight:700;white-space:nowrap;pointer-events:none}
+.demo-success svg{width:15px;height:15px;stroke-width:2.5}
+.demo-spark{position:absolute;right:-34px;top:-31px;width:72px;height:64px;fill:var(--selection);stroke:var(--accent);stroke-width:1.5;opacity:0;pointer-events:none;z-index:2}
+.demo-user-message p{position:relative;flex:1;min-width:0;min-height:64px;display:block;padding:10px 47px 10px 13px;border:1px solid var(--line);border-radius:8px;background:var(--elevated)}
+.browser-demo[data-stage=point] .demo-user-message p::after{content:none}
+.demo-send{position:absolute;right:10px;top:50%;margin-top:-14px;display:grid;place-items:center;width:28px;height:28px;border-radius:6px;background:var(--accent);color:var(--on-accent)}
+.demo-send svg{width:18px;height:18px;stroke-width:2}
+.demo-agent-message{transition:none}
+.demo-agent-message p{position:relative;flex:1;min-width:0}
+.demo-reply{display:block}
+.demo-thinking{position:absolute;left:0;top:50%;display:flex;gap:5px;margin-top:-3px;opacity:0}
+.demo-thinking i{display:block;width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.browser-demo .demo-pointer,.browser-demo[data-stage=applied] .demo-pointer{width:40px;height:40px;opacity:1;transform-origin:14.6px 13.3px;transition:none;fill:none;stroke:none;z-index:4}
+.demo-click{position:absolute;top:-20px;left:-20px;width:40px;height:40px;border:2px solid var(--accent);border-radius:50%;opacity:0;pointer-events:none;z-index:3}
+.demo-caption-row .demo-steps button{position:relative;padding-bottom:4px;border-bottom:0}
 .demo-caption-row .demo-steps button::after{content:'';position:absolute;inset:auto 0 0;height:2px;background:var(--accent);transform:scaleX(0);transform-origin:left}
 .demo-caption-row .demo-steps button[data-complete=true]::after{transform:scaleX(1)}
 .demo-caption-row .demo-steps button[aria-current]::after{transform:scaleX(var(--step-progress,0))}
-@media(prefers-reduced-motion:no-preference){
-  .browser-demo[data-running=true][data-stage=point] .demo-selection{animation:demo-select .24s .32s cubic-bezier(.16,1,.3,1) both}
-  .browser-demo[data-running=true][data-stage=point] .demo-target-wrap::after{transform-origin:top;animation:demo-connect .24s .4s ease-out both}
-  .browser-demo[data-running=true][data-stage=review] .demo-version{animation:demo-enter .28s .08s cubic-bezier(.16,1,.3,1) both}
-  .browser-demo[data-running=true][data-stage=applied] .demo-target{animation:demo-apply .32s ease-out both}
-  .browser-demo[data-running=true][data-stage=applied] .demo-status{animation:demo-enter .24s .12s ease-out both}
-  .browser-demo[data-running=true][data-typing=true] .demo-type-caret{animation:demo-caret .5s steps(2,jump-none) infinite}
+@media(max-width:600px){
+  .demo-browser-bar{gap:12px}
+  .demo-browser-status{min-width:56px;font-size:10px}
+  .demo-target{--target-py:11px;--target-px:22px;--grow-y:5px;--grow-x:9px}
+  .demo-user-message p{padding:10px 43px 10px 10px;font-size:13px}
+  .demo-user-message,.demo-agent-message{align-items:center}
+  .demo-send{right:8px;width:26px;height:26px;margin-top:-13px}
+  .demo-success{font-size:10px;top:calc(100% + 7px)}
+  .demo-spark{right:-27px;width:60px;height:54px}
 }
-@keyframes demo-select{from{opacity:0;transform:scale(1.08)}to{opacity:1;transform:scale(1)}}
-@keyframes demo-connect{from{transform:scaleY(0)}to{transform:scaleY(1)}}
-@keyframes demo-enter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-@keyframes demo-apply{0%,100%{transform:scale(1)}45%{transform:scale(1.035)}}
-@keyframes demo-caret{to{opacity:0}}
-@media(prefers-reduced-motion:reduce){.demo-pointer,.demo-click{display:none}}
+@media(prefers-reduced-motion:reduce){.browser-demo .demo-pointer,.demo-click,.demo-flow,.demo-spark{display:none}}
