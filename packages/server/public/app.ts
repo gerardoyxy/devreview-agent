@@ -1,4 +1,5 @@
 import { icon } from '../../overlay/src/icons.js';
+import { mountBrandLogos } from '../../overlay/src/brand.js';
 import { createProjectContext } from '../../overlay/src/project-context.js';
 import { createAppearance, themeDefaults } from '../../overlay/src/appearance.js';
 import type { Task, TaskSummary, ServerStatus, TaskStatus } from '../../contracts/src/index.js';
@@ -6,6 +7,7 @@ import { errorMessage, query } from '../../contracts/src/index.js';
 import { watchTasks } from '../../overlay/src/index.js';
 import { createTaskReview, taskStatusLabels } from '../../overlay/src/review.js';
 
+mountBrandLogos();
 const $ = <E extends HTMLElement = HTMLElement>(selector: string) => query<E>(document, selector);
 const params = new URLSearchParams(location.hash.slice(1));
 let token = params.get('token') || sessionStorage.getItem('devreview-token') || '';

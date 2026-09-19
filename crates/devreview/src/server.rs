@@ -24,6 +24,11 @@ pub struct App {
 }
 const ASSETS: &[(&str, &str, &[u8])] = &[
     (
+        "/favicon.svg",
+        "image/svg+xml",
+        include_bytes!("../../../assets/brand/nudgethis-icon.svg"),
+    ),
+    (
         "/",
         "text/html",
         include_bytes!("../../../packages/server/public/index.html"),

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" fill="none">
+  <title>NudgeThis cursor and star</title>
+  <g transform="translate(4 1)" stroke-linejoin="round" stroke-width="3">
+    <path d="M31 31 40 77 50 62 61 82 72 75 61 55 79 52Z" fill="#2147cc" stroke="#2147cc"/>
+    <path d="M26 7 31.2 20.8 45 26 31.2 31.2 26 45 20.8 31.2 7 26 20.8 20.8Z" fill="#f0df65" stroke="#2147cc"/>
+  </g>
+</svg>

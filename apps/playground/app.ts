@@ -1,6 +1,8 @@
 import { applyAppearance, defaultAppearance, themeDefaults } from '../../packages/overlay/src/appearance.js';
 import { query } from '../../packages/contracts/src/index.js';
 import { DevReview } from '../../packages/overlay/src/index.js';
+import { mountBrandLogos } from '../../packages/overlay/src/brand.js';
+mountBrandLogos();
 const defaults = document.createElement('style'); defaults.textContent = themeDefaults; document.head.append(defaults);
 void applyAppearance(document.documentElement, defaultAppearance());
 const token = new URLSearchParams(location.hash.slice(1)).get('token') || sessionStorage.getItem('devreview-token');
