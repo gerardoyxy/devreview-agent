@@ -10,10 +10,9 @@ npm ci
 npm run build
 cargo fmt --all --check
 cargo clippy --locked --all-targets -- -D warnings
-cargo test --locked
+cargo test --locked -p devreview --bin devreview
 npm run check
 npm test
-npm run demo
 ```
 
 For a small fix, open a pull request with the problem, resulting behavior, and
@@ -21,8 +20,12 @@ validation. For larger changes, discuss the design in an issue first. Keep UI
 strings and documentation clear about experimental or simulated features.
 Write public documentation, UI strings and marketing copy in English.
 
-Tests create disposable Git repositories and deterministic adapters. Never make
-the default suite depend on provider credentials or live model calls. Add focused
+Default tests create disposable Git repositories and run the application with execution
+disabled. They never launch agent executables, fixture agents or models. `npm test` runs
+only `*.safe.test.js`; Rust tests target the `devreview` binary. Integration fixtures are
+separate: `NUDGETHIS_ALLOW_AGENT_TESTS=1 npm run test:agents` is an explicit opt-in outside
+default CI. Do not run it when agent tests are prohibited. Never make the default suite
+depend on provider credentials or live model calls. Add focused
 regression coverage for lifecycle, Git safety, process cancellation and API changes.
 
 Do not commit tokens, `.env` files, `.devreview/`, generated worktrees, or personal

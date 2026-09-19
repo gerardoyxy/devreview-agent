@@ -17,7 +17,7 @@ flowchart LR
 
 `devreview` is one executable with embedded, compiled browser assets. No Node bridge or
 JavaScript backend remains. Node is used by build scripts and the black-box test harness;
-fixture agents are deterministic test peers, not production dependencies.
+default tests run application fixtures with execution disabled. Agent fixtures are separate opt-in tests.
 
 | Path | Responsibility |
 | --- | --- |
@@ -37,17 +37,19 @@ fixture agents are deterministic test peers, not production dependencies.
 
 ## Lifecycle and consistency
 
-`pending → analyzing → working → validating → ready → applying → applied`
+`draft → pending → analyzing → preparing → working → validating → ready → applying → applied → undoing → undone`
 
-Other review states are `awaiting_feedback`, `failed`, `cancelled`, `conflict`, `rejected`.
+Other review states are `awaiting_feedback`, `failed`, `cancelled`, `conflict`, `rejected`,
+`recovery_required`. Drafts and preparation are optional stages.
 An agent reply without a patch waits for feedback. Follow-ups increment the attempt and reuse
-the worktree, except after Apply/Reject. Retry starts from committed HEAD. The latest requested
+the worktree, except after Apply/Reject/Undo. Retry captures the current workspace, including local edits. The latest requested
 attempt must match the stored version before a UI action runs. CLI actions target the latest.
 
 Queue actions serialize through a control mutex. A bounded number of turns run concurrently.
 Git worktree metadata and application of patches serialize separately. Process cancellation
 stops the tree before the turn completes. A cancellation token spans agent and validation.
-The server's stop token cancels active work; SQLite recovers interrupted active states as failed.
+The server's stop token cancels active work; SQLite recovers interrupted execution as failed
+and interrupted Apply/Undo as recovery_required.
 
 SQLite preserves the Node alpha's JSON task rows and additive message/revision tables.
 Task update, audit insertion and terminal revision write share one transaction. Version 0
@@ -83,7 +85,25 @@ entire custom theme meets WCAG.
 
 ## Remaining product work
 
-Stable element identity, multi-select, opt-in screenshots, Undo, post-HMR verification,
-framework evidence, broader provider compatibility and packaging remain separate milestones.
+Full element identity, multi-select, opt-in screenshots, post-HMR verification, framework
+source evidence and broader provider compatibility remain separate milestones.
 Rust HTTP models currently retain the existing JSON schema; generating TypeScript contracts
 from typed Rust models remains a follow-up, not a runtime dependency on JavaScript.
+
+## Discovery, snapshots and route coverage
+
+`project.rs` reads bounded project metadata for framework/package-manager suggestions and
+executable availability. It never executes diagnostic commands. `route_review.rs` scans
+Git-listed source files for route candidates, validates concrete paths and stores explicit
+manual desktop/mobile checks through a versioned SQLite preference. The TypeScript
+`route-review.ts` frame uses fixed layout widths and optional visual scaling; it is not a
+headless browser or full mobile emulator. Scan and review do not enter the worker queue.
+
+`git.rs` uses an independent index to snapshot current source and retains local refs outside
+branch history. Apply compares affected files with the captured base and records hashes
+before/after. Undo refuses mismatches. The store journals mutation state before file changes;
+recovery requires inspection instead of guessing whether to replay. [Details](recovery.md).
+
+Fresh worktrees run trusted setup commands before agent execution; continued worktrees
+retain dependencies. Setup and validation have separate result arrays. A source mutation
+by either command phase blocks review, and an empty validation list is explicitly unchecked.
