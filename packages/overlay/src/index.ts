@@ -1,13 +1,16 @@
+import { portableContext } from './context.js';
+import type { Api, ElementContext, Task, TaskSummary, TaskEvent, ServerStatus } from '../../contracts/src/index.js';
+import { errorMessage, query } from '../../contracts/src/index.js';
 import { createTaskReview } from './review.js';
 
 /** Authenticated SSE over fetch: credentials never appear in a query string. */
-export async function watchTasks(server, token, onTask, signal, onConnection = () => {}) {
+export async function watchTasks(server: string, token: string, onTask: (task: TaskEvent) => void, signal: AbortSignal, onConnection: (connected: boolean, error?: string) => void = () => {}) {
   while (!signal.aborted) {
     try {
       const response = await fetch(`${server}/api/events`, { headers: { Authorization: `Bearer ${token}` }, signal });
       if (!response.ok) throw new Error(`Connection failed (${response.status})`);
       onConnection(true);
-      const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+      const reader = response.body!.pipeThrough(new TextDecoderStream()).getReader();
       let buffer = '';
       try {
         while (!signal.aborted) {
@@ -21,35 +24,35 @@ export async function watchTasks(server, token, onTask, signal, onConnection = (
           }
         }
       } finally { await reader.cancel().catch(() => {}); }
-    } catch (error) { if (signal.aborted) return; onConnection(false, error.message); }
-    if (!signal.aborted) await new Promise(resolve => {
+    } catch (error) { if (signal.aborted) return; onConnection(false, errorMessage(error)); }
+    if (!signal.aborted) await new Promise<void>(resolve => {
       const finish = () => { clearTimeout(timer); signal.removeEventListener('abort', finish); resolve(); };
       const timer = setTimeout(finish, 2000); signal.addEventListener('abort', finish, { once: true });
     });
   }
 }
 
-export function elementContext(element, { captureDom = false } = {}) {
-  const cloned = element.cloneNode(true);
+export function elementContext(element: Element, { captureDom = false } = {}): ElementContext {
+  const cloned = element.cloneNode(true) as Element;
   cloned.querySelectorAll('script,style,input,textarea,select,[contenteditable],[data-devreview-private]').forEach(node => node.remove());
   const privateElement = !!element.closest('input,textarea,select,[contenteditable],[data-devreview-private]');
   const candidates = [];
-  if (element.dataset.testid) candidates.push(`[data-testid="${CSS.escape(element.dataset.testid)}"]`);
+  if (element.getAttribute('data-testid')) candidates.push(`[data-testid="${CSS.escape(element.getAttribute('data-testid')!)}"]`);
   if (element.id) candidates.push(`#${CSS.escape(element.id)}`);
-  let node = element, selector = '';
+  let node: Element | null = element, selector = '';
   while (node && node !== document.documentElement && candidates.length < 12) {
-    const siblings = [...(node.parentElement?.children || [])].filter(sibling => sibling.tagName === node.tagName);
+    const siblings = [...(node.parentElement?.children || [])].filter(sibling => sibling.tagName === node!.tagName);
     const segment = `${node.tagName.toLowerCase()}${siblings.length > 1 ? `:nth-of-type(${siblings.indexOf(node) + 1})` : ''}`;
     selector = segment + (selector ? ` > ${selector}` : ''); candidates.push(selector); node = node.parentElement;
   }
   selector = candidates.find(candidate => { try { return document.querySelectorAll(candidate).length === 1; } catch { return false; } }) || '';
   const rect = element.getBoundingClientRect();
   const url = new URL(location.href); url.search = ''; url.hash = ''; url.username = ''; url.password = '';
-  const context = {
+  const context: ElementContext = {
     url: url.href, route: url.pathname, selector, tagName: element.tagName.toLowerCase(),
     text: privateElement ? '' : (cloned.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 1000),
-    testId: element.dataset.testid || '', ariaLabel: element.getAttribute('aria-label') || '',
-    source: element.dataset.devreviewSource || '',
+    testId: element.getAttribute('data-testid') || '', ariaLabel: element.getAttribute('aria-label') || '',
+    source: element.getAttribute('data-devreview-source') || '',
     boundingBox: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
     viewport: { width: innerWidth, height: innerHeight }
   };
@@ -64,13 +67,15 @@ export function elementContext(element, { captureDom = false } = {}) {
   return context;
 }
 
+export interface OverlayOptions { server?: string; token?: string; enabled?: boolean; modifier?: 'alt' | 'none'; captureDom?: boolean }
+
 export const DevReview = {
-  init({ server = 'http://127.0.0.1:7331', token, enabled = false, modifier = 'alt', captureDom = false } = {}) {
+  init({ server = 'http://127.0.0.1:7331', token, enabled = false, modifier = 'alt', captureDom = false }: OverlayOptions = {}) {
     if (!enabled || !['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) return { destroy() {} };
     if (document.querySelector('[data-devreview-overlay]')) throw new Error('DevReview is already initialized');
     const serverUrl = new URL(server);
     if (!['localhost', '127.0.0.1', '[::1]'].includes(serverUrl.hostname) || !['http:', 'https:'].includes(serverUrl.protocol)) throw new Error('DevReview requires a loopback server');
-    if (!token) throw new Error('Copy the local token from the DevReview dashboard');
+    token ||= ''; // Copy-context mode also works without a server session.
     server = serverUrl.origin;
     const controller = new AbortController();
     const host = document.createElement('div'); host.dataset.devreviewOverlay = '';
@@ -78,10 +83,10 @@ export const DevReview = {
     const shadow = host.attachShadow({ mode: 'open' });
     shadow.innerHTML = `<style>
       :host{all:initial;font:13px/1.5 ui-sans-serif,system-ui,sans-serif;color:#f3f4ef}
-      *{box-sizing:border-box}button,a,textarea{font:inherit}button,a{cursor:pointer}
+      *{box-sizing:border-box}button,a,textarea,select{font:inherit}button,a{cursor:pointer}
       .launcher{position:fixed;bottom:20px;right:20px;display:flex;align-items:center;gap:10px;background:#1d231e;color:#eff6e9;border:1px solid #56604e;border-radius:999px;padding:11px 18px;text-decoration:none;pointer-events:auto;box-shadow:0 4px 20px #0003}
       .dot{width:7px;height:7px;border-radius:50%;background:#a8e86c}.outline{position:fixed;pointer-events:none;border:2px solid #8ed451;background:#a8e86c15;border-radius:4px}
-      .panel{position:fixed;width:min(360px,calc(100vw - 24px));padding:20px;background:#1d231e;border:1px solid #58674e;border-radius:14px;pointer-events:auto;box-shadow:0 16px 60px #0004}
+      .agent-select{display:block;width:100%;background:#273228;color:#eaf2e4;border:1px solid #58674e;border-radius:6px;padding:8px;margin:8px 0}.prompt-actions{display:flex;gap:8px;align-items:center}.copy-context{background:transparent;color:#deedcf;border:1px solid #58674e;border-radius:6px;padding:10px;white-space:nowrap}.save:disabled{opacity:.5}.copy-status{color:#d4e7b9;font-size:11px;margin-bottom:0}.panel{position:fixed;width:min(360px,calc(100vw - 24px));padding:20px;background:#1d231e;border:1px solid #58674e;border-radius:14px;pointer-events:auto;box-shadow:0 16px 60px #0004}
       .head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.head strong{font-size:15px}.close{border:0;background:none;color:#c2ccb9;font-size:20px;padding:0 4px}
       .target{font:11px ui-monospace,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#a8e86c;margin-bottom:12px}
       label{display:block;color:#c5cbbb;margin-bottom:7px}textarea{width:100%;height:105px;resize:vertical;border:1px solid #56604e;border-radius:7px;background:#131a15;color:#fff;padding:10px;outline-offset:3px}
@@ -97,26 +102,49 @@ export const DevReview = {
       <div class="head"><strong>What needs to change?</strong><button class="close" type="button" aria-label="Close">×</button></div>
       <div class="target"></div><label for="request">QA request</label>
       <textarea id="request" maxlength="8000" required placeholder="Describe the problem and expected result…"></textarea>
+      <label for="agent">Coding agent</label><select id="agent" class="agent-select" aria-label="Coding agent"><option value="">Connect to load agents</option></select>
       <p class="hint">The agent works in a separate worktree. You review before applying.</p><p class="error" role="alert" hidden></p>
-      <button class="save" type="submit">Start conversation ↗</button>
+      <div class="prompt-actions"><button class="copy-context" type="button">Copy context</button><button class="save" type="submit" disabled>Start conversation ↗</button></div><p class="copy-status" role="status" hidden></p>
     </form>
     <button class="launcher" type="button" aria-label="Open DevReview conversations"><span class="dot"></span><span class="label">DevReview · connecting</span></button>
     <dialog class="review-dialog" aria-label="DevReview conversations"><div class="review-shell"><header class="review-header"><div class="review-brand"><span class="review-logo">d</span><strong>devreview</strong></div><div class="review-header-actions"><a class="dashboard-link" target="_blank" rel="noopener">Full dashboard ↗</a><button type="button" class="review-close" aria-label="Close conversations">×</button></div></header><div class="review-body"><aside class="review-sidebar"><span class="review-caption">Your changes</span><select class="review-filter" aria-label="Filter conversations"><option value="all">All changes</option><option value="page">This page</option><option value="applied">Applied changes</option></select><div class="review-task-list"></div></aside><div class="review-detail"><p class="review-empty">Your changes and their conversations live here.<br>Hold Alt and right-click an element to start.</p></div></div></div></dialog>`;
     document.documentElement.append(host);
-    const $ = selector => shadow.querySelector(selector);
-    $('.dashboard-link').href = `${server}/#token=${encodeURIComponent(token)}`;
-    const panel = $('.panel'), outline = $('.outline'), textarea = $('textarea'), error = $('.error');
-    let selected, context, previousFocus, saving = false;
-    const tasks = new Map(), markers = new Map();
-    const dialog = $('.review-dialog');
-    let selectedId, review, refreshTimer, refreshSequence = 0, online = false;
-    const api = async (endpoint, options = {}) => {
+    const $ = <E extends HTMLElement = HTMLElement>(selector: string) => query<E>(shadow, selector);
+    $<HTMLAnchorElement>('.dashboard-link').href = `${server}/#token=${encodeURIComponent(token)}`;
+    const panel = $<HTMLFormElement>('.panel'), outline = $('.outline'), textarea = $<HTMLTextAreaElement>('textarea'), error = $('.error');
+    let agentsReady = false;
+    let selected: Element | undefined, context: ElementContext | undefined, previousFocus: Element | null, saving = false;
+    const tasks = new Map<string, TaskSummary>(), markers = new Map<string, HTMLButtonElement>();
+    const dialog = $<HTMLDialogElement>('.review-dialog');
+    let selectedId: string | undefined, review: ReturnType<typeof createTaskReview> | undefined, refreshTimer: ReturnType<typeof setTimeout> | undefined, refreshSequence = 0, online = false;
+    const api: Api = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
       const response = await fetch(server + endpoint, { ...options, signal: controller.signal,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } });
       const data = await response.json(); if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`); return data;
     };
+    const loadAgents = async () => {
+      try {
+        const status = await api<ServerStatus>('/api/status');
+        const select = $<HTMLSelectElement>('.agent-select');
+        const previous = select.value || status.agent;
+        select.replaceChildren();
+        for (const agent of status.agents || []) {
+          const option = document.createElement('option'); option.value = agent.id; option.textContent = agent.label; select.append(option);
+        }
+        if ([...select.options].some(option => option.value === previous)) select.value = previous;
+        agentsReady = select.options.length > 0;
+        $<HTMLButtonElement>('.save').disabled = saving || !agentsReady;
+      } catch { agentsReady = false; $<HTMLButtonElement>('.save').disabled = true; }
+    };
+    $('.copy-context').onclick = async () => {
+      if (!context) return;
+      try {
+        await navigator.clipboard.writeText(portableContext(context, textarea.value));
+        $('.copy-status').textContent = 'Context copied. Paste it into your coding agent.'; $('.copy-status').hidden = false;
+      } catch { error.textContent = 'Clipboard access was blocked by the browser.'; error.hidden = false; }
+    };
     const renderList = () => {
-      const filter = $('.review-filter').value;
+      const filter = $<HTMLSelectElement>('.review-filter').value;
       const items = [...tasks.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).filter(task => filter === 'all' || (filter === 'page' ? task.context.route === location.pathname : task.status === 'applied'));
       $('.review-task-list').replaceChildren();
       for (const task of items) {
@@ -135,7 +163,7 @@ export const DevReview = {
       if (!selectedId || !dialog.open) return;
       const id = selectedId, sequence = ++refreshSequence;
       try {
-        const task = await api(`/api/tasks/${id}`);
+        const task = await api<Task>(`/api/tasks/${id}`);
         if (selectedId !== id || sequence !== refreshSequence || !dialog.open) return;
         if (!review) {
           $('.review-detail').replaceChildren();
@@ -144,25 +172,25 @@ export const DevReview = {
         review.setTask(task);
       } catch (err) {
         if (selectedId !== id || sequence !== refreshSequence) return;
-        if (review) review.error(err.message);
-        else { $('.review-detail').textContent = err.message; }
+        if (review) review.error(errorMessage(err));
+        else { $('.review-detail').textContent = errorMessage(err); }
       }
     };
-    const openReview = async id => {
+    const openReview = async (id?: string) => {
       selectedId = id || selectedId || [...tasks.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]?.id;
       if (!dialog.open) dialog.showModal();
       renderList(); await refreshReview();
     };
     $('.launcher').onclick = () => void openReview();
     $('.review-close').onclick = () => dialog.close();
-    $('.review-filter').onchange = renderList;
+    $<HTMLSelectElement>('.review-filter').onchange = renderList;
     const position = () => {
       if (selected?.isConnected && !panel.hidden) {
         const rect = selected.getBoundingClientRect();
         Object.assign(outline.style, { left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` });
       }
       for (const [id, marker] of markers) {
-        const task = tasks.get(id);
+        const task = tasks.get(id)!;
         let target; try { target = document.querySelector(task.context.selector); } catch { /* stale selector */ }
         marker.hidden = !target || task.context.route !== location.pathname || ['rejected', 'cancelled'].includes(task.status);
         if (target && !marker.hidden) {
@@ -171,33 +199,33 @@ export const DevReview = {
         }
       }
     };
-    const close = () => { if (saving) return; panel.hidden = true; outline.hidden = true; previousFocus?.focus?.({ preventScroll: true }); };
-    const pick = target => {
+    const close = () => { if (saving) return; panel.hidden = true; outline.hidden = true; if (previousFocus instanceof HTMLElement) previousFocus.focus({ preventScroll: true }); };
+    const pick = (target: EventTarget | null) => {
       if (!(target instanceof Element) || target === host || saving) return;
       selected = target; previousFocus = document.activeElement; context = elementContext(target, { captureDom });
       $('.target').textContent = context.selector || context.tagName;
-      textarea.value = ''; error.hidden = true; panel.hidden = false; outline.hidden = false;
+      textarea.value = ''; error.hidden = true; $('.copy-status').hidden = true; panel.hidden = false; outline.hidden = false;
       const rect = target.getBoundingClientRect();
       panel.style.left = `${Math.max(12, Math.min(rect.left, innerWidth - 372))}px`;
-      panel.style.top = `${Math.max(12, Math.min(rect.bottom + 10, innerHeight - 340))}px`;
+      panel.style.top = `${Math.max(12, Math.min(rect.bottom + 10, innerHeight - 440))}px`;
       position(); textarea.focus();
     };
-    const contextMenu = event => {
+    const contextMenu = (event: MouseEvent) => {
       if (event.composedPath().includes(host) || (modifier === 'alt' && !event.altKey)) return;
       event.preventDefault(); event.stopPropagation(); pick(event.target);
     };
-    const keydown = event => {
+    const keydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') close();
       if (event.key === 'Tab' && !panel.hidden && !dialog.open) {
-        const focusable = [...panel.querySelectorAll('button:not(:disabled),textarea')];
+        const focusable = [...panel.querySelectorAll<HTMLElement>('button:not(:disabled),textarea,select:not(:disabled)')];
         const first = focusable[0], last = focusable.at(-1);
-        if (event.shiftKey && shadow.activeElement === first) { event.preventDefault(); last.focus(); }
+        if (event.shiftKey && shadow.activeElement === first) { event.preventDefault(); last?.focus(); }
         else if (!event.shiftKey && shadow.activeElement === last) { event.preventDefault(); first.focus(); }
       }
       if (event.altKey && event.shiftKey && event.code === 'KeyD') { event.preventDefault(); pick(document.activeElement); }
     };
-    const update = task => {
-      if (task.deleted) {
+    const update = (task: TaskEvent) => {
+      if ('deleted' in task) {
         tasks.delete(task.id); markers.get(task.id)?.remove(); markers.delete(task.id);
         if (selectedId === task.id) {
           selectedId = undefined; refreshSequence++; review?.destroy(); review = undefined;
@@ -207,33 +235,34 @@ export const DevReview = {
       }
       tasks.set(task.id, task);
       if (!markers.has(task.id)) { const marker = document.createElement('button'); marker.type = 'button'; marker.className = 'marker'; marker.onclick = () => void openReview(task.id); shadow.append(marker); markers.set(task.id, marker); }
-      markers.get(task.id).textContent = `${task.id} · ${task.status.replaceAll('_', ' ')}`; position(); renderList();
+      markers.get(task.id)!.textContent = `${task.id} · ${task.status.replaceAll('_', ' ')}`; position(); renderList();
       if (selectedId === task.id && dialog.open) { clearTimeout(refreshTimer); refreshTimer = setTimeout(() => void refreshReview(), 40); }
     };
     panel.addEventListener('submit', async event => {
-      event.preventDefault(); if (saving || !textarea.value.trim()) return;
-      saving = true; $('.save').disabled = true; error.hidden = true;
+      event.preventDefault(); if (saving || !agentsReady || !textarea.value.trim()) return;
+      saving = true; $<HTMLButtonElement>('.save').disabled = true; error.hidden = true;
       try {
         const response = await fetch(`${server}/api/tasks`, { method: 'POST', signal: controller.signal,
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ request: textarea.value, context }) });
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ request: textarea.value, context, agent: $<HTMLSelectElement>('.agent-select').value }) });
         const data = await response.json(); if (!response.ok) throw new Error(data.error);
         update(data); saving = false; close(); await openReview(data.id);
-      } catch (err) { error.textContent = err.message; error.hidden = false; }
-      finally { saving = false; $('.save').disabled = false; }
+      } catch (err) { error.textContent = errorMessage(err); error.hidden = false; }
+      finally { saving = false; $<HTMLButtonElement>('.save').disabled = !agentsReady; }
     });
     $('.close').addEventListener('click', close);
     document.addEventListener('contextmenu', contextMenu, true); document.addEventListener('keydown', keydown, true);
     window.addEventListener('scroll', position, true); window.addEventListener('resize', position);
     const load = () => fetch(`${server}/api/tasks`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal })
       .then(response => { if (!response.ok) throw new Error('Unable to load tasks'); return response.json(); })
-      .then(items => {
+      .then((items: TaskSummary[]) => {
         const ids = new Set(items.map(task => task.id));
         for (const id of tasks.keys()) if (!ids.has(id)) { tasks.delete(id); markers.get(id)?.remove(); markers.delete(id); }
         items.forEach(update); renderList();
       }).catch(() => {});
-    void watchTasks(server, token, update, controller.signal, connected => {
+    renderList();
+    if (token) void watchTasks(server, token, update, controller.signal, connected => {
       online = connected; renderList();
-      $('.dot').style.background = connected ? '#a8e86c' : '#e4a266'; if (connected) void load();
+      $('.dot').style.background = connected ? '#a8e86c' : '#e4a266'; if (connected) { void load(); void loadAgents(); }
     });
     return { destroy() { clearTimeout(refreshTimer); controller.abort(); dialog.close(); review?.destroy(); document.removeEventListener('contextmenu', contextMenu, true); document.removeEventListener('keydown', keydown, true); window.removeEventListener('scroll', position, true); window.removeEventListener('resize', position); host.remove(); } };
   }

@@ -7,15 +7,18 @@ flowchart LR
   Server --> Store[(SQLite tasks + audit)]
   Server --> Queue[Worker queue]
   Queue --> Git[Detached Git worktree]
-  Git --> Agent[Codex adapter]
+  Git --> Bridge[Temporary Node bridge]
+  Bridge --> Runtime[Rust agent runtime]
+  Runtime --> Agent[Codex / ACP / custom stdio]
   Agent --> Validation[Trusted validation commands]
   Validation --> Review[Diff + results]
   Review -->|Explicit Apply| WorkingTree[Active working tree]
 ```
 
-The repository is a small ESM application organized into package directories.
-It is intentionally shipped from source for this alpha; independent npm packages
-and a compiled TypeScript distribution can follow once the API settles.
+The browser modules are strict TypeScript, compiled into `dist/browser`. The Rust
+workspace owns agent execution and protocol translation. The HTTP, queue, SQLite,
+Git and validation modules remain ESM JavaScript during phase 1. The target is a
+Rust backend with embedded browser assets; see the [migration review](roadmap-review.es.md).
 
 | Directory | Responsibility |
 | --- | --- |
@@ -24,7 +27,9 @@ and a compiled TypeScript distribution can follow once the API settles.
 | `packages/core` | Trusted config, lifecycle, per-repository server lock |
 | `packages/queue` | Persistent tasks, status transitions, concurrency, audit |
 | `packages/git` | Worktrees, patches, conflicts, cleanup |
-| `packages/agent-sdk` | Provider-independent adapter boundary and Codex adapter |
+| `packages/agent-sdk` | Temporary Node bridge to the native agent runtime |
+| `crates/agent-runtime` | Rust process lifecycle, Codex/ACP/custom protocols |
+| `packages/contracts` | Strict browser/API types; schema generation planned in phase 2 |
 | `packages/validation` | Trusted shell commands and results |
 | `packages/cli` | Local developer commands |
 | `packages/shared` | Input validation, process management, serialization |
@@ -45,6 +50,10 @@ the same local file cannot overwrite each other. A patch is collected before
 validation and compared afterward; validation that modifies source fails the task.
 
 ## Agent adapters
+
+Production transports execute through Rust. [Transport configuration and limitations](agents.md)
+describe per-task selection, protocol v1, and the ACP subset. The in-process interface
+below is retained for compatibility and deterministic demo adapters.
 
 Any object with this interface can be passed to `startServer({ root, agent })`:
 
@@ -67,7 +76,7 @@ An adapter must honor cancellation, edit only `cwd`, and return after all its
 children stop. It must not commit, push, or mutate the active checkout. Worktree
 isolation is not a security boundary: each adapter needs its own sandbox.
 
-The initial adapter invokes `codex exec --sandbox workspace-write --json -` and
+The Rust Codex transport invokes `codex exec --sandbox workspace-write --json -` and
 passes context through stdin. Its model is left to local Codex configuration;
 `agent.model` can explicitly select one. No provider API key is stored by DevReview.
 See [Codex non-interactive mode](https://developers.openai.com/codex/noninteractive/).
@@ -86,10 +95,13 @@ Applied/rejected worktrees are recreated from committed HEAD when continued.
 
 ## Next milestones
 
-1. Harden cross-platform behavior and package installation.
-2. Add opt-in local screenshots and a Docker integration example.
-3. Add framework source mapping and console/network evidence.
-4. Experiment with file-aware scheduling and explicit rebase flows.
+1. Complete the Rust core/server/SQLite/Git migration with API parity.
+2. Add stable element identity, multi-select and opt-in visual artifacts.
+3. Add safe Undo and verification after hot reload.
+4. Add framework evidence, verified provider integrations, MCP and packaging.
+
+The complete [72-item audit](roadmap-review.es.md) separates existing, partial and
+future features. `Copy context` is a manual fallback, not an automatic agent adapter.
 
 The [original project brief](PROJECT.md) describes the broader vision; it is not
 a claim that every roadmap item is implemented in this alpha.

@@ -1,0 +1,13 @@
+[package]
+name = "devreview-agent-runtime"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Native, provider-independent coding-agent transport for DevReview"
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+process-wrap.workspace = true

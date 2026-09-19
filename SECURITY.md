@@ -14,8 +14,9 @@ you trust and under your own operating-system account.
   JavaScript configuration and running validation can execute arbitrary code as
   your OS user. Review repositories and configuration before starting the server.
 - The Codex adapter requests its workspace-write sandbox. Git worktrees isolate
-  edits but are **not** an OS or network sandbox. Custom adapters are responsible
-  for process isolation and cancellation. Never use an unrestricted adapter on
+  edits but are **not** an OS or network sandbox. The Rust runtime terminates process groups/jobs on cancellation, but each custom
+  or ACP agent must supply filesystem/network isolation. ACP client capabilities
+  are minimal and permission requests currently fail rather than grant access. Never use an unrestricted adapter on
   untrusted requests or repositories.
 - Apply is explicit, serialized, and refuses local edits to affected paths,
   changed branches, symlink/submodule patches, and `.env` changes. `git apply`
@@ -44,3 +45,17 @@ Otherwise open an issue requesting a private reporting channel, without includin
 secrets, exploit payloads, or private repository data. Do not post credentials in
 public issues. Maintainers should enable private vulnerability reporting before
 inviting broad external use.
+
+## Native runtime and agent selection
+
+Only trusted local configuration supplies executable paths and arguments. The
+browser submits a configured agent ID. Prompt text travels through stdin, not shell
+interpolation. ACP/stdio wrappers execute with your local provider configuration;
+there is no shared credential store and no automatic provider login. A configured
+agent is trusted code, not a sandboxed plugin.
+
+The runtime limits input/output sizes and wall-clock duration, verifies ACP session
+and protocol IDs, and does not publish reasoning/tool payloads as chat. Interactive
+ACP permissions, external filesystem/terminal client operations and native resume
+are not yet implemented. Copy Context writes only the minimized selection/request
+to the clipboard; sending it to another service is a separate user action.

@@ -1,3 +1,6 @@
+import type { Api, Task, Revision } from '../../contracts/src/index.js';
+import { errorMessage, query } from '../../contracts/src/index.js';
+
 const styles = `
 .dr-review{font:13px/1.6 ui-sans-serif,system-ui,sans-serif;color:#283528;background:#fff;display:flex;flex-direction:column;height:100%;min-height:0;min-width:0;text-align:left}
 .dr-review *{box-sizing:border-box}.dr-review button,.dr-review textarea{font:inherit}.dr-review button{cursor:pointer}.dr-review button:disabled{opacity:.5;cursor:default}.dr-review button:focus-visible,.dr-review textarea:focus-visible{outline:2px solid #6a9646;outline-offset:3px}.dr-review [hidden]{display:none!important}
@@ -7,12 +10,12 @@ const styles = `
 @media(max-width:600px){.dr-heading{padding:17px}.dr-title{font-size:15px}.dr-tabs{padding:0 17px}.dr-messages{padding:17px}.dr-message{font-size:12px;max-width:100%}.dr-composer{padding:12px 17px}.dr-hint{font-size:9px;max-width:175px}.dr-composer-bottom{align-items:flex-end}.dr-actions{padding:12px 17px}.dr-changes,.dr-history{padding:17px}.dr-error{margin-left:17px;margin-right:17px}}
 `;
 
-const labels = { pending: 'Queued', analyzing: 'Preparing task', working: 'Agent working', validating: 'Validating changes', ready: 'Ready for review', awaiting_feedback: 'Waiting for your reply', applying: 'Applying changes', applied: 'Applied', failed: 'Needs attention', conflict: 'Conflict', rejected: 'Rejected', cancelled: 'Cancelled', created: 'Task created' };
-const node = (tag, className, text) => { const element = document.createElement(tag); if (className) element.className = className; if (text !== undefined) element.textContent = text; return element; };
-const time = value => new Date(value).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+const labels: Record<string, string> = { pending: 'Queued', analyzing: 'Preparing task', working: 'Agent working', validating: 'Validating changes', ready: 'Ready for review', awaiting_feedback: 'Waiting for your reply', applying: 'Applying changes', applied: 'Applied', failed: 'Needs attention', conflict: 'Conflict', rejected: 'Rejected', cancelled: 'Cancelled', created: 'Task created' };
+const node = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] => { const element = document.createElement(tag); if (className) element.className = className; if (text !== undefined) element.textContent = text; return element; };
+const time = (value: string) => new Date(value).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 /** Shared conversation/review UI, mounted in the overlay or dashboard's shadow root. */
-export function createTaskReview(root, { api, onMutation = () => {} }) {
+export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutation = () => {} }: { api: Api; onMutation?: (id: string) => void }) {
   const style = node('style'); style.textContent = styles; root.append(style);
   const view = node('section', 'dr-review');
   view.innerHTML = `<div class="dr-heading"><div class="dr-eyebrow"></div><h2 class="dr-title"></h2><div class="dr-meta"></div></div>
@@ -23,35 +26,35 @@ export function createTaskReview(root, { api, onMutation = () => {} }) {
     <section class="dr-changes" data-panel="changes" role="tabpanel" aria-label="Changes" hidden><h3>Validation</h3><div class="dr-checks"></div><h3>Changed files</h3><div class="dr-files"></div><h3>Current patch</h3><pre class="dr-diff" tabindex="0"></pre></section>
     <section class="dr-history" data-panel="history" role="tabpanel" aria-label="History" hidden><h3>Change versions</h3><p class="dr-hint">Earlier versions are kept for reference. Apply always uses the current validated version.</p><div class="dr-revisions"></div><div class="dr-past" hidden></div><h3>Activity</h3><div class="dr-timeline"></div></section></div><div class="dr-actions"></div>`;
   root.append(view);
-  const $ = selector => view.querySelector(selector);
-  let task, busy = false, tab = 'conversation', selectedRevision, renderedMessages = new Set();
-  const drafts = new Map();
-  const error = text => { $('.dr-error').textContent = text || ''; $('.dr-error').hidden = !text; };
-  const selectTab = name => {
+  const $ = <E extends HTMLElement = HTMLElement>(selector: string) => query<E>(view, selector);
+  let task: Task, busy = false, tab = 'conversation', selectedRevision: number | undefined, renderedMessages = new Set<number>();
+  const drafts = new Map<string, string>();
+  const error = (text?: string | null) => { $('.dr-error').textContent = text || ''; $('.dr-error').hidden = !text; };
+  const selectTab = (name: string) => {
     tab = name;
-    for (const button of view.querySelectorAll('[data-tab]')) { button.setAttribute('aria-selected', String(button.dataset.tab === name)); button.tabIndex = button.dataset.tab === name ? 0 : -1; }
-    for (const panel of view.querySelectorAll('[data-panel]')) panel.hidden = panel.dataset.panel !== name;
+    for (const button of view.querySelectorAll<HTMLButtonElement>('[data-tab]')) { button.setAttribute('aria-selected', String(button.dataset.tab === name)); button.tabIndex = button.dataset.tab === name ? 0 : -1; }
+    for (const panel of view.querySelectorAll<HTMLElement>('[data-panel]')) panel.hidden = panel.dataset.panel !== name;
   };
-  for (const button of view.querySelectorAll('[data-tab]')) {
-    button.onclick = () => selectTab(button.dataset.tab);
+  for (const button of view.querySelectorAll<HTMLButtonElement>('[data-tab]')) {
+    button.onclick = () => selectTab(button.dataset.tab || 'conversation');
     button.onkeydown = event => {
       if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
-      event.preventDefault(); const tabs = [...view.querySelectorAll('[data-tab]')];
-      const next = tabs[(tabs.indexOf(button) + (event.key === 'ArrowRight' ? 1 : 2)) % 3]; selectTab(next.dataset.tab); next.focus();
+      event.preventDefault(); const tabs = [...view.querySelectorAll<HTMLButtonElement>('[data-tab]')];
+      const next = tabs[(tabs.indexOf(button) + (event.key === 'ArrowRight' ? 1 : 2)) % 3]; selectTab(next.dataset.tab || 'conversation'); next.focus();
     };
   }
-  const patch = (container, value) => container.replaceChildren(...(value || 'No file changes in this version.').split('\n').map(line => node('span', `dr-diff-line ${line.startsWith('+') ? 'dr-add' : line.startsWith('-') ? 'dr-remove' : line.startsWith('@@') ? 'dr-context' : ''}`, line)));
+  const patch = (container: HTMLElement, value: string) => container.replaceChildren(...(value || 'No file changes in this version.').split('\n').map(line => node('span', `dr-diff-line ${line.startsWith('+') ? 'dr-add' : line.startsWith('-') ? 'dr-remove' : line.startsWith('@@') ? 'dr-context' : ''}`, line)));
   const controls = () => {
     if (!task) return;
     const active = ['pending', 'analyzing', 'working', 'validating', 'applying'].includes(task.status);
     const canSend = ['ready', 'awaiting_feedback', 'failed', 'cancelled', 'applied', 'rejected'].includes(task.status);
-    $('.dr-send').disabled = busy || !canSend;
+    $<HTMLButtonElement>('.dr-send').disabled = busy || !canSend;
     // Keep the draft editable while the agent works.
     $('.dr-hint').textContent = task.status === 'applied' ? 'Commit the applied changes before continuing this conversation.' : task.status === 'conflict' ? 'Retry against HEAD to resolve the conflict before continuing.' : active ? 'You can draft a reply now. Send it when this turn finishes.' : 'Your reply stays in this task. Changes still need your approval.';
     $('.dr-wait').textContent = active ? `${labels[task.status]}… You can close this window and keep reviewing.` : task.status === 'awaiting_feedback' ? 'The agent replied without file changes. You can continue the conversation.' : '';
     $('.dr-wait').hidden = !$('.dr-wait').textContent;
     $('.dr-actions').replaceChildren();
-    const action = (name, label, primary = false) => {
+    const action = (name: string, label: string, primary = false) => {
       const attempt = task.attempt;
       const button = node('button', primary ? 'dr-primary' : 'dr-secondary', label); button.disabled = busy;
       button.onclick = async () => {
@@ -60,9 +63,9 @@ export function createTaskReview(root, { api, onMutation = () => {} }) {
         busy = true; controls(); error('');
         try {
           await api(`/api/tasks/${id}/${name}`, { method: 'POST', body: JSON.stringify({ attempt }) });
-          const updated = await api(`/api/tasks/${id}`); if (task?.id === id) setTask(updated);
+          const updated = await api<Task>(`/api/tasks/${id}`); if (task?.id === id) setTask(updated);
           onMutation(id);
-        } catch (err) { if (task?.id === id) error(err.message); }
+        } catch (err) { if (task?.id === id) error(errorMessage(err)); }
         finally { busy = false; controls(); }
       };
       $('.dr-actions').append(button);
@@ -72,17 +75,17 @@ export function createTaskReview(root, { api, onMutation = () => {} }) {
     if (['ready', 'awaiting_feedback', 'failed', 'conflict', 'cancelled', 'rejected'].includes(task.status)) action('retry', 'Retry from HEAD');
     if (task.status === 'ready') action('apply', 'Apply current changes ↗', true);
   };
-  function setTask(next) {
+  function setTask(next: Task) {
     if (task?.id !== next.id) {
-      if (task) drafts.set(task.id, $('textarea').value);
-      $('textarea').value = drafts.get(next.id) || '';
+      if (task) drafts.set(task.id, $<HTMLTextAreaElement>('textarea').value);
+      $<HTMLTextAreaElement>('textarea').value = drafts.get(next.id) || '';
       renderedMessages = new Set(); $('.dr-messages').replaceChildren();
       selectedRevision = undefined; $('.dr-past').hidden = true; selectTab('conversation');
     }
     task = next;
     $('.dr-eyebrow').textContent = `${task.id} · ${labels[task.status] || task.status} · version ${task.attempt}`;
     $('.dr-title').textContent = task.request;
-    $('.dr-meta').textContent = `${task.context.route} · ${task.context.selector || task.context.tagName}`;
+    $('.dr-meta').textContent = `${task.agent} · ${task.context.route} · ${task.context.selector || task.context.tagName}`;
     error(task.error || task.cleanupWarning);
     const log = $('.dr-messages'), stick = log.scrollHeight - log.scrollTop - log.clientHeight < 80 || !renderedMessages.size;
     for (const message of task.messages || []) {
@@ -106,13 +109,13 @@ export function createTaskReview(root, { api, onMutation = () => {} }) {
       button.onclick = async () => {
         const id = task.id; selectedRevision = revision.attempt; button.disabled = true;
         try {
-          const old = await api(`/api/tasks/${id}/revisions/${revision.attempt}`);
+          const old = await api<Revision>(`/api/tasks/${id}/revisions/${revision.attempt}`);
           if (task?.id !== id || selectedRevision !== revision.attempt) return;
           const past = $('.dr-past'); past.hidden = false; past.replaceChildren(node('h3', '', `Version ${old.attempt} · ${labels[old.status] || old.status}`));
           const files = node('div', 'dr-files'); files.textContent = old.files.join(' · '); past.append(files);
           for (const check of old.validation) past.append(node('div', 'dr-check', `${check.passed ? '✓' : '×'} ${check.command}`));
           const code = node('pre'); patch(code, old.diff); past.append(code);
-        } catch (err) { if (task?.id === id) error(err.message); }
+        } catch (err) { if (task?.id === id) error(errorMessage(err)); }
         finally { button.disabled = false; }
       };
       row.append(description, button); $('.dr-revisions').append(row);
@@ -123,16 +126,16 @@ export function createTaskReview(root, { api, onMutation = () => {} }) {
     controls(); selectTab(tab);
   }
   $('.dr-composer').onsubmit = async event => {
-    event.preventDefault(); if (busy || $('.dr-send').disabled || !$('textarea').value.trim()) return;
-    const id = task.id, content = $('textarea').value, attempt = task.attempt;
+    event.preventDefault(); if (busy || $<HTMLButtonElement>('.dr-send').disabled || !$<HTMLTextAreaElement>('textarea').value.trim()) return;
+    const id = task.id, content = $<HTMLTextAreaElement>('textarea').value, attempt = task.attempt;
     busy = true; controls(); error('');
     try {
-      const updated = await api(`/api/tasks/${id}/messages`, { method: 'POST', body: JSON.stringify({ content, attempt }) });
+      const updated = await api<Task>(`/api/tasks/${id}/messages`, { method: 'POST', body: JSON.stringify({ content, attempt }) });
       if (drafts.get(id) === content) drafts.delete(id);
-      if (task?.id === id) { if ($('textarea').value === content) $('textarea').value = ''; setTask(updated); }
+      if (task?.id === id) { if ($<HTMLTextAreaElement>('textarea').value === content) $<HTMLTextAreaElement>('textarea').value = ''; setTask(updated); }
       onMutation(id);
-    } catch (err) { if (task?.id === id) error(err.message); }
+    } catch (err) { if (task?.id === id) error(errorMessage(err)); }
     finally { busy = false; controls(); }
   };
-  return { setTask, error, focusComposer: () => $('textarea').focus(), destroy: () => { style.remove(); view.remove(); } };
+  return { setTask, error, focusComposer: () => $<HTMLTextAreaElement>('textarea').focus(), destroy: () => { style.remove(); view.remove(); } };
 }

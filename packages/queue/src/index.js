@@ -2,15 +2,18 @@ import { assert, serial } from '../../shared/src/index.js';
 import { validate } from '../../validation/src/index.js';
 
 export class TaskQueue {
-  constructor({ store, repository, agent, maxConcurrent = 2, commands = [], validationTimeout = 120000 }) {
-    Object.assign(this, { store, repository, agent, maxConcurrent, commands, validationTimeout });
+  constructor({ store, repository, agent, agents, maxConcurrent = 2, commands = [], validationTimeout = 120000 }) {
+    Object.assign(this, { store, repository, agent, agents, maxConcurrent, commands, validationTimeout });
+    this.agents = agents ?? new Map([[agent.name, agent]]);
     this.active = new Map(); this.control = serial(); this.stopped = false;
   }
   async submit(input) {
     return this.control(async () => {
       assert(!this.stopped, 'Server is stopping', 503);
+      const agentId = input.agent ?? this.agent.name;
+      assert(this.agents.has(agentId), 'Agent is not configured', 400);
       const snapshot = await this.repository.snapshot();
-      const task = this.store.create({ ...input, ...snapshot, agent: this.agent.name });
+      const task = this.store.create({ ...input, ...snapshot, agent: agentId });
       this.pump(); return task;
     });
   }
@@ -38,7 +41,9 @@ export class TaskQueue {
         if (signal.aborted || typeof text !== 'string' || !text.trim()) return;
         this.store.addMessage(task.id, 'assistant', text.slice(0, 32000)); messageCount++;
       };
-      const result = await this.agent.run({ task: { ...task, messages: this.store.messages(task.id) }, cwd, signal, onMessage });
+      const adapter = this.agents.get(task.agent);
+      assert(adapter, 'The agent for this task is no longer configured', 409);
+      const result = await adapter.run({ task: { ...task, messages: this.store.messages(task.id) }, cwd, signal, onMessage });
       signal.throwIfAborted();
       if (!messageCount && result.message) onMessage(result.message);
       this.store.update(task.id, { output: result.output || '', agentErrors: result.stderr || '' });
