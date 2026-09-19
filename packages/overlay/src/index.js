@@ -1,3 +1,5 @@
+import { createTaskReview } from './review.js';
+
 /** Authenticated SSE over fetch: credentials never appear in a query string. */
 export async function watchTasks(server, token, onTask, signal, onConnection = () => {}) {
   while (!signal.aborted) {
@@ -84,7 +86,10 @@ export const DevReview = {
       .target{font:11px ui-monospace,monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#a8e86c;margin-bottom:12px}
       label{display:block;color:#c5cbbb;margin-bottom:7px}textarea{width:100%;height:105px;resize:vertical;border:1px solid #56604e;border-radius:7px;background:#131a15;color:#fff;padding:10px;outline-offset:3px}
       .hint{font-size:11px;color:#adb9a4;margin:8px 0 16px}.save{width:100%;border:0;border-radius:7px;padding:10px;background:#b5ed7d;color:#172310;font-weight:650}.save:disabled{opacity:.5}
-      .error{color:#ffb7aa;font-size:12px;margin:8px 0;white-space:pre-wrap}.marker{position:fixed;background:#203621;color:#c9f59a;border:1px solid #86b85d;border-radius:4px;padding:2px 6px;font:11px ui-monospace,monospace;pointer-events:none}
+      .error{color:#ffb7aa;font-size:12px;margin:8px 0;white-space:pre-wrap}.marker{position:fixed;background:#203621;color:#c9f59a;border:1px solid #86b85d;border-radius:4px;padding:2px 6px;font:11px ui-monospace,monospace;pointer-events:auto}
+      .review-dialog{width:min(1100px,calc(100vw - 36px));height:min(800px,calc(100dvh - 48px));padding:0;border:1px solid #dce5d2;border-radius:16px;background:#fff;color:#35472b;pointer-events:auto;box-shadow:0 28px 100px #0004;max-width:none;max-height:none;overflow:hidden}
+      .review-dialog::backdrop{background:#14220e66;backdrop-filter:blur(3px)}.review-shell{height:100%;display:flex;flex-direction:column}.review-header{padding:15px 20px;background:#f9fbf5;border-bottom:1px solid #e0e8d6;display:flex;justify-content:space-between;align-items:center;gap:15px}.review-brand{display:flex;align-items:center;gap:10px;font-size:15px;letter-spacing:-.3px}.review-logo{background:#2e4327;color:#d1efa4;width:28px;height:28px;border-radius:7px;display:grid;place-items:center;font:24px Georgia,serif}.review-header-actions{display:flex;align-items:center;gap:20px}.dashboard-link{color:#849873;font-size:10px;text-decoration:none}.review-close{border:0;background:none;color:#6f8560;font-size:24px;line-height:1;padding:4px}.review-body{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:0;flex:1}.review-sidebar{background:#f6f8f1;border-right:1px solid #e1e8d8;overflow:auto;padding:20px 13px}.review-caption{margin:0 7px 14px;display:block;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;color:#8b9b7d}.review-filter{width:100%;background:#fff;border:1px solid #dde5d3;color:#6e835d;border-radius:6px;padding:8px;margin-bottom:14px;font:11px system-ui}.review-task{display:block;width:100%;text-align:left;border:1px solid transparent;background:none;padding:12px 11px;border-radius:8px;color:#6a8158;margin:4px 0}.review-task[aria-current=true]{background:#fff;border-color:#dfe8d3;box-shadow:0 2px 7px #24340e05}.review-task small{font-size:9px;display:flex;justify-content:space-between;gap:8px;color:#91a37e}.review-task strong{display:block;font-size:11px;font-weight:550;line-height:1.65;margin:6px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.review-task .route{font:9px ui-monospace,monospace;color:#9dac8e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.review-detail{min-height:0;min-width:0}.review-empty{padding:55px 30px;color:#8b9d7a;text-align:center;font-size:12px;line-height:1.9}.review-error{padding:15px;color:#ac7542;white-space:pre-wrap}
+      @media(max-width:700px){.review-dialog{width:calc(100vw - 16px);height:calc(100dvh - 24px);border-radius:12px}.review-body{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}.review-sidebar{max-height:130px;border-right:0;border-bottom:1px solid #e1e8d8;padding:9px 12px}.review-caption,.review-filter{display:none}.review-task-list{display:flex;gap:7px;overflow-x:auto}.review-task{min-width:190px;max-width:220px;padding:8px;margin:0}.review-header{padding:12px 15px}.review-header-actions{gap:12px}.dashboard-link{font-size:9px}}
       [hidden]{display:none!important}
     </style>
     <div class="outline" hidden></div>
@@ -93,15 +98,64 @@ export const DevReview = {
       <div class="target"></div><label for="request">QA request</label>
       <textarea id="request" maxlength="8000" required placeholder="Describe the problem and expected result…"></textarea>
       <p class="hint">The agent works in a separate worktree. You review before applying.</p><p class="error" role="alert" hidden></p>
-      <button class="save" type="submit">Save & continue reviewing ↗</button>
+      <button class="save" type="submit">Start conversation ↗</button>
     </form>
-    <a class="launcher" target="_blank" rel="noopener"><span class="dot"></span><span class="label">DevReview · connecting</span></a>`;
+    <button class="launcher" type="button" aria-label="Open DevReview conversations"><span class="dot"></span><span class="label">DevReview · connecting</span></button>
+    <dialog class="review-dialog" aria-label="DevReview conversations"><div class="review-shell"><header class="review-header"><div class="review-brand"><span class="review-logo">d</span><strong>devreview</strong></div><div class="review-header-actions"><a class="dashboard-link" target="_blank" rel="noopener">Full dashboard ↗</a><button type="button" class="review-close" aria-label="Close conversations">×</button></div></header><div class="review-body"><aside class="review-sidebar"><span class="review-caption">Your changes</span><select class="review-filter" aria-label="Filter conversations"><option value="all">All changes</option><option value="page">This page</option><option value="applied">Applied changes</option></select><div class="review-task-list"></div></aside><div class="review-detail"><p class="review-empty">Your changes and their conversations live here.<br>Hold Alt and right-click an element to start.</p></div></div></div></dialog>`;
     document.documentElement.append(host);
     const $ = selector => shadow.querySelector(selector);
-    $('.launcher').href = `${server}/#token=${encodeURIComponent(token)}`;
+    $('.dashboard-link').href = `${server}/#token=${encodeURIComponent(token)}`;
     const panel = $('.panel'), outline = $('.outline'), textarea = $('textarea'), error = $('.error');
     let selected, context, previousFocus, saving = false;
     const tasks = new Map(), markers = new Map();
+    const dialog = $('.review-dialog');
+    let selectedId, review, refreshTimer, refreshSequence = 0, online = false;
+    const api = async (endpoint, options = {}) => {
+      const response = await fetch(server + endpoint, { ...options, signal: controller.signal,
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } });
+      const data = await response.json(); if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`); return data;
+    };
+    const renderList = () => {
+      const filter = $('.review-filter').value;
+      const items = [...tasks.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).filter(task => filter === 'all' || (filter === 'page' ? task.context.route === location.pathname : task.status === 'applied'));
+      $('.review-task-list').replaceChildren();
+      for (const task of items) {
+        const button = document.createElement('button'); button.className = 'review-task'; button.type = 'button'; button.setAttribute('aria-current', String(task.id === selectedId));
+        const top = document.createElement('small'); const id = document.createElement('span'); id.textContent = task.id;
+        const status = document.createElement('span'); status.textContent = task.status.replaceAll('_', ' '); top.append(id, status);
+        const title = document.createElement('strong'); title.textContent = task.request;
+        const route = document.createElement('div'); route.className = 'route'; route.textContent = task.context.route;
+        button.append(top, title, route); button.onclick = () => void openReview(task.id); $('.review-task-list').append(button);
+      }
+      if (!items.length) { const empty = document.createElement('p'); empty.className = 'review-empty'; empty.textContent = 'No changes in this view.'; $('.review-task-list').append(empty); }
+      const ready = [...tasks.values()].filter(task => ['ready', 'awaiting_feedback'].includes(task.status)).length;
+      $('.label').textContent = online ? `DevReview · ${ready ? `${ready} to review` : `${tasks.size} changes`}` : 'DevReview · disconnected';
+    };
+    const refreshReview = async () => {
+      if (!selectedId || !dialog.open) return;
+      const id = selectedId, sequence = ++refreshSequence;
+      try {
+        const task = await api(`/api/tasks/${id}`);
+        if (selectedId !== id || sequence !== refreshSequence || !dialog.open) return;
+        if (!review) {
+          $('.review-detail').replaceChildren();
+          review = createTaskReview($('.review-detail'), { api, onMutation: () => { void load(); void refreshReview(); } });
+        }
+        review.setTask(task);
+      } catch (err) {
+        if (selectedId !== id || sequence !== refreshSequence) return;
+        if (review) review.error(err.message);
+        else { $('.review-detail').textContent = err.message; }
+      }
+    };
+    const openReview = async id => {
+      selectedId = id || selectedId || [...tasks.values()].sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]?.id;
+      if (!dialog.open) dialog.showModal();
+      renderList(); await refreshReview();
+    };
+    $('.launcher').onclick = () => void openReview();
+    $('.review-close').onclick = () => dialog.close();
+    $('.review-filter').onchange = renderList;
     const position = () => {
       if (selected?.isConnected && !panel.hidden) {
         const rect = selected.getBoundingClientRect();
@@ -134,7 +188,7 @@ export const DevReview = {
     };
     const keydown = event => {
       if (event.key === 'Escape') close();
-      if (event.key === 'Tab' && !panel.hidden) {
+      if (event.key === 'Tab' && !panel.hidden && !dialog.open) {
         const focusable = [...panel.querySelectorAll('button:not(:disabled),textarea')];
         const first = focusable[0], last = focusable.at(-1);
         if (event.shiftKey && shadow.activeElement === first) { event.preventDefault(); last.focus(); }
@@ -143,10 +197,18 @@ export const DevReview = {
       if (event.altKey && event.shiftKey && event.code === 'KeyD') { event.preventDefault(); pick(document.activeElement); }
     };
     const update = task => {
-      if (task.deleted) { tasks.delete(task.id); markers.get(task.id)?.remove(); markers.delete(task.id); return; }
+      if (task.deleted) {
+        tasks.delete(task.id); markers.get(task.id)?.remove(); markers.delete(task.id);
+        if (selectedId === task.id) {
+          selectedId = undefined; refreshSequence++; review?.destroy(); review = undefined;
+          const empty = document.createElement('p'); empty.className = 'review-empty'; empty.textContent = 'This task was deleted. Select another change.'; $('.review-detail').replaceChildren(empty);
+        }
+        renderList(); return;
+      }
       tasks.set(task.id, task);
-      if (!markers.has(task.id)) { const marker = document.createElement('div'); marker.className = 'marker'; shadow.append(marker); markers.set(task.id, marker); }
-      markers.get(task.id).textContent = `${task.id} · ${task.status}`; position();
+      if (!markers.has(task.id)) { const marker = document.createElement('button'); marker.type = 'button'; marker.className = 'marker'; marker.onclick = () => void openReview(task.id); shadow.append(marker); markers.set(task.id, marker); }
+      markers.get(task.id).textContent = `${task.id} · ${task.status.replaceAll('_', ' ')}`; position(); renderList();
+      if (selectedId === task.id && dialog.open) { clearTimeout(refreshTimer); refreshTimer = setTimeout(() => void refreshReview(), 40); }
     };
     panel.addEventListener('submit', async event => {
       event.preventDefault(); if (saving || !textarea.value.trim()) return;
@@ -155,7 +217,7 @@ export const DevReview = {
         const response = await fetch(`${server}/api/tasks`, { method: 'POST', signal: controller.signal,
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ request: textarea.value, context }) });
         const data = await response.json(); if (!response.ok) throw new Error(data.error);
-        update(data); saving = false; close();
+        update(data); saving = false; close(); await openReview(data.id);
       } catch (err) { error.textContent = err.message; error.hidden = false; }
       finally { saving = false; $('.save').disabled = false; }
     });
@@ -164,11 +226,15 @@ export const DevReview = {
     window.addEventListener('scroll', position, true); window.addEventListener('resize', position);
     const load = () => fetch(`${server}/api/tasks`, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal })
       .then(response => { if (!response.ok) throw new Error('Unable to load tasks'); return response.json(); })
-      .then(items => items.forEach(update)).catch(() => {});
+      .then(items => {
+        const ids = new Set(items.map(task => task.id));
+        for (const id of tasks.keys()) if (!ids.has(id)) { tasks.delete(id); markers.get(id)?.remove(); markers.delete(id); }
+        items.forEach(update); renderList();
+      }).catch(() => {});
     void watchTasks(server, token, update, controller.signal, connected => {
-      $('.label').textContent = connected ? `DevReview · ${modifier === 'alt' ? 'Alt + ' : ''}right-click` : 'DevReview · disconnected';
+      online = connected; renderList();
       $('.dot').style.background = connected ? '#a8e86c' : '#e4a266'; if (connected) void load();
     });
-    return { destroy() { controller.abort(); document.removeEventListener('contextmenu', contextMenu, true); document.removeEventListener('keydown', keydown, true); window.removeEventListener('scroll', position, true); window.removeEventListener('resize', position); host.remove(); } };
+    return { destroy() { clearTimeout(refreshTimer); controller.abort(); dialog.close(); review?.destroy(); document.removeEventListener('contextmenu', contextMenu, true); document.removeEventListener('keydown', keydown, true); window.removeEventListener('scroll', position, true); window.removeEventListener('resize', position); host.remove(); } };
   }
 };

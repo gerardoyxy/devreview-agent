@@ -30,4 +30,4 @@ export async function until(check, timeout = 8000) {
   while (Date.now() - start < timeout) { const value = await check(); if (value) return value; await new Promise(resolve => setTimeout(resolve, 20)); }
   throw new Error('Condition timed out');
 }
-export const finished = (core, id) => until(() => { const task = core.store.get(id); return ['ready', 'failed', 'cancelled'].includes(task.status) && !core.queue.active.has(id) ? task : false; });
+export const finished = (core, id) => until(() => { const task = core.store.get(id); return ['ready', 'awaiting_feedback', 'failed', 'cancelled'].includes(task.status) && !core.queue.active.has(id) ? task : false; });
