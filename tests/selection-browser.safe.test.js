@@ -22,6 +22,19 @@ test('selection controls in Chromium: gestures, no accidental actions, shortcuts
   const init = tab => tab.evaluate(async ({ server, token }) => { const { NudgeThis } = await import(`${server}/overlay.js`); window.overlay = NudgeThis.init({ enabled: true, server, token }); }, { server: app.address, token: app.token });
   await page.goto(origin); await init(page);
   await page.getByText('NudgeThis · 0 changes', { exact: true }).waitFor();
+  const captured = await page.evaluate(async server => {
+    const { elementContext } = await import(`${server}/overlay.js`);
+    const area = document.createElement('section'); area.id = 'privacy-fixture';
+    area.setAttribute('data-nudgethis-source', 'src/settings.vue');
+    area.innerHTML = '<p>Visible heading</p><div data-nudgethis-private><span id="private-detail">PRIVATE-FIXTURE-CONTENT</span></div>';
+    document.body.append(area);
+    const result = { parent: elementContext(area, { captureDom: true }), private: elementContext(area.querySelector('#private-detail'), { captureDom: true }) };
+    area.remove(); return result;
+  }, app.address);
+  assert.equal(captured.parent.text, 'Visible heading');
+  assert(!captured.parent.domSnippet.includes('PRIVATE-FIXTURE-CONTENT'));
+  assert.equal(captured.private.text, ''); assert.equal(captured.private.domSnippet, undefined);
+  assert.equal(captured.parent.source, 'src/settings.vue'); assert.equal(captured.parent.sourceVerified, false);
   const target = page.locator('#target'), panel = page.locator('[data-nudgethis-overlay] .panel');
   const close = () => panel.getByRole('button', { name: 'Close', exact: true }).click();
   const actions = () => page.evaluate(() => window.actions);

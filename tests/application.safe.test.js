@@ -51,6 +51,7 @@ test('CLI doctor is read-only and init preserves existing configuration', { time
   const init = cli(app.root, 'init'); assert.equal(init.status, 0, init.stderr);
   assert.deepEqual(await readFile(path.join(app.root, 'nudgethis.toml')), before);
   const help = cli(app.root, 'start', '--help'); assert.equal(help.status, 0); assert.match(help.stdout, /--no-execution/);
+  assert.match(help.stdout, /Usage: nudgethis(?:\.exe)? start/);
 });
 
 test('route inventory persists explicit coverage and rejects stale or unsafe updates', { timeout: 30000 }, async t => {

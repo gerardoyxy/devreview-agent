@@ -7,8 +7,7 @@ for the complete design system.
 The landing illustrates the workflow with a connected browser and conversation.
 The application adapts the same identity to a compact queue, review dialogs and
 context/appearance editors. The dashboard and overlay share Conversation, Changes,
-History and Context used. The public brand is NudgeThis; existing NudgeThis
-commands, contracts and integration identifiers remain compatible.
+History and Context used. The public brand, commands and browser integration all use NudgeThis.
 
 Archivo is served locally under the OFL license: weights 400/700 in the application
 and 400/700/900 in the landing. Application fonts are embedded as bytes in the

@@ -1,6 +1,6 @@
 {
   "name": "nudgethis",
-  "version": "0.3.0-alpha.2",
+  "version": "0.4.0-alpha.1",
   "description": "Turn feedback on localhost into isolated, reviewable coding-agent tasks.",
   "type": "module",
   "private": true,

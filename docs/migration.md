@@ -1,5 +1,9 @@
 # Migrating from the Node alpha to Rust
 
+For the current executable, configuration and browser naming transition, use the
+[0.4 update guide](upgrade-0.4.md). The notes below describe the earlier runtime migration
+using today's identifiers; they do not imply automatic import from retired storage paths.
+
 The server, HTTP/SSE API, queue, SQLite storage, Git operations, validation, CLI and
 demo now run in Rust. The frontend remains TypeScript. Building requires Node and
 Rust; running the compiled executable requires Git and your chosen agent's prerequisites.

@@ -13,7 +13,7 @@ changes to your branch, without automatic commits or pushes.
 
 The project and repository are **NudgeThis**. Its English [static landing](apps/site/README.md)
 builds with `npm run build:site` and is published at [nudgethis.click](https://nudgethis.click/).
-[Publication setup](docs/landing.md). The CLI still uses `nudgethis` for compatibility.
+[Publication setup](docs/landing.md). The CLI, configuration and browser integration use NudgeThis throughout.
 The current alpha is maintained on `main`; native preview archives are distributed through [GitHub Releases](https://github.com/gerardoyxy/nudgethis/releases). See the [roadmap](ROADMAP.md) for
 implemented capabilities, release requirements and planned features.
 

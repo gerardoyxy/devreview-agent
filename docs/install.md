@@ -53,6 +53,10 @@ Device review opens an isolated temporary profile; see the
 
 ## Updating
 
+When updating from an earlier preview with different executable/configuration names, follow
+the [0.4 transition guide](https://github.com/gerardoyxy/nudgethis/blob/main/docs/upgrade-0.4.md)
+first. It explains the new integration identifiers, local-state boundary and source-history reset.
+
 Stop the running service with `nudgethis stop` or Ctrl+C. Back up `.nudgethis/` while the
 service is stopped, download and verify the new archive, then replace the executable.
 Keep your repository's configuration and state. Run `doctor` before restarting.

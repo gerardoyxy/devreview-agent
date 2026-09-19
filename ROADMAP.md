@@ -1,8 +1,8 @@
 # NudgeThis roadmap
 
-Version `0.3.0-alpha.2` is an experimental application preview. The current source lives on
+Version `0.4.0-alpha.1` is an experimental application preview. The current source lives on
 `main`; tagged previews provide native archives with release notes and SHA-256 checksums.
-Selection controls and My Style are available on `main` and are not included in the `v0.3.0-alpha.2` archives.
+This preview includes selection controls, My Style and the complete NudgeThis naming transition.
 A working feature or passing application test does not certify an agent or a production deployment.
 
 ## Implemented
@@ -66,7 +66,7 @@ only counts explicitly reviewed viewports and becomes outdated when the source c
 rescan to begin a fresh checklist. Worktrees do not inherit ignored dependencies and are
 not operating-system sandboxes. Apply does not commit, push or certify the visual result.
 
-The CLI/configuration/state identifiers still use `nudgethis` for compatibility. No automatic
+The executable is `nudgethis`, configuration is `nudgethis.toml`, and local state is `.nudgethis/`. No automatic
 updater, universal agent certification, autonomous visual QA or stable-release claim is made.
 Read [security](SECURITY.md), [route review](docs/route-review.md), [recovery](docs/recovery.md)
 and [installation](docs/install.md) before extending or distributing the application.

@@ -2,6 +2,7 @@ name: CI
 on:
   push:
   pull_request:
+  workflow_dispatch:
 env:
   NUDGETHIS_DISABLE_EXECUTION: '1'
 permissions:

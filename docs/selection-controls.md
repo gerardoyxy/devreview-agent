@@ -1,6 +1,6 @@
 # Selection controls
 
-Available on `main`. The `v0.3.0-alpha.2` downloadable archives predate this feature.
+Included in the current source and the `v0.4.0-alpha.1` preview archives.
 
 Open **Selection controls** from the dashboard toolbar, the page overlay's **Controls**
 button, or its conversations window. Selection only opens a request; it never starts an

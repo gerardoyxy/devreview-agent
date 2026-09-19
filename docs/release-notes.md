@@ -1,36 +1,33 @@
-NudgeThis 0.3.0-alpha.2 adds Chromium device emulation to route review.
+NudgeThis 0.4.0-alpha.1 unifies the product name across the complete application and adds
+the selection controls and My Style features to the downloadable preview.
 
-- Open an owned Chrome, Edge or Chromium window from Route review, with generic phone,
-  tablet and desktop profiles. Change orientation, touch, pixel density and mobile user
-  agent/client hints; return to desktop with its original user agent and mouse input.
-- Keep the session in a temporary profile, separate from existing browser accounts/tabs.
-  Explicit close and graceful server shutdown stop the owned browser and remove its profile.
-- Record device settings, browser version and observed viewport metrics with a manual review.
-  Closed tabs, stale sessions, incomplete loads and redirects cannot confirm the requested view.
-- Find browser availability in `doctor`/Workspace setup. Keep the embedded layout preview
-  when a supported browser is unavailable. The mobile route list can collapse to show controls.
-- Read the new foundation evidence map for implemented basics and outstanding first-run,
-  framework, recovery, accessibility and distribution work.
+- Run `nudgethis` / `nudgethis.exe`, configure `nudgethis.toml`, and keep private local state
+  in `.nudgethis/`. Browser integrations import `NudgeThis` and call `NudgeThis.init()`.
+- Choose mouse buttons/modifiers or a keyboard shortcut, or pick an element with a click/tap.
+- Build a personal style through branching visual choices, scoped rules and live component
+  previews. Export/import portable profiles and prepare element/page/project requests.
+- Review suggestions from repeated supported CSS corrections in applied changes. Each rule
+  requires explicit acceptance and a scope. No model training or chat interpretation is involved.
+- Retain desktop/mobile route review, Chromium device emulation, project context, drafts,
+  isolated worktrees, reviewed Apply, guarded Undo and versioned conversations.
 
-Validation covers application code only: 13 Rust tests, five API/browser test cases with
-execution disabled, strict TypeScript, Clippy and local Chromium UI checks at desktop and
-390/320px widths. Real Chromium checks include touch input, rotation, density, user agent,
-client hints, desktop reset, redirects, loading, stale sessions and browser/profile lifecycle.
-Linux CI runs the browser suite; Windows/macOS CI build and test the native application.
-This is not evidence of visible browser-window interaction on every operating system.
-No agent, model, agent fixture or demo was exercised.
+This release changes the public technical names. Retired aliases are removed. It does not
+automatically import task/worktree state from differently named older storage directories.
+Stop the previous service, keep a private backup and follow the
+[0.4 update guide](https://github.com/gerardoyxy/nudgethis/blob/main/docs/upgrade-0.4.md).
+Source history has been cleaned and older preview publications retired; use a fresh clone
+instead of merging an earlier clone's history back into the repository.
 
-Device mode uses Chromium emulation, not Safari/WebKit or physical hardware. One mobile
-record represents its saved profile/orientation, not every device. Visual approval remains
-manual; source changes do not invalidate coverage automatically. Temporary profiles may
-remain after an abrupt crash and require deliberate cleanup after stopping their browser.
-An installed Chrome, Edge or Chromium is needed for device mode; Node/ChromeDriver are not.
+Validation is restricted to application code: native/API persistence, Git safety, context
+and style rules, Rust formatting/Clippy, TypeScript, and Chromium browser flows. Native
+archives are built and checked on Linux x64, Windows x64, Apple Silicon and Intel Mac.
+No agent, model, provider fixture or demo is run by the release checks.
 
-Archives contain the executable with embedded frontend assets, build metadata, license and
-installation instructions. Verify downloads against `SHA256SUMS.txt`. Builds remain unsigned,
-not notarized and experimental. Worktrees are not OS sandboxes and provider compatibility
-is not certified by these checks.
+Archives contain the NudgeThis executable with embedded frontend assets, build metadata,
+license and installation instructions. Verify them against `SHA256SUMS.txt`. Builds remain
+unsigned, not notarized and experimental. Worktrees are not OS sandboxes, device emulation
+does not reproduce physical hardware/Safari, and these checks do not certify real providers.
 
-See [device browser](https://github.com/gerardoyxy/nudgethis/blob/main/docs/route-review.md#device-browser),
-[foundation evidence](https://github.com/gerardoyxy/nudgethis/blob/main/docs/foundations.md) and
-[installation](https://github.com/gerardoyxy/nudgethis/blob/main/docs/install.md).
+See [installation](https://github.com/gerardoyxy/nudgethis/blob/main/docs/install.md),
+[My Style](https://github.com/gerardoyxy/nudgethis/blob/main/docs/my-style.md), and
+[the roadmap](https://github.com/gerardoyxy/nudgethis/blob/main/ROADMAP.md).

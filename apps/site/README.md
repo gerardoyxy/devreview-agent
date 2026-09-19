@@ -1,8 +1,7 @@
 # NudgeThis landing
 
-An English static landing for the NudgeThis brand. The application UI and repository share the NudgeThis name;
-CLI identifiers remain NudgeThis for compatibility. This site does not rename CLI commands, connect to a
-local application, or invoke agents. It introduces the current alpha honestly and
+An English static landing for NudgeThis. The application, CLI and repository share the same name.
+The site introduces the local tool; it does not connect to a local application or invoke agents. It introduces the current alpha honestly and
 links to the source alpha on `main`.
 
 ## Build
