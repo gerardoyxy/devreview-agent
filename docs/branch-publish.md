@@ -1,6 +1,5 @@
 # Branches, local history and GitHub
 
-Available in source after `0.4.0-alpha.1`; that downloadable preview predates this workflow.
 Open **Branch & publish** in the dashboard, or the branch button in the overlay. The same
 guide works with agent execution disabled. No step in this guide invokes an agent or model.
 

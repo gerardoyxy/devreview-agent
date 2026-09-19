@@ -1,7 +1,5 @@
 # Selection controls
 
-Included in the current source and the `v0.4.0-alpha.1` preview archives.
-
 Open **Selection controls** from the dashboard toolbar, the page overlay's **Controls**
 button, or its conversations window. Selection only opens a request; it never starts an
 agent or applies a code change.

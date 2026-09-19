@@ -229,7 +229,7 @@ NudgeThis uses broad Archivo lettering, ultramarine emphasis, cool pale ground, 
 
 The public landing uses expansive blue, heavy display type and a large illustrative local browser. The local application uses compact typography, a ruled queue, restrained accent coverage, readable conversations and explicit review actions. These are two expressions of one identity.
 
-The documented application palette, font and radius are defaults. Saved repository appearance remains authoritative across dashboard and isolated overlay roots, including custom light/dark palettes and body, heading or code fonts. NudgeThis is the public name and product copy is English; CLI, configuration and integration identifiers use the same NudgeThis identity.
+The documented application palette, font and radius are defaults. Saved repository appearance remains authoritative across dashboard and isolated overlay roots, including custom light/dark palettes and body, heading or code fonts.
 
 **Key Characteristics:**
 - Ultramarine actions and selection against cool surfaces.
@@ -382,7 +382,6 @@ One TypeScript clock seeks paused native animation tracks and positions the curs
 - **Do** keep selected objects, their conversation and the current review decision visually connected.
 - **Do** pair state color with readable status text and preserve visible keyboard focus.
 - **Do** retain deliberate landing headline phrase breaks and test the selected-button connector when the demonstration resizes.
-- **Do** use NudgeThis and English product copy throughout the CLI, configuration, browser integration and documentation.
 
 ### Don't:
 - **Don't** apply the landing’s display scale or large blue field to application conversations.

@@ -1,8 +1,5 @@
 # Save an approved version
 
-Available in source on `main` after `0.4.0-alpha.1`; older downloaded executables do not
-include this flow. Rebuild the application to use it until the next tagged preview.
-
 Apply updates your project files. **Save version** records approved corrections as a
 local Git commit: a checkpoint with a name, author and place in your branch's history.
 It works without a GitHub account and with execution disabled.

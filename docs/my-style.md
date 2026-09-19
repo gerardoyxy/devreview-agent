@@ -1,8 +1,7 @@
 # My Style
 
 My Style turns your design choices into reusable instructions for project changes. Open
-**My Style** from the dashboard, conversations toolbar, or selected-element panel. This
-feature is included in the current source and the `v0.4.0-alpha.1` preview archives.
+**My Style** from the dashboard, conversations toolbar, or selected-element panel.
 
 ## Build a style visually
 

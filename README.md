@@ -5,17 +5,11 @@
 **Point at your UI. Tell your coding agent what to change.**
 
 Alt + right-click an element in your local application, describe the change, and keep reviewing.
-Each task has its own conversation, live public agent replies, diff, validation results and
+Each task has its own conversation, agent replies, diff, validation results and
 persistent version history. Agents edit isolated Git worktrees. You explicitly apply reviewed
 changes to your branch, without automatic commits or pushes.
 
-[Install](docs/install.md) · [Start a project](docs/project-starter.md) · [My Style](docs/my-style.md) · [Route review](docs/route-review.md) · [Agents](docs/agents.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Migration](docs/migration.md) · [Security](SECURITY.md)
-
-The project and repository are **NudgeThis**. Its English [static landing](apps/site/README.md)
-builds with `npm run build:site` and is published at [nudgethis.click](https://nudgethis.click/).
-[Publication setup](docs/landing.md). The CLI, configuration and browser integration use NudgeThis throughout.
-The current alpha is maintained on `main`; native preview archives are distributed through [GitHub Releases](https://github.com/gerardoyxy/nudgethis/releases). See the [roadmap](ROADMAP.md) for
-implemented capabilities, release requirements and planned features.
+[Website](https://nudgethis.click/) · [Install](docs/install.md) · [Start a project](docs/project-starter.md) · [My Style](docs/my-style.md) · [Route review](docs/route-review.md) · [Agents](docs/agents.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Security](SECURITY.md)
 
 ## Start without a project
 
@@ -205,10 +199,7 @@ Appearance persists per repository in SQLite and synchronizes through authentica
 Contrast notices flag low-contrast combinations without overriding your choices. Overlay
 styles stay inside NudgeThis's Shadow DOM and do not restyle the inspected application.
 
-The default blue identity is shared by the landing, dashboard and overlay: self-hosted
-Archivo, fine borders and compact controls. Saved custom themes keep their own colors and fonts.
-Design work used [Impeccable](https://github.com/pbakaus/impeccable).
-[Design system](DESIGN.md) · [Appearance details](docs/appearance.md).
+See [Appearance](docs/appearance.md) for theme settings and font requirements.
 
 ## Git and persistence
 
@@ -231,7 +222,6 @@ version name and choose **Save version**. Unrelated staged and unstaged files ar
 stale or mixed edits require another review. **Saved versions** keeps the local history in
 the dashboard and overlay. Publishing to GitHub remains separate. See
 [Saved versions](docs/saved-versions.md) for author details, hooks, signing and recovery.
-This flow is included in `0.5.0-alpha.1` and later.
 
 **Branch & publish** also supports projects without Git history: keep drafts and context,
 explicitly enable local history, review files and save a first version. The guide explains
@@ -248,6 +238,7 @@ and snapshot refs are local development state; never publish them with a mirror 
 ## CLI
 
 ```text
+nudgethis welcome [--library /absolute/folder] [--no-browser]
 nudgethis init                  nudgethis doctor
 nudgethis start [--port 7331] [--no-execution]
 nudgethis stop                  nudgethis status
@@ -269,20 +260,9 @@ The [roadmap](ROADMAP.md) distinguishes implemented behavior from remaining work
 The [foundation evidence map](docs/foundations.md) separates basic capabilities, checks
 and remaining gaps. [Device browser](docs/route-review.md#device-browser) adds Chromium
 touch, rotation, density and mobile user-agent emulation to route review.
-Default tests exercise application code with execution disabled. Agent fixtures require a
-separate explicit opt-in and do not certify real providers. No agent/model integrations were
-exercised for the 0.3 preview. Worktrees are not OS sandboxes. See [security](SECURITY.md).
+Worktrees are not OS sandboxes. See [security](SECURITY.md) for the local trust model.
 
-```bash
-npm ci
-npm run build
-npm run check
-cargo fmt --all --check
-cargo clippy --locked --all-targets -- -D warnings
-cargo test --locked -p nudgethis --bin nudgethis
-npm test
-```
-
-CI runs on Windows, macOS and Linux. [Contributing](CONTRIBUTING.md).
+See [Contributing](CONTRIBUTING.md) for development setup and checks, and
+[migration](docs/migration.md) when updating an older installation.
 
 MIT © 2026 gerardoyxy and NudgeThis Agent contributors.

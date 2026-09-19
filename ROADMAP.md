@@ -1,7 +1,7 @@
 # NudgeThis roadmap
 
-Version `0.5.0-alpha.1` is an experimental application preview. The current source lives on
-`main`; tagged previews provide native archives with release notes and SHA-256 checksums.
+Version `0.5.0-alpha.1` is an experimental application preview, available as native archives
+with release notes and SHA-256 checksums.
 This preview includes the local welcome, project starters, owned previews and guided Git/GitHub workflows.
 A working feature or passing application test does not certify an agent or a production deployment.
 
@@ -54,7 +54,7 @@ A working feature or passing application test does not certify an agent or a pro
 - Queue search/type/status/sort filters, bounded row and diff rendering, patch downloads,
   keyboard controls, reconnect handling and request timeouts.
 - Default application-only tests with execution disabled. Agent fixtures are opt-in and
-  excluded from default CI. The 0.3 implementation was checked without agents or models.
+  excluded from default CI.
 - Native packaging/release automation for Linux x64, Windows x64, Apple Silicon and Intel Mac,
   with install/update/removal guidance. Archives are unsigned preview builds.
 

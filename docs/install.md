@@ -108,7 +108,7 @@ Device review opens an isolated temporary profile; see the
 
 When updating from an earlier preview with different executable/configuration names, follow
 the [0.4 transition guide](https://github.com/gerardoyxy/nudgethis/blob/main/docs/upgrade-0.4.md)
-first. It explains the new integration identifiers, local-state boundary and source-history reset.
+first for configuration and local-data compatibility.
 
 Choose **Quit NudgeThis**, or stop a terminal service with `nudgethis stop` or Ctrl+C.
 Back up the library and each project’s `.nudgethis/` while stopped, download and verify
@@ -116,9 +116,8 @@ the new archive, then replace the complete extracted application folder.
 Keep your repository's configuration and state. Run `doctor` before restarting.
 There is no automatic updater or startup download.
 
-Version 0.3 adds fields to existing JSON records and a route-review preference. It preserves
-the SQLite schema version, token and task IDs. Older applied tasks without a complete
-before/after record do not gain Undo retroactively. See [migration](https://github.com/gerardoyxy/nudgethis/blob/main/docs/migration.md).
+See [migration](https://github.com/gerardoyxy/nudgethis/blob/main/docs/migration.md)
+for older configuration formats and database updates.
 
 ## Removing
 

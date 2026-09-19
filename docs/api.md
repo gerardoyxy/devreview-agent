@@ -98,7 +98,7 @@ for a new repository. Save the complete library with its last-read `revision`:
     "id": "project-rules",
     "kind": "instruction",
     "title": "Project rules",
-    "content": "Keep product copy in English.",
+    "content": "Use the project's existing spacing and color tokens.",
     "source": "",
     "default": true
   }]

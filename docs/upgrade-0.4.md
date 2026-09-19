@@ -36,12 +36,4 @@ of those older task/worktree records is not provided in this preview. Recreate t
 context/preferences in the new workspace; themes with earlier uploaded-font identifiers
 need their font files uploaded again. Existing source changes are not undone by this update.
 
-## Source checkouts
-
-The naming cleanup rewrote published source history. Clone the repository again to a new
-directory. Preserve uncommitted work separately and reapply reviewed patches; do not merge
-an old clone's history back into the cleaned repository. Old commit URLs and release tags
-are not stable references. Earlier preview archives have been retired; use the current
-release and verify its checksums.
-
 See [installation](install.md), [recovery](recovery.md) and [the roadmap](../ROADMAP.md).

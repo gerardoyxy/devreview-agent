@@ -22,8 +22,10 @@ tokens are not needed for this site.
 
 [The Landing workflow](../.github/workflows/site.yml) builds matching pull requests
 and pushes to `main`. Pull requests produce a review artifact. Pushes to `main`
-publish the Pages artifact through the `github-pages` environment. That environment
-permits deployments from `main` only. A manual run on `main` can rebuild the site.
+publish through the `github-pages` environment once the release matching `package.json`
+is available. Until then, the build artifact is retained and deployment is skipped.
+That environment permits deployments from `main` only. A manual run on `main`
+can deploy the site after release publication.
 
 In repository settings, Pages uses **GitHub Actions** as its build source,
 `nudgethis.click` as its custom domain and **Enforce HTTPS**. Canonical metadata

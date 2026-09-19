@@ -1,8 +1,8 @@
 # Migrating from the Node alpha to Rust
 
-For the current executable, configuration and browser naming transition, use the
-[0.4 update guide](upgrade-0.4.md). The notes below describe the earlier runtime migration
-using today's identifiers; they do not imply automatic import from retired storage paths.
+These steps cover JavaScript configuration and databases stored in `.nudgethis/`.
+For previews using different executable, configuration or storage names, follow the
+[0.4 update guide](upgrade-0.4.md) first; those storage paths are not imported automatically.
 
 The server, HTTP/SSE API, queue, SQLite storage, Git operations, validation, CLI and
 demo now run in Rust. The frontend remains TypeScript. Building requires Node and
