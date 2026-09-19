@@ -6,6 +6,9 @@ NudgeThis is an experimental, local-first QA layer for developers. Select an
 element in your running app, describe the problem, and keep reviewing. An agent
 works in a separate Git worktree; you inspect the diff and explicitly apply it.
 
+Each change has its own conversation, live agent replies, and a persistent history
+of patch versions, all available in a modal inside the page you are reviewing.
+
 ```text
 Alt + right-click → comment → worktree → agent → validation → review → apply
 ```
@@ -30,8 +33,8 @@ Open the dashboard or playground URL printed in the terminal. Hold **Alt** and
 right-click the **Add teammate** button. Ask to align it right on desktop and make
 it full width on mobile. Review the patch, then choose **Apply**.
 
-The offline demo uses an explicitly labelled adapter that makes this one
-predefined CSS change. It creates a disposable repository and calls no model.
+The offline demo uses an explicitly labelled adapter with a predefined layout
+fix and a follow-up that rounds the button corners. It creates a disposable repository and calls no model.
 Stop it with Ctrl+C to clean up. Use `NUDGETHIS_DEMO_PORT=7441 npm run demo` on
 POSIX systems if port 7331 is occupied.
 
@@ -100,6 +103,31 @@ Then hold Alt and right-click an element, or focus it and press **Alt + Shift + 
 Set `modifier: 'none'` to capture ordinary right-click. Call the returned
 `destroy()` method when unmounting the integration.
 
+## A conversation for every change
+
+![Conversation and follow-up inside the reviewed page](docs/conversation.png)
+
+Choose **Start conversation** after describing an issue. The in-page modal has:
+
+- **Conversation:** your requests and public agent replies, updated as the agent works.
+- **Changes:** the current diff, files, and validation results.
+- **History:** earlier patch versions and a timestamped activity log.
+
+Close the modal to continue QA. Reopen it from the NudgeThis button or an element's
+task badge. Filter the sidebar by this page or applied changes. The dashboard also
+shows the same conversation and history.
+
+You can draft a follow-up while the agent works and send it when the current turn
+finishes. Follow-ups retain the task's worktree and existing edits, then validate
+the combined patch again. A question-only reply can wait for your answer without
+creating a patch. Applied/rejected tasks start a new worktree when continued;
+commit applied changes first. Conflicting tasks require **Retry from HEAD**.
+
+Conversation messages and version snapshots persist locally in SQLite. Viewing an
+older version never applies it; Apply always uses the current ready version. This
+is a conversation with the CLI agent for that task, not a connection to an existing
+Codex App chat.
+
 ## What the alpha includes
 
 - A development-only, framework-independent element picker and comment form.
@@ -109,6 +137,7 @@ Set `modifier: 'none'` to capture ordinary right-click. Call the returned
 - An initial Codex CLI adapter with prompt via stdin and captured output/errors.
 - Configurable validation commands with exit codes, timings, and logs.
 - A dashboard with real status updates, diff review, Apply, Reject, Retry, and Cancel.
+- An in-page conversation modal with live agent feedback and persistent patch history.
 - Serialized application of patches, stale-patch checks, and local-edit protection.
 - An offline demo and automated workflow, API, security-boundary, and persistence tests.
 

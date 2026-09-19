@@ -9,6 +9,7 @@ const assets = new Map([
   ['/app.js', ['../public/app.js', 'text/javascript']],
   ['/style.css', ['../public/style.css', 'text/css']],
   ['/overlay.js', ['../../overlay/src/index.js', 'text/javascript']],
+  ['/review.js', ['../../overlay/src/review.js', 'text/javascript']],
   ['/playground', ['../../../apps/playground/index.html', 'text/html']],
   ['/playground.js', ['../../../apps/playground/app.js', 'text/javascript']]
 ]);
@@ -69,10 +70,13 @@ export async function startServer(options = {}) {
       if (url.pathname === '/api/tasks' && req.method === 'POST') {
         send(res, 202, await core.queue.submit(validateInput(await jsonBody(req)))); return;
       }
-      const match = /^\/api\/tasks\/(QA-[1-9]\d{0,8})(?:\/(apply|reject|retry|cancel))?$/.exec(url.pathname);
-      if (match && req.method === 'GET' && !match[2]) { send(res, 200, core.store.get(match[1])); return; }
+      const revision = /^\/api\/tasks\/(QA-[1-9]\d{0,8})\/revisions\/([1-9]\d{0,8})$/.exec(url.pathname);
+      if (revision && req.method === 'GET') { send(res, 200, core.store.revision(revision[1], Number(revision[2]))); return; }
+      const match = /^\/api\/tasks\/(QA-[1-9]\d{0,8})(?:\/(apply|reject|retry|cancel|messages))?$/.exec(url.pathname);
+      if (match && req.method === 'GET' && !match[2]) { send(res, 200, core.store.details(match[1])); return; }
       if (match && req.method === 'POST' && match[2]) {
-        await jsonBody(req);
+        const body = await jsonBody(req);
+        if (match[2] === 'messages') { send(res, 202, await core.queue.message(match[1], body?.content)); return; }
         send(res, 200, await core.queue.action(match[1], match[2])); return;
       }
       if (match && req.method === 'DELETE' && !match[2]) { send(res, 200, await core.queue.action(match[1], 'delete')); return; }

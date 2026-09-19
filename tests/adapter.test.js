@@ -21,3 +21,17 @@ test('Codex adapter keeps QA text on stdin and requests workspace-write isolatio
   const { access } = await import('node:fs/promises');
   await assert.rejects(access(path.join(root, 'SHOULD_NOT_EXIST')));
 });
+
+test('Codex adapter streams assistant replies before exit and respects turn.failed even on exit zero', { skip: process.platform === 'win32' }, async t => {
+  const root = await mkdtemp(path.join(tmpdir(), 'nudgethis-adapter-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const shim = path.join(root, 'codex-stream.mjs');
+  await writeFile(shim, `#!${process.execPath}\nfor await(const chunk of process.stdin){}\nconsole.log(JSON.stringify({type:'item.completed',item:{id:'m1',type:'agent_message',text:'I need clarification.'}}));await new Promise(resolve=>setTimeout(resolve,100));console.log(JSON.stringify({type:'turn.failed',error:{message:'Provider unavailable'}}));`);
+  await chmod(shim, 0o755);
+  const messages = [];
+  let exited = false;
+  const pending = new CodexAgent({ command: shim }).run({ cwd: root, task: input, signal: new AbortController().signal,
+    onMessage: text => { assert.equal(exited, false); messages.push(text); } });
+  await assert.rejects(pending, /Provider unavailable/); exited = true;
+  assert.deepEqual(messages, ['I need clarification.']);
+});

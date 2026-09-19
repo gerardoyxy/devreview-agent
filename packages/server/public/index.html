@@ -18,6 +18,6 @@
     <div class="bottom-note"><span>⌘</span> Working locally <span>·</span> No telemetry <span>·</span> Changes are never applied automatically</div>
   </main>
   <dialog id="connect-dialog"><form id="connect-form"><span class="eyebrow">LOCAL CONNECTION</span><h2>Connect your review queue</h2><p>Open the dashboard link printed by <code>nudgethis start</code>, or paste your local token below.</p><label for="token-input">Local token</label><input id="token-input" type="password" autocomplete="off" required><div class="dialog-actions"><button class="quiet" id="connect-close" type="button">Cancel</button><button class="primary-button">Connect</button></div></form></dialog>
-  <dialog id="detail-dialog"><div class="detail-top"><span class="eyebrow" id="detail-id"></span><button class="icon-button" id="detail-close" aria-label="Close task">×</button></div><h2 id="detail-title"></h2><div id="detail-meta"></div><div id="detail-error" class="notice" hidden></div><div id="detail-validation"></div><h3>Changed files</h3><div id="detail-files"></div><h3>Patch</h3><pre id="detail-diff" tabindex="0"></pre><details><summary>Agent output</summary><pre id="detail-output"></pre></details><div id="detail-actions" class="dialog-actions"></div></dialog>
+  <dialog id="detail-dialog" aria-label="Task conversation"><div class="detail-top"><span class="eyebrow" id="detail-id"></span><button class="icon-button" id="detail-close" aria-label="Close task">×</button></div><div id="task-review"></div></dialog>
   <script type="module" src="/app.js"></script>
 </body></html>

@@ -34,6 +34,8 @@ and a compiled TypeScript distribution can follow once the API settles.
 `pending → analyzing → working → validating → ready → applying → applied`
 
 Terminal/review states also include `failed`, `cancelled`, `conflict`, and `rejected`.
+An agent reply without a patch enters `awaiting_feedback`. A follow-up starts a new
+attempt in the existing worktree and sends the conversation as prompt context.
 SQLite records state changes and audit entries. Interrupted active states become
 failed on recovery. No automatic apply, commit, push, or model retry occurs.
 
@@ -50,10 +52,14 @@ Any object with this interface can be passed to `startServer({ root, agent })`:
 interface CodingAgent {
   name: string;
   run(input: {
-    task: { id: string; request: string; context: Record<string, unknown> };
+    task: {
+      id: string; request: string; context: Record<string, unknown>;
+      messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+    };
     cwd: string; // isolated worktree
     signal: AbortSignal;
-  }): Promise<{ output?: string; stderr?: string }>;
+    onMessage(text: string): void; // emit public replies while the agent runs
+  }): Promise<{ output?: string; stderr?: string; message?: string }>;
 }
 ```
 
@@ -65,6 +71,18 @@ The initial adapter invokes `codex exec --sandbox workspace-write --json -` and
 passes context through stdin. Its model is left to local Codex configuration;
 `agent.model` can explicitly select one. No provider API key is stored by NudgeThis.
 See [Codex non-interactive mode](https://developers.openai.com/codex/noninteractive/).
+
+Only completed `agent_message` items from Codex JSONL become chat messages;
+reasoning, command logs and tool output are not inserted into the conversation.
+Adapters can alternatively return a final `message`. The CLI starts a separate
+invocation for each turn, with recent conversation text (up to 48,000 characters)
+and the original request; it does not attach to Codex App or resume another task's
+CLI session. Full stored history stays available in the UI.
+
+SQLite uses additive `messages` and `revisions` tables. Revisions record a turn's
+patch and validation when it finishes; a later Apply/Reject updates that revision's
+status without replacing its diff. Follow-ups and retries keep older revisions.
+Applied/rejected worktrees are recreated from committed HEAD when continued.
 
 ## Next milestones
 

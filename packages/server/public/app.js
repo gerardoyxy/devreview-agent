@@ -1,4 +1,5 @@
 import { watchTasks } from '/overlay.js';
+import { createTaskReview } from '/review.js';
 
 const $ = selector => document.querySelector(selector);
 const params = new URLSearchParams(location.hash.slice(1));
@@ -11,6 +12,7 @@ async function api(path, options = {}) {
   const response = await fetch(path, { ...options, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } });
   const data = await response.json(); if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`); return data;
 }
+const review = createTaskReview($('#task-review').attachShadow({ mode: 'open' }), { api, onMutation: () => void refresh() });
 function render() {
   const count = status => tasks.filter(task => task.status === status).length;
   $('#all-count').textContent = tasks.length; $('#ready-count').textContent = count('ready'); $('#applied-count').textContent = count('applied');
@@ -51,37 +53,8 @@ async function openTask(id) {
 async function showTask(id) {
   const task = await api(`/api/tasks/${id}`);
   if (selectedId !== id) return;
-  $('#detail-id').textContent = `${task.id} / ${task.status} / ATTEMPT ${task.attempt}`;
-  $('#detail-title').textContent = task.request;
-  $('#detail-meta').className = 'detail-meta';
-  $('#detail-meta').textContent = `${task.context.route} · ${task.context.selector || task.context.tagName} · ${task.baseBranch} @ ${task.baseCommit.slice(0, 7)}`;
-  $('#detail-error').hidden = !(task.error || task.cleanupWarning); $('#detail-error').textContent = task.error || task.cleanupWarning || '';
-  $('#detail-validation').replaceChildren(element('h3', '', 'Validation'));
-  if (!task.validation.length) $('#detail-validation').append(element('p', '', task.status === 'ready' ? 'No validation commands configured. Inspect this patch carefully before applying.' : 'No checks completed yet.'));
-  for (const check of task.validation) {
-    const row = element('details', 'validation-row');
-    row.append(element('summary', '', `${check.passed ? '✓' : '×'} ${check.command} · ${check.durationMs}ms`), element('pre', '', check.output || '(no output)'));
-    $('#detail-validation').append(row);
-  }
-  $('#detail-files').replaceChildren(...task.files.map(file => element('div', 'file', file)));
-  $('#detail-diff').replaceChildren(...(task.diff || 'The patch will appear here when the agent finishes.').split('\n').map(line => element('span', `diff-line ${line.startsWith('+') ? 'diff-add' : line.startsWith('-') ? 'diff-remove' : line.startsWith('@@') ? 'diff-header' : ''}`, line)));
-  $('#detail-output').textContent = `${task.output || '(no output)'}\n${task.agentErrors || ''}`;
-  $('#detail-actions').replaceChildren();
-  const addAction = (action, label, style) => {
-    const button = element('button', style, label);
-    button.onclick = async () => {
-      if (action === 'apply' && !confirm(`Apply ${task.id} to your working tree? Files will be changed without a commit.`)) return;
-      button.disabled = true;
-      try { await api(`/api/tasks/${id}/${action}`, { method: 'POST', body: '{}' }); await refresh(); }
-      catch (error) { $('#detail-error').hidden = false; $('#detail-error').textContent = error.message; }
-      finally { button.disabled = false; }
-    };
-    $('#detail-actions').append(button);
-  };
-  if (['pending', 'analyzing', 'working', 'validating'].includes(task.status)) addAction('cancel', 'Cancel task', 'quiet danger');
-  if (['ready', 'failed', 'conflict'].includes(task.status)) addAction('reject', 'Reject', 'quiet danger');
-  if (['ready', 'failed', 'conflict', 'cancelled', 'rejected'].includes(task.status)) addAction('retry', 'Retry from HEAD', 'quiet');
-  if (task.status === 'ready') addAction('apply', 'Apply to working tree ↗', 'primary-button');
+  $('#detail-id').textContent = `${task.id} / Task conversation`;
+  review.setTask(task);
 }
 async function connect() {
   connection?.abort();

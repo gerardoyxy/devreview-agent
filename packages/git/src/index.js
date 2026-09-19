@@ -52,6 +52,13 @@ export class Repository {
     const diff = await this.git(['diff', '--cached', '--binary', '--no-ext-diff', '--no-renames', task.baseCommit, '--'], cwd);
     return { files, diff };
   }
+  async continue(task) {
+    const cwd = this.worktree(task.id);
+    assert(await realpath(cwd) === cwd, 'Worktree cannot be a symlink', 409);
+    const head = (await this.git(['rev-parse', 'HEAD'], cwd)).trim();
+    assert(head === task.baseCommit, 'The task worktree changed its base commit. Retry from HEAD.', 409);
+    return cwd;
+  }
   async apply(task) {
     return this.mutate(async () => {
       const current = await this.inspect();
