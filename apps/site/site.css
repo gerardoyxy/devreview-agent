@@ -20,3 +20,28 @@ h2,h3{font-weight:700;letter-spacing:-.03em}h2{font-size:clamp(32px,3.7vw,56px);
 /* Shared cursor-and-star brand mark. */
 .wordmark,.demo-conversation-header strong{display:inline-flex;align-items:center;gap:10px}.brand-mark{display:block;flex:none;width:32px;height:32px}.site-header .brand-mark{width:36px;height:36px}.demo-conversation-header strong{gap:8px}.demo-conversation-header .brand-mark{width:24px;height:24px}@media(max-width:600px){.site-header .brand-mark{width:28px;height:28px}.site-header .wordmark{gap:8px}.demo-conversation-header .brand-mark{width:20px;height:20px}}
 @media(max-width:360px){.site-header .wordmark{margin-left:16px;font-size:22px;gap:6px}.site-header .brand-mark{width:24px;height:24px}.site-header nav{padding-right:16px;gap:12px}.site-header nav a{white-space:nowrap}}
+
+/* The illustration keeps a brisk rhythm; its clock and click feedback share one timeline. */
+.demo-target{transition:padding .26s cubic-bezier(.16,1,.3,1)}
+.demo-pointer{transform-origin:3px 2px;transition:opacity .12s}
+.demo-click{position:absolute;top:-17px;left:-17px;width:34px;height:34px;border:2px solid var(--accent);border-radius:50%;opacity:0;pointer-events:none;z-index:2}
+.demo-agent-message{transition:opacity .18s ease-out,transform .26s cubic-bezier(.16,1,.3,1)}
+.browser-demo[data-stage=point] .demo-agent-message,.browser-demo[data-stage=describe] .demo-agent-message{transform:translateY(8px)}
+.demo-caption-row .demo-steps button{position:relative;padding-bottom:3px;border-bottom:0}
+.demo-caption-row .demo-steps button::after{content:'';position:absolute;inset:auto 0 0;height:2px;background:var(--accent);transform:scaleX(0);transform-origin:left}
+.demo-caption-row .demo-steps button[data-complete=true]::after{transform:scaleX(1)}
+.demo-caption-row .demo-steps button[aria-current]::after{transform:scaleX(var(--step-progress,0))}
+@media(prefers-reduced-motion:no-preference){
+  .browser-demo[data-running=true][data-stage=point] .demo-selection{animation:demo-select .24s .32s cubic-bezier(.16,1,.3,1) both}
+  .browser-demo[data-running=true][data-stage=point] .demo-target-wrap::after{transform-origin:top;animation:demo-connect .24s .4s ease-out both}
+  .browser-demo[data-running=true][data-stage=review] .demo-version{animation:demo-enter .28s .08s cubic-bezier(.16,1,.3,1) both}
+  .browser-demo[data-running=true][data-stage=applied] .demo-target{animation:demo-apply .32s ease-out both}
+  .browser-demo[data-running=true][data-stage=applied] .demo-status{animation:demo-enter .24s .12s ease-out both}
+  .browser-demo[data-running=true][data-typing=true] .demo-type-caret{animation:demo-caret .5s steps(2,jump-none) infinite}
+}
+@keyframes demo-select{from{opacity:0;transform:scale(1.08)}to{opacity:1;transform:scale(1)}}
+@keyframes demo-connect{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes demo-enter{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@keyframes demo-apply{0%,100%{transform:scale(1)}45%{transform:scale(1.035)}}
+@keyframes demo-caret{to{opacity:0}}
+@media(prefers-reduced-motion:reduce){.demo-pointer,.demo-click{display:none}}

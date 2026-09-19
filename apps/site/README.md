@@ -32,9 +32,12 @@ See [the design system](../../DESIGN.md).
 - The hero contains a native HTML/CSS example page and conversation, not an iframe.
 - A TypeScript controller advances through Point, Describe, Review, and Apply.
   The selected button gains padding only at Apply; Review lets the visitor inspect first.
-- Autoplay runs once for 13 seconds. Pause, Play, Replay, and individual step
-  controls work with keyboard and touch. The animation clock stops offscreen or
-  when the browser tab is hidden.
+- Autoplay repeats a six-second sequence while visible: Point (0.7s), Tell (1.5s),
+  Review (2s), and Apply (1.8s). The result appears at 4.2 seconds. Cursor travel,
+  click rings, brisk message entrances and step progress make each action visible.
+  Pause, Play, Replay, and individual step controls work with keyboard and touch.
+  Manual step selection pauses autoplay; interacting with the example runs once.
+  The animation clock stops offscreen or when the browser tab is hidden.
 - Reduced-motion preferences and disabled JavaScript show the final static
   illustration. With JavaScript, visitors can still inspect steps manually.
 - The demo is labeled illustrative and makes no agent, API, or localhost requests.

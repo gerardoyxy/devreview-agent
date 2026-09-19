@@ -370,7 +370,7 @@ session details are expandable. Loading and unavailable-browser states preserve 
 
 The landing selection box surrounds the example Save changes button with four lemon handles; a continuous thin connector starts at its bottom edge and reaches the conversation. The connector is measured from actual element geometry on resize and disappears after Apply. This is a relationship diagram specific to the demonstration, not general page decoration. The live overlay uses a themeable inspection outline with two corner handles.
 
-The landing runs one bounded 13-second point/tell/review/apply sequence with manual steps, pause and replay. Button padding changes over 450ms using `cubic-bezier(.16, 1, .3, 1)`; agent visibility uses a 200ms opacity transition. Hidden/offscreen state pauses the animation clock. Reduced motion disables transitions and starts at the static applied result with manual navigation still available. Application motion remains restrained; no general entrance-animation system is established.
+The landing repeats a six-second point/tell/review/apply sequence while visible, with the applied result appearing at 4.2 seconds. Manual steps pause autoplay; direct interaction runs once. Pause and replay remain available. Cursor travel, click rings and step progress share the animation clock. Selection, reply and completion cues use short opacity/transform entrances; button padding changes over 260ms using `cubic-bezier(.16, 1, .3, 1)`. Hidden/offscreen state pauses the clock and stops decorative motion. Reduced motion disables transitions and starts at the static applied result with manual navigation still available. Application motion remains restrained; no general entrance-animation system is established.
 
 ## Do's and Don'ts
 
