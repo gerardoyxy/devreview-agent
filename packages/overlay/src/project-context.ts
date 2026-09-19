@@ -76,10 +76,12 @@ export function createContextPicker(container: HTMLElement, api: Api) {
   const list = container.querySelector<HTMLElement>('.pc-items')!, help = container.querySelector<HTMLElement>('.pc-help')!;
   let items: ContextItem[] = [], ids: string[] = [], edited = false, loaded = false, preserved = false, generation = 0;
   const summary = () => { container.querySelector('summary')!.textContent = `Context for this change · ${ids.length} selected`; };
-  async function load(snapshot?: ContextSnapshot | null) {
+  async function load(snapshot?: ContextSnapshot | null, additionalIds: string[] = []) {
     const current = ++generation; loaded = false; edited = false; preserved = snapshot !== undefined;
     try { const library = await api<ProjectContext>('/api/project-context'); if (current !== generation) return;
-      items = library.items; ids = preserved ? (snapshot?.items || []).map(item=>item.id) : items.filter(item=>item.default).map(item=>item.id);
+      items = library.items;
+      const explicitStyle = additionalIds.some(id => id.startsWith('my-style-'));
+      ids = preserved ? (snapshot?.items || []).map(item=>item.id) : [...new Set([...items.filter(item=>item.default && !(explicitStyle && item.id.startsWith('my-style-'))).map(item=>item.id), ...additionalIds])];
       const missing = snapshot?.items.filter(item=>!items.some(candidate=>candidate.id===item.id)) || [];
       list.replaceChildren();
       for (const item of [...items,...missing]) {

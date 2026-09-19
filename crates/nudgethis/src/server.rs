@@ -342,6 +342,14 @@ async fn route(app: &App, req: Request) -> Result<Response, ApiError> {
             return Ok(json(core.store.save_project_context(&value)?));
         }
     }
+    if path == "/api/my-style" {
+        if method == Method::GET {
+            return Ok(json(core.store.my_style()?));
+        }
+        if method == Method::POST {
+            return Ok(json(core.store.save_my_style(&body(req, 65_536).await?)?));
+        }
+    }
     if path == "/api/selection-controls" {
         if method == Method::GET {
             return Ok(json(core.store.selection_controls()?));

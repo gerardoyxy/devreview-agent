@@ -121,6 +121,34 @@ The common agent prompt distinguishes user-selected instructions/skills from ref
 material. This is a prompt boundary, not an execution sandbox or a guarantee of provider
 compliance. Importing a skill's text does not install tools, scripts or referenced assets.
 
+## My Style
+
+`GET /api/my-style` returns `{version:1,revision,profiles,activeId,dismissed,suggestions,guides}`.
+Suggestions and Markdown guides are computed locally. `POST /api/my-style` accepts the
+last-read `revision`, `action`, and fields below (64 KiB body limit):
+
+| action | Fields |
+| --- | --- |
+| `save` | `profile`: ID beginning `style-`, name, direction, matching branch, tokens, rules, notes |
+| `import` | `profile` with a new ID; imported evidence is discarded |
+| `publish` | `profileId`; refresh its generated Project context instruction |
+| `activate` | `profileId`; publish and use for new changes by default |
+| `deactivate` | Clear the default style; retain profiles and context history |
+| `delete` | `profileId`; remove the profile and generated context item |
+| `accept` | `profileId`, `suggestionId`, explicit `scope`; recheck current applied evidence |
+| `dismiss` | `suggestionId` |
+| `reset-dismissed` | Show dismissed patterns again |
+
+Scope is `global`, `buttons`, `inputs`, `headings`, or `surfaces`. Server-generated profile
+versions and rule evidence cannot be forged by imports. Stale revision/evidence returns 409;
+invalid preferences return 400. Profile and Project context changes commit atomically and
+emit `my-style` and, when changed, `project-context` revision events. Open/reload the editor
+to fetch current values; open unsaved drafts are not overwritten by events.
+
+Applying a profile is a UI flow: publish it, then create an ordinary frontend draft/request
+with its `my-<profileId>` in `contextIds`. The API does not directly execute a style operation.
+See [My Style](my-style.md) for the builder, evidence boundaries, export format and limits.
+
 ## Agent registry
 
 `GET /api/status` includes `agents`: configured IDs, display labels, transport names
