@@ -14,6 +14,7 @@ mod route_review;
 mod selection;
 mod server;
 mod store;
+mod versions;
 
 use anyhow::{Result, ensure};
 use clap::{Parser, Subcommand};

@@ -107,3 +107,17 @@ recovery requires inspection instead of guessing whether to replay. [Details](re
 Fresh worktrees run trusted setup commands before agent execution; continued worktrees
 retain dependencies. Setup and validation have separate result arrays. A source mutation
 by either command phase blocks review, and an empty validation list is explicitly unchecked.
+
+## Explicit local commits
+
+The shared TypeScript Saved versions dialog is used by both browser clients. Rust's
+`versions` module reads applied revision journals and creates a private index from HEAD.
+It replays only selected patches and compares the resulting blobs/modes with recorded
+applied states before returning a review. Saving validates that same server-held plan,
+acquires the real index lock and prepares an index that retains unrelated staged entries.
+`commit-tree` creates the exact reviewed commit (honoring signing); `update-ref` compares
+and swaps the branch against the reviewed parent. A durable `saved_versions` SQLite record
+precedes that ref update. Index installation completes the transaction; interruption
+retains evidence and blocks ambiguous retries. No push, reset or agent execution is involved.
+See [Saved versions](saved-versions.md) for limits and recovery. API tests use deterministic
+file patches with execution disabled; Chromium tests exercise dashboard and mobile overlay.

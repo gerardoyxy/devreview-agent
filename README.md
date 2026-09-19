@@ -213,6 +213,14 @@ retains a **Recovery required** record for manual inspection. They do not commit
 Retry starts from the current workspace; Reject removes only that task's worktree.
 [Snapshots, Undo and recovery](docs/recovery.md) explain limits and crash handling.
 
+**Review & save** turns selected applied corrections into an explicitly approved local
+Git commit. Review plain-language summaries, optionally inspect the diff, edit the suggested
+version name and choose **Save version**. Unrelated staged and unstaged files are preserved;
+stale or mixed edits require another review. **Saved versions** keeps the local history in
+the dashboard and overlay. Publishing to GitHub remains separate. See
+[Saved versions](docs/saved-versions.md) for author details, hooks, signing and recovery.
+This flow is available in current source; the `0.4.0-alpha.1` download predates it.
+
 SQLite keeps tasks, drafts, conversations, versions, project context, route coverage and
 appearance. Legacy migration creates a WAL-aware backup before schema changes. Tokens
 and snapshot refs are local development state; never publish them with a mirror push.

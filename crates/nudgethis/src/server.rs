@@ -184,6 +184,15 @@ async fn route(app: &App, req: Request) -> Result<Response, ApiError> {
         "Local token required",
     )?;
     let core = &app.core;
+    if path == "/api/versions" && method == Method::GET {
+        return Ok(json(core.versions().await?));
+    }
+    if path == "/api/versions/preview" && method == Method::POST {
+        return Ok(json(core.preview_version(body(req, 16384).await?).await?));
+    }
+    if path == "/api/versions/save" && method == Method::POST {
+        return Ok(json(core.save_version(body(req, 4096).await?).await?));
+    }
     if path == "/api/device-preview" && method == Method::GET {
         return Ok(json(core.device_preview.status().await));
     }
@@ -392,7 +401,11 @@ async fn route(app: &App, req: Request) -> Result<Response, ApiError> {
         crate::store::task_number(id)?;
         if parts.len() == 3 {
             if method == Method::GET {
-                return Ok(json(core.store.details(id)?));
+                let mut task = core.store.details(id)?;
+                let saved = core.store.revision_save_status(id, &task["attempt"])?;
+                task["savedVersion"] = (saved.as_deref() == Some("saved")).into();
+                task["versionSavePending"] = (saved.as_deref() == Some("saving")).into();
+                return Ok(json(task));
             }
             if method == Method::DELETE {
                 return Ok(json(core.action(id, "delete", None).await?));

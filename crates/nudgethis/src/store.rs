@@ -35,7 +35,7 @@ pub fn task_number(id: &str) -> Result<i64> {
     Ok(n.parse()?)
 }
 pub struct Store {
-    db: Mutex<Connection>,
+    pub(crate) db: Mutex<Connection>,
     pub events: broadcast::Sender<(String, Value)>,
 }
 impl Store {
@@ -65,6 +65,7 @@ impl Store {
             CREATE INDEX IF NOT EXISTS messages_task ON messages(task_id,id);
             CREATE TABLE IF NOT EXISTS revisions (task_id TEXT NOT NULL, attempt INTEGER NOT NULL, data TEXT NOT NULL, PRIMARY KEY(task_id,attempt));
             CREATE TABLE IF NOT EXISTS preferences (key TEXT PRIMARY KEY, data TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS saved_versions (id TEXT PRIMARY KEY, data TEXT NOT NULL);
             INSERT INTO messages(task_id,role,content,attempt,at) SELECT 'QA-' || id,'user',json_extract(data,'$.request'),1,json_extract(data,'$.createdAt') FROM tasks WHERE NOT EXISTS (SELECT 1 FROM messages WHERE task_id = 'QA-' || tasks.id);
             PRAGMA user_version=1; COMMIT;")?;
         let store = Self {

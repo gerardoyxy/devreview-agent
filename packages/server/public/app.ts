@@ -1,3 +1,4 @@
+import { createSavedVersions } from '../../overlay/src/versions.js';
 import { createMyStyle } from '../../overlay/src/my-style.js';
 import { createSelectionControls } from '../../overlay/src/selection-controls.js';
 import { createRouteReview } from '../../overlay/src/route-review.js';
@@ -40,7 +41,10 @@ const routes = createRouteReview(document.body, api, seed => { void composer.ope
 $('#routes-button').onclick = () => { void routes.open(); };
 $('#new-task').onclick = () => { void composer.open(); };
 $('#setup-button').onclick = () => { void diagnostics.open(); };
-const review = createTaskReview($('#task-review').attachShadow({ mode: 'open' }), { api, executionEnabled: () => executionEnabled, onEditDraft: task => { $<HTMLDialogElement>('#detail-dialog').close(); void composer.open(task); }, onMutation: () => void refresh() });
+const versions = createSavedVersions(document.body, api, () => { void refresh(); });
+versions.attachReminder($('#version-reminder'));
+$('#versions-button').onclick = () => { void versions.open(); };
+const review = createTaskReview($('#task-review').attachShadow({ mode: 'open' }), { api, onSaveVersions: () => { void versions.open(); }, executionEnabled: () => executionEnabled, onEditDraft: task => { $<HTMLDialogElement>('#detail-dialog').close(); void composer.open(task); }, onMutation: () => void refresh() });
 function render() {
   const count = (status: TaskStatus) => tasks.filter(task => task.status === status).length;
   $('#draft-count').textContent = String(count('draft')); $('#all-count').textContent = String(tasks.length); $('#ready-count').textContent = String(count('ready')); $('#applied-count').textContent = String(count('applied'));
@@ -74,7 +78,7 @@ function render() {
 async function refresh() {
   if (refreshing) { refreshAgain = true; return; }
   refreshing = true;
-  try { tasks = await api<TaskSummary[]>('/api/tasks'); render(); showError(''); if (selectedId && $<HTMLDialogElement>('#detail-dialog').open) await showTask(selectedId); }
+  try { tasks = await api<TaskSummary[]>('/api/tasks'); void versions.refresh(); render(); showError(''); if (selectedId && $<HTMLDialogElement>('#detail-dialog').open) await showTask(selectedId); }
   catch (error) { showError(errorMessage(error)); }
   finally { refreshing = false; if (refreshAgain) { refreshAgain = false; void refresh(); } }
 }
@@ -106,7 +110,7 @@ async function connect() {
     void watchTasks(location.origin, token, () => void refresh(), connection.signal, online => {
       $('#connection').textContent = online ? 'Connected to localhost' : 'Reconnecting…';
       $('.status-dot').style.background = online ? 'var(--dr-success)' : 'var(--dr-warning)'; if (online) { void refresh(); void appearance.load().catch(() => {}); void selectionEditor.load().catch(() => {}); }
-    }, value => appearance.receive(value), value => selectionEditor.receive(value));
+    }, value => appearance.receive(value), value => selectionEditor.receive(value), () => { void versions.refresh(); void refresh(); });
   } catch (error) { showError(errorMessage(error)); $('#connection').textContent = 'Disconnected'; $<HTMLDialogElement>('#connect-dialog').showModal(); }
 }
 const resetFilter = () => { visibleLimit = 40; render(); };

@@ -7,6 +7,9 @@ A working feature or passing application test does not certify an agent or a pro
 
 ## Implemented
 
+- Source after `0.4.0-alpha.1`: guided Review & save, editable commit names, explicit author,
+  local Git version history and safe preservation of unrelated staging. Publishing stays
+  separate; hooks and mixed edits use the user's Git client. See [Saved versions](docs/saved-versions.md).
 - Strict TypeScript dashboard, isolated overlay, conversations and appearance editors.
 - Rust CLI, HTTP/SSE service, queue, SQLite, Git operations, process supervision and transports.
   Browser assets are embedded in the executable; Node and Rust are build requirements.

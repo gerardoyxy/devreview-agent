@@ -15,7 +15,7 @@ const node = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string,
 const time = (value: string) => new Date(value).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 /** Shared conversation/review UI, mounted in the overlay or dashboard's shadow root. */
-export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutation = () => {}, executionEnabled = () => true, onEditDraft }: { api: Api; onMutation?: (id: string) => void; executionEnabled?: () => boolean; onEditDraft?: (task: Task) => void }) {
+export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutation = () => {}, executionEnabled = () => true, onEditDraft, onSaveVersions }: { api: Api; onSaveVersions?: () => void; onMutation?: (id: string) => void; executionEnabled?: () => boolean; onEditDraft?: (task: Task) => void }) {
   const style = node('style'); style.textContent = styles; root.append(style);
   const view = node('section', 'dr-review');
   view.innerHTML = `<div class="dr-heading"><h2 class="dr-title"></h2><div class="dr-state"></div><div class="dr-meta"></div></div>
@@ -80,7 +80,10 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
       if (onEditDraft) { const edit = node('button', 'dr-secondary', 'Edit draft'); edit.disabled = busy; edit.onclick = () => onEditDraft(task); $('.dr-actions').append(edit); }
       action('start', 'Start change', true);
     }
-    if (task.status === 'applied' && task.undo?.after) action('undo', 'Undo applied changes');
+    if (task.status === 'applied' && task.undo?.after && !task.savedVersion && !task.versionSavePending) action('undo', 'Undo applied changes');
+    if (task.status === 'applied' && onSaveVersions) {
+      const save = node('button', 'dr-primary', task.savedVersion || task.versionSavePending ? 'View saved versions' : 'Review & save'); save.disabled = busy; save.onclick = onSaveVersions; $('.dr-actions').append(save);
+    }
     if (task.status === 'undone') action('retry', 'Start from workspace');
     if (task.status === 'ready') action('apply', task.validationStatus === 'passed' ? 'Apply current changes' : 'Apply unchecked changes', true);
   };
@@ -96,7 +99,7 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
       renderContextSnapshot($('.dr-context-snapshot'), next.projectContext);
     }
     task = next;
-    $('.dr-state').textContent = `${task.id} · ${taskStatusLabels[task.status] || task.status} · version ${task.attempt}`;
+    $('.dr-state').textContent = `${task.id} · ${taskStatusLabels[task.status] || task.status} · revision ${task.attempt}${task.savedVersion ? ' · Saved in Git' : task.versionSavePending ? ' · Save needs attention' : ''}`;
     $('.dr-title').textContent = task.request;
     $('.dr-meta').textContent = `${task.agent} · ${task.kind || 'frontend'} · ${task.context.route || 'Workspace task'}${task.context.selector ? ' · ' + task.context.selector : ''}${task.snapshotIncludesLocalChanges ? ' · Includes local edits' : ''}`;
     error(task.error || task.cleanupWarning);

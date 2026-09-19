@@ -21,6 +21,9 @@ edits, additions, removals or a changed branch. Successful Undo restores the pre
 patch state while preserving unrelated files and the user's index. It does not undo
 commits, database operations, package installs or effects outside the reviewed patch.
 Legacy applied tasks without a complete Undo record require manual handling.
+Revisions included in **Save version** are protected from this Undo action. Use your Git
+client to revert their commit. [Saved versions](saved-versions.md) describes the separate
+commit journal, preserved index and interrupted-save handling.
 
 ## Interrupted mutations
 

@@ -7,7 +7,7 @@ use tokio_util::sync::CancellationToken;
 pub struct Repository {
     pub root: PathBuf,
     pub state: PathBuf,
-    mutation: tokio::sync::Mutex<()>,
+    pub(crate) mutation: tokio::sync::Mutex<()>,
 }
 impl Repository {
     pub fn new(root: PathBuf, state: PathBuf) -> Self {
@@ -20,7 +20,7 @@ impl Repository {
     pub async fn git(&self, args: &[&str], cwd: &Path, input: &str) -> Result<String> {
         self.git_env(args, cwd, input, &[]).await
     }
-    async fn git_env(
+    pub(crate) async fn git_env(
         &self,
         args: &[&str],
         cwd: &Path,

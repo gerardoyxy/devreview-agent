@@ -20,7 +20,8 @@ pub struct Core {
     pub store: Store,
     pub token: String,
     pub device_preview: crate::device_preview::DevicePreview,
-    control: tokio::sync::Mutex<()>,
+    pub(crate) control: tokio::sync::Mutex<()>,
+    pub(crate) version_previews: Mutex<HashMap<String, crate::versions::Plan>>,
     active: Mutex<HashMap<String, Active>>,
     wake: Notify,
     pub stop: CancellationToken,
@@ -106,6 +107,7 @@ impl Core {
             token,
             device_preview: crate::device_preview::DevicePreview::default(),
             control: tokio::sync::Mutex::new(()),
+            version_previews: Mutex::new(HashMap::new()),
             active: Mutex::new(HashMap::new()),
             wake: Notify::new(),
             stop: CancellationToken::new(),
@@ -549,6 +551,11 @@ impl Core {
                 }
             }
             "undo" => {
+                check(
+                    !self.store.revision_saved(id, &task["attempt"])?,
+                    409,
+                    "This correction belongs to a saved version. Use your Git client to revert the commit; Undo only restores unsaved corrections",
+                )?;
                 check(
                     status == "applied",
                     409,

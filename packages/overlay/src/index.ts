@@ -1,3 +1,4 @@
+import { createSavedVersions } from './versions.js';
 import { createMyStyle } from './my-style.js';
 import { bindSelectionInput } from './selection-input.js';
 import { createSelectionControls, defaultSelectionControls, validSelectionControls, pointerLabel, keyboardLabel, type SelectionControls } from './selection-controls.js';
@@ -14,7 +15,7 @@ import { errorMessage, query } from '../../contracts/src/index.js';
 import { createTaskReview } from './review.js';
 
 /** Authenticated SSE over fetch: credentials never appear in a query string. */
-export async function watchTasks(server: string, token: string, onTask: (task: TaskEvent) => void, signal: AbortSignal, onConnection: (connected: boolean, error?: string) => void = () => {}, onAppearance: (value: unknown) => void = () => {}, onSelection: (value: unknown) => void = () => {}) {
+export async function watchTasks(server: string, token: string, onTask: (task: TaskEvent) => void, signal: AbortSignal, onConnection: (connected: boolean, error?: string) => void = () => {}, onAppearance: (value: unknown) => void = () => {}, onSelection: (value: unknown) => void = () => {}, onVersions: () => void = () => {}) {
   let retryDelay = 1000;
   while (!signal.aborted) {
     try {
@@ -34,6 +35,7 @@ export async function watchTasks(server: string, token: string, onTask: (task: T
             const event = buffer.slice(0, end); buffer = buffer.slice(end + 2);
             if (event.startsWith('event: appearance\n')) onAppearance(JSON.parse(event.slice(event.indexOf('data: ') + 6)));
             if (event.startsWith('event: selection-controls\n')) onSelection(JSON.parse(event.slice(event.indexOf('data: ') + 6)));
+            if (event.startsWith('event: versions\n')) onVersions();
             if (event.startsWith('event: task\n')) onTask(JSON.parse(event.slice(event.indexOf('data: ') + 6)));
           }
         }
@@ -127,7 +129,7 @@ export const NudgeThis = {
       <div class="prompt-actions"><button class="style-target" type="button">My Style</button><button class="copy-context" type="button">Copy context</button><button class="save-draft" type="submit" value="draft" disabled>Save draft</button><button class="save" type="submit" value="start" disabled>Start conversation</button></div><p class="copy-status" role="status" hidden></p>
     </form>
     <div class="overlay-tools"><button type="button" class="pick-launcher" aria-pressed="false">Pick element</button><button type="button" class="controls-launcher" aria-label="Selection controls">Controls</button><button class="launcher" type="button" aria-label="Open NudgeThis conversations">${brandLogo()}<span class="dot"></span><span class="label">NudgeThis · connecting</span></button></div><p class="pick-notice" role="status" hidden>Click or tap an element · Escape to cancel</p>
-    <dialog class="review-dialog" aria-label="NudgeThis conversations"><div class="review-shell"><header class="review-header"><div class="review-brand">${brandLogo()}<span>NudgeThis</span></div><div class="review-header-actions"><button type="button" class="appearance-button new-change">New change</button><button type="button" class="appearance-button routes-open">Routes</button><button type="button" class="appearance-button workspace-setup">Setup</button><button type="button" class="appearance-button project-context-button">Project context</button><button type="button" class="appearance-button selection-open">Selection controls</button><button type="button" class="appearance-button my-style-open">My Style</button><button type="button" class="appearance-button appearance-open">Appearance</button><a class="dashboard-link" target="_blank" rel="noopener">Dashboard</a><button type="button" class="review-close" aria-label="Close conversations">${icon('close')}</button></div></header><div class="review-body"><aside class="review-sidebar"><span class="review-caption">Your changes</span><select class="review-filter" aria-label="Filter conversations"><option value="all">All changes</option><option value="page">This page</option><option value="applied">Applied changes</option></select><div class="review-task-list"></div></aside><div class="review-detail"><p class="review-empty">Your changes and their conversations live here.<br><span class="selection-hint"></span></p></div></div></div></dialog>`;
+    <dialog class="review-dialog" aria-label="NudgeThis conversations"><div class="review-shell"><header class="review-header"><div class="review-brand">${brandLogo()}<span>NudgeThis</span></div><div class="review-header-actions"><button type="button" class="appearance-button new-change">New change</button><button type="button" class="appearance-button versions-open">Saved versions</button><button type="button" class="appearance-button routes-open">Routes</button><button type="button" class="appearance-button workspace-setup">Setup</button><button type="button" class="appearance-button project-context-button">Project context</button><button type="button" class="appearance-button selection-open">Selection controls</button><button type="button" class="appearance-button my-style-open">My Style</button><button type="button" class="appearance-button appearance-open">Appearance</button><a class="dashboard-link" target="_blank" rel="noopener">Dashboard</a><button type="button" class="review-close" aria-label="Close conversations">${icon('close')}</button></div></header><div class="review-body"><aside class="review-sidebar"><span class="review-caption">Your changes</span><select class="review-filter" aria-label="Filter conversations"><option value="all">All changes</option><option value="page">This page</option><option value="applied">Applied changes</option></select><div class="version-reminder"></div><div class="review-task-list"></div></aside><div class="review-detail"><p class="review-empty">Your changes and their conversations live here.<br><span class="selection-hint"></span></p></div></div></div></dialog>`;
     document.documentElement.append(host);
     const $ = <E extends HTMLElement = HTMLElement>(selector: string) => query<E>(shadow, selector);
     $<HTMLAnchorElement>('.dashboard-link').href = `${server}/#token=${encodeURIComponent(token)}`;
@@ -138,10 +140,13 @@ export const NudgeThis = {
     const dialog = $<HTMLDialogElement>('.review-dialog');
     let selectedId: string | undefined, review: ReturnType<typeof createTaskReview> | undefined, refreshTimer: ReturnType<typeof setTimeout> | undefined, refreshSequence = 0, online = false;
     const api: Api = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
-      const response = await fetch(server + endpoint, { ...options, signal: AbortSignal.any([controller.signal, AbortSignal.timeout(15000)]),
+      const response = await fetch(server + endpoint, { ...options, signal: AbortSignal.any([controller.signal, options.signal || AbortSignal.timeout(15000)]),
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` } });
       const data = await response.json(); if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`); return data;
     };
+    const versions = createSavedVersions(shadow, api, () => { void load(); void refreshReview(); });
+    versions.attachReminder($('.version-reminder'));
+    $('.versions-open').onclick = () => { void versions.open(); };
     const appearance = createAppearance({ api, target: host, mount: shadow });
     const projectContext = createProjectContext({ api, mount: shadow });
     const composer = createTaskComposer(shadow, api, task => { update(task); void openReview(task.id); });
@@ -204,7 +209,7 @@ export const NudgeThis = {
         if (selectedId !== id || sequence !== refreshSequence || !dialog.open) return;
         if (!review) {
           $('.review-detail').replaceChildren();
-          review = createTaskReview($('.review-detail'), { api, executionEnabled: () => executionEnabled, onEditDraft: task => { void composer.open(task); }, onMutation: () => { void load(); void refreshReview(); } });
+          review = createTaskReview($('.review-detail'), { api, onSaveVersions: () => { void versions.open(); }, executionEnabled: () => executionEnabled, onEditDraft: task => { void composer.open(task); }, onMutation: () => { void load(); void refreshReview(); } });
         }
         review.setTask(task);
       } catch (err) {
@@ -271,6 +276,7 @@ export const NudgeThis = {
       }
     };
     const update = (task: TaskEvent) => {
+      if ('deleted' in task || ['applied', 'undone'].includes(task.status)) void versions.refresh();
       if ('deleted' in task) {
         tasks.delete(task.id); markers.get(task.id)?.remove(); markers.delete(task.id);
         if (selectedId === task.id) {
@@ -330,8 +336,8 @@ export const NudgeThis = {
     renderList();
     if (token) void watchTasks(server, token, update, controller.signal, connected => {
       online = connected; renderList();
-      $('.dot').style.background = connected ? 'var(--dr-success)' : 'var(--dr-warning)'; if (connected) { void load(); void loadAgents(); void appearance.load().catch(() => {}); void selectionEditor.load().catch(() => {}); }
-    }, value => appearance.receive(value), value => selectionEditor.receive(value));
-    return { destroy() { clearTimeout(refreshTimer); controller.abort(); appearance.destroy(); projectContext.destroy(); dialog.close(); review?.destroy(); selectionInput.destroy(); selectionEditor.destroy(); document.removeEventListener('keydown', keydown, true); window.removeEventListener('scroll', position, true); window.removeEventListener('resize', position); observer.disconnect(); cancelAnimationFrame(positionFrame); composer.destroy(); myStyle.destroy(); diagnostics.destroy(); routes.destroy(); host.remove(); } };
+      $('.dot').style.background = connected ? 'var(--dr-success)' : 'var(--dr-warning)'; if (connected) { void versions.refresh(); void load(); void loadAgents(); void appearance.load().catch(() => {}); void selectionEditor.load().catch(() => {}); }
+    }, value => appearance.receive(value), value => selectionEditor.receive(value), () => { void versions.refresh(); void refreshReview(); });
+    return { destroy() { clearTimeout(refreshTimer); controller.abort(); versions.destroy(); appearance.destroy(); projectContext.destroy(); dialog.close(); review?.destroy(); selectionInput.destroy(); selectionEditor.destroy(); document.removeEventListener('keydown', keydown, true); window.removeEventListener('scroll', position, true); window.removeEventListener('resize', position); observer.disconnect(); cancelAnimationFrame(positionFrame); composer.destroy(); myStyle.destroy(); diagnostics.destroy(); routes.destroy(); host.remove(); } };
   }
 };

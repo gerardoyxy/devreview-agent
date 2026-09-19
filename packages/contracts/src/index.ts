@@ -19,6 +19,8 @@ export interface Revision {
   undo?: { before: unknown; after: unknown; at: string } | null;
 }
 export interface Task extends Revision {
+  savedVersion?: boolean;
+  versionSavePending?: boolean;
   id: string; agent: string; request: string; context: ElementContext; createdAt: string; cleanupWarning?: string;
   kind?: TaskKind; references?: string[];
   messages?: Array<{ id: number; role: 'user' | 'assistant'; content: string; attempt: number; at: string }>;
@@ -43,6 +45,11 @@ export interface Diagnostics {
   setupCommands: string[]; validationCommands: string[]; allowedOrigins: string[]; note: string;
 }
 export type Api = <T>(path: string, options?: RequestInit) => Promise<T>;
+export interface VersionChange { id: string; attempt: number; request: string; files: string[]; validationStatus?: Revision['validationStatus'] }
+export interface VersionIdentity { name: string; email: string }
+export interface SavedVersion { id: string; status: 'saving' | 'saved' | 'failed'; commit: string; branch: string; message: string; identity: VersionIdentity; at: string; changes: VersionChange[]; files: string[]; error?: string }
+export interface Versions { repository: ServerStatus['repository']; pending: VersionChange[]; history: SavedVersion[]; identity: VersionIdentity }
+export interface VersionPreview { id: string; repository: ServerStatus['repository']; changes: VersionChange[]; files: string[]; diff: string; suggestedMessage: string; identity: VersionIdentity; expiresInSeconds: number }
 export const errorMessage = (error: unknown): string => error instanceof Error ? error.message : String(error);
 export function query<E extends HTMLElement = HTMLElement>(root: ParentNode, selector: string): E {
   const result = root.querySelector<E>(selector);

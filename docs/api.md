@@ -8,6 +8,9 @@ Browser calls must also use an explicitly allowed loopback Origin.
 | --- | --- | --- |
 | GET | `/api/status` | Branch, HEAD, configured agents, executionEnabled, setup/validation commands |
 | GET | `/api/diagnostics` | Read-only framework, package-manager and executable availability report |
+| GET | `/api/versions` | Pending applied corrections, local saved-version history and Git author defaults |
+| POST | `/api/versions/preview` | Review selected corrections without staging or updating the branch |
+| POST | `/api/versions/save` | Explicitly create the reviewed local commit; never pushes |
 | GET | `/api/device-preview` | Browser availability, fixed profiles and the last opened device session |
 | POST | `/api/device-preview` | Explicitly open/configure or close the owned Chromium browser |
 | GET | `/api/tasks` | Task summaries, newest first |
@@ -25,7 +28,7 @@ Browser calls must also use an explicitly allowed loopback Origin.
 | DELETE | `/api/tasks/QA-1` | Delete an inactive, unapplied task and worktree |
 | GET | `/api/project-context` | Project instructions, skills and reference documents |
 | POST | `/api/project-context` | Validate and replace the project context library |
-| GET | `/api/events` | SSE events named `connected`, `task`, `appearance`, `project-context` and `route-review` |
+| GET | `/api/events` | SSE events including `connected`, `task`, `appearance`, `project-context`, `route-review` and `versions` |
 
 Use `Content-Type: application/json` for POST, and `{}` for actions. A task body (optional `agent` selects a configured ID):
 
@@ -244,3 +247,34 @@ browser arguments, script, CDP command, external debugging endpoint or user prof
 These endpoints remain available with agent execution disabled. Opening explicitly launches
 a browser, never an agent or project command. Close and graceful server shutdown stop the
 owned process and clean its temporary profile. See [device browser](route-review.md#device-browser).
+
+## Saved Git versions
+
+`GET /api/versions` returns `{repository: {branch, head}, pending, history, identity}`.
+Pending entries contain `id`, `attempt`, `request`, `files` and `validationStatus`.
+History contains versions created here with `status` (`saving`, `saved`, `failed`),
+`commit`, `branch`, `message`, `identity`, `at`, `changes`, `files` and an optional `error`.
+Internal tree/index hashes are not returned in history. GET task details includes
+`savedVersion` for completed saves and `versionSavePending` for interrupted/in-progress saves.
+
+Send `{"changes":[{"id":"QA-1","attempt":1}]}` to `/api/versions/preview`.
+The result contains a random `id`, current `repository`, selected change summaries,
+`files`, combined `diff`, `suggestedMessage`, `identity` and `expiresInSeconds: 600`.
+The server retains the reviewed plan. A client cannot submit its own tree or file contents.
+
+To confirm, send this to `/api/versions/save`:
+
+```json
+{
+  "previewId": "the-returned-review-id",
+  "message": "Improve checkout spacing",
+  "identity": {"name": "Your name", "email": "your-private-email@users.noreply.github.com"}
+}
+```
+
+The response is a saved-version record. Reusing its preview ID returns the same successful
+commit. Invalid author/message fields return 400; stale reviews, incomplete selections,
+active hooks and other Git conflicts return 409. Preview and save may take longer than
+ordinary requests, particularly with configured signing. UI requests allow 150 seconds.
+`versions` SSE events carry `{changed:true}` and prompt a fresh GET. These endpoints are
+available in execution-disabled mode and never invoke an agent or push a branch.
