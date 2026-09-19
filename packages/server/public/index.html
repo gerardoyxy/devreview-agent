@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NudgeThis — Review queue</title><link rel="stylesheet" href="/style.css"></head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/"><span class="brand-mark">d<span>↗</span></span>nudgethis<span class="alpha">α</span></a>
+    <div class="workspace"><span class="eyebrow">LOCAL WORKSPACE</span><strong id="branch">Connecting…</strong><span class="workspace-detail">Your code stays on your machine.</span></div>
+    <nav aria-label="Queue filters"><button class="nav-item active" data-filter="all"><span>▤ &nbsp; Review queue</span><b id="all-count">0</b></button><button class="nav-item" data-filter="ready"><span>◉ &nbsp; Ready to apply</span><b id="ready-count">0</b></button><button class="nav-item" data-filter="applied"><span>✓ &nbsp; Applied</span><b id="applied-count">0</b></button></nav>
+    <div class="sidebar-note"><span class="note-icon">↗</span><strong>Stay in your QA flow.</strong><p>Mark an issue, leave a note, keep going. Come back when the fix is ready.</p><a id="playground-link" href="/playground">Open the playground <span>↗</span></a></div>
+    <footer class="sidebar-footer"><span class="status-dot"></span><span id="connection">Connecting to localhost</span><small>v0.1.0 · experimental</small></footer>
+  </aside>
+  <main>
+    <header class="topbar"><span>Workspace <span class="slash">/</span> <strong>Review queue</strong></span><button class="quiet" id="connect-button">Connection settings</button></header>
+    <section class="page-heading"><div><span class="eyebrow">SEE IT. MARK IT. KEEP MOVING.</span><h1>A shorter loop to better code.</h1><p>Your QA feedback, moving from observation to a reviewed fix.</p></div><a class="primary-button" id="inspect-link" href="/playground">Inspect playground <span>↗</span></a></section>
+    <section class="metrics" aria-label="Task counts"><div><span>In the queue</span><strong id="metric-open">0</strong><small>Pending & in progress</small></div><div><span>Ready for your review</span><strong id="metric-ready">0</strong><small><i class="mini-dot"></i> Validated changes</small></div><div><span>Applied to your branch</span><strong id="metric-applied">0</strong><small>One less thing to fix</small></div></section>
+    <div id="notice" class="notice" role="status" hidden></div>
+    <section class="queue-panel"><div class="section-heading"><div><h2>Review queue <span id="visible-count">0</span></h2><p>Every task gets its own worktree. Every change gets your approval.</p></div><label class="search"><span>⌕</span><input id="search" type="search" placeholder="Find a task…" aria-label="Find a task"></label></div><div id="tasks" class="task-list"></div></section>
+    <div class="bottom-note"><span>⌘</span> Working locally <span>·</span> No telemetry <span>·</span> Changes are never applied automatically</div>
+  </main>
+  <dialog id="connect-dialog"><form id="connect-form"><span class="eyebrow">LOCAL CONNECTION</span><h2>Connect your review queue</h2><p>Open the dashboard link printed by <code>nudgethis start</code>, or paste your local token below.</p><label for="token-input">Local token</label><input id="token-input" type="password" autocomplete="off" required><div class="dialog-actions"><button class="quiet" id="connect-close" type="button">Cancel</button><button class="primary-button">Connect</button></div></form></dialog>
+  <dialog id="detail-dialog"><div class="detail-top"><span class="eyebrow" id="detail-id"></span><button class="icon-button" id="detail-close" aria-label="Close task">×</button></div><h2 id="detail-title"></h2><div id="detail-meta"></div><div id="detail-error" class="notice" hidden></div><div id="detail-validation"></div><h3>Changed files</h3><div id="detail-files"></div><h3>Patch</h3><pre id="detail-diff" tabindex="0"></pre><details><summary>Agent output</summary><pre id="detail-output"></pre></details><div id="detail-actions" class="dialog-actions"></div></dialog>
+  <script type="module" src="/app.js"></script>
+</body></html>
