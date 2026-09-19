@@ -48,3 +48,12 @@ The font files were sourced from `@fontsource/archivo`; they are vendored with t
 license so production visitors do not contact a font service.
 
 See [publication instructions](../../docs/landing.md) for GitHub Pages with the Namecheap domain.
+
+## Deployment
+
+The Landing workflow builds every matching push/PR. Only a push to
+`feat/typescript-rust-agent-runtime` publishes `dist/site` to GitHub Pages.
+The `github-pages` environment permits that branch explicitly. The custom
+domain is `nudgethis.click`; Namecheap DNS must point to GitHub for it to resolve.
+When the migration is merged, update the workflow conditions and environment
+branch policy to `main` before expecting automatic production deployments there.
