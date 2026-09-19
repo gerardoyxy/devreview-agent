@@ -47,6 +47,11 @@ See [the design system](../../DESIGN.md).
   build copies it to `dist/site/assets/favicon.svg` and the transparent mark,
   `assets/brand/nudgethis.svg`, to `dist/site/assets/nudgethis.svg`. The moving
   demonstration pointer is a separate functional illustration.
+- The build also renders PNGs from that SVG: a 32px favicon fallback, a 180px
+  Apple touch icon, and 192px/512px home-screen icons referenced by
+  `site.webmanifest`. Home-screen images have an opaque blue background so the
+  device can apply its own corner treatment. The manifest opens the landing in
+  the browser; the shortcut does not install the local NudgeThis runtime.
 
 The font files were sourced from `@fontsource/archivo`; they are vendored with their
 license so production visitors do not contact a font service.
