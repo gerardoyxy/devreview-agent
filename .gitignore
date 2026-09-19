@@ -9,9 +9,8 @@ coverage/
 dist/
 target/
 
-# Impeccable working files; keep only durable product/design records.
-.impeccable/*
-!.impeccable/config.json
-!.impeccable/design.json
-!.impeccable/surfaces/
-!.impeccable/critique/
+# Local agent tools and design working records are not product source.
+.agents/
+.impeccable/
+.codex/
+.claude/

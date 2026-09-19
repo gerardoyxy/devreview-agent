@@ -29,6 +29,11 @@ The core has no telemetry. SQLite, patches, audit entries and process output sta
 local, including conversation history and older patch versions. The coding agent may send selected page context and source to its provider
 using your configured account. Treat agent logs and diffs as potentially sensitive.
 
+Project context can include instructions, text skills and reference documents.
+Selected content is sent to the configured agent and retained in version snapshots.
+Editing or deleting a library item does not remove its earlier snapshots. Review
+the selected content before sending it or copying it to another service.
+
 The overlay omits form values and strips URL queries/fragments. DOM snippets are
 off by default. Add `data-nudgethis-private` around content that should be excluded
 from text/snippet capture. This is data minimization, not a complete secret scanner;
@@ -39,11 +44,11 @@ cannot apply code; the current validated patch still requires explicit Apply.
 
 ## Reporting vulnerabilities
 
-Use the repository's private **Report a vulnerability** feature if it is available.
-Otherwise open an issue requesting a private reporting channel, without including
-secrets, exploit payloads, or private repository data. Do not post credentials in
-public issues. Maintainers should enable private vulnerability reporting before
-inviting broad external use.
+Use [Report a vulnerability](https://github.com/gerardoyxy/nudgethis/security/advisories/new)
+to contact the maintainers privately. Private vulnerability reporting is enabled
+for this repository. Include a minimal reproduction and the affected version;
+omit credentials and private repository data. Do not post exploit details or
+credentials in public issues.
 
 ## Native runtime and agent selection
 

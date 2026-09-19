@@ -1,7 +1,5 @@
 # Product
 
-<!-- impeccable:product-schema 1 -->
-
 ## Platform
 
 web
@@ -26,16 +24,15 @@ The public landing introduces the project. The application runs locally alongsid
 - Isolated Git worktrees, explicit apply, follow-up messages, validation results, previous versions, and activity history.
 - User-defined light/dark colors, body/heading/code fonts, uploaded WOFF/WOFF2 fonts, text size, and corner radius. Preserve saved themes and shadow DOM isolation.
 - Early alpha built from source. No packaged downloads are currently published. The deterministic demo does not call a model.
-- GitHub Pages is intended for the static landing only. The local Rust service is not hosted by Pages.
-- Public repository belongs to gerardoyxy. Development authentication must remain separate from hejoirsys.
+- GitHub Pages hosts the static landing only. The local Rust service runs on the user's machine.
 
 ## Brand Commitments
 
-NudgeThis is the public name. All product interface and marketing copy is English. Existing `nudgethis` CLI commands and technical integration names remain compatible. The user owns nudgethis.click at Namecheap and prefers free GitHub hosting for the landing. The user selected the blue Reference desk direction for both landing and application: ultramarine, pale surfaces, bold Archivo typography, precise borders and lemon selection markers. User color/font customization remains supported.
+NudgeThis is the public name. All product interface and marketing copy is English. Existing `nudgethis` CLI commands and technical integration names remain compatible. The landing and application share ultramarine accents, pale surfaces, Archivo typography and precise borders. User color and font customization takes precedence over those defaults. See [the design system](DESIGN.md).
 
-## Evidence on Hand
+## Product status
 
-Source code, deterministic local demo, protocol/runtime tests, and genuine application screenshots. MIT-licensed project. No customer counts, testimonials, adoption statistics, commercial promises, or benchmarks have been supplied.
+NudgeThis is an MIT-licensed source alpha with a deterministic demo, protocol/runtime tests and application screenshots. It is not a stable release or a packaged installer. See [the roadmap](ROADMAP.md) for release requirements and remaining product work.
 
 ## Product Principles
 

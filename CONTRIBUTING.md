@@ -27,5 +27,10 @@ regression coverage for lifecycle, Git safety, process cancellation and API chan
 Do not commit tokens, `.env` files, `.nudgethis/`, generated worktrees, or personal
 Git configuration. Avoid dependencies unless their benefit justifies them.
 
+Keep public documentation focused on reproducible setup, behavior, limitations and
+contribution guidance. Personal briefs, account instructions, design-tool sessions
+and downloaded agent skills belong outside the tracked product source. Maintain
+the [roadmap](ROADMAP.md) when a capability or release requirement changes.
+
 This project uses the MIT license. By contributing, you agree that your contribution
 will be distributed under the same license.

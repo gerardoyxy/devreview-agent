@@ -210,9 +210,9 @@ components:
 
 **Creative North Star: "Reference desk"**
 
-NudgeThis uses the user-approved blue Reference desk world: broad Archivo lettering, ultramarine emphasis, cool pale ground, navy ink and precise rules. The shared language is direct and legible, with modest rectangular controls and a visible relationship between a selected object and its conversation.
+NudgeThis uses broad Archivo lettering, ultramarine emphasis, cool pale ground, navy ink and precise rules. The shared language is direct and legible, with modest rectangular controls and a visible relationship between a selected object and its conversation.
 
-Persuade applies to the public landing only: expansive blue, heavy display type and a large illustrative local browser. Operate applies to the local application only: compact typography, a ruled queue, restrained accent coverage, readable conversations and explicit review actions. These are two expressions of one identity; neither mode nor the landing composition is a global application template.
+The public landing uses expansive blue, heavy display type and a large illustrative local browser. The local application uses compact typography, a ruled queue, restrained accent coverage, readable conversations and explicit review actions. These are two expressions of one identity.
 
 The documented application palette, font and radius are defaults. Saved repository appearance remains authoritative across dashboard and isolated overlay roots, including custom light/dark palettes and body, heading or code fonts. NudgeThis is the public name and product copy is English; existing NudgeThis CLI, API and integration identifiers remain compatible.
 
@@ -222,7 +222,7 @@ The documented application palette, font and radius are defaults. Saved reposito
 - Fine borders and tonal separation, with no decorative shadow vocabulary.
 - User-controlled application appearance, including independent light and dark palettes.
 
-Recorded from the current build: `apps/site/site.css`, `apps/site/public/index.html`, `apps/site/demo.ts`, `packages/overlay/src/appearance.ts`, `styles.ts`, `review.ts`, `project-context.ts`, `fonts.ts`, and `packages/server/public/style.css` plus `index.html`. Product commitments and surface contracts constrain scope. Visual samples checked: approved `assigned.png`, the light dashboard, dark conversation and corrected tablet landing captures. This document records the shipped system, not a replacement for the finish review.
+Implementation sources: `apps/site/site.css`, `apps/site/public/index.html`, `apps/site/demo.ts`, `packages/overlay/src/appearance.ts`, `styles.ts`, `review.ts`, `project-context.ts`, `fonts.ts`, and `packages/server/public/style.css` plus `index.html`.
 
 ## Colors
 
@@ -273,7 +273,7 @@ The landing has its own `--page`, `--surface`, `--elevated`, `--text`, `--muted`
 - **Body and labels:** application base text defaults to 14px; controls and labels commonly use 12px, metadata 11px, and compact timestamps 10px. These sizes derive from `--dr-size`. Review reading uses 1.6 leading; overlay/editor chrome uses 1.5. The base is user-adjustable from 12–20px.
 - **Code:** use the configurable mono family and 1.7 leading for patches. Diff scroll areas preserve whitespace; context snapshots wrap plain text. Landing FAQ paragraphs stay within 65ch; the context introduction stays within 75ch.
 
-**The Surface Scale Rule.** Share the type family and compact lettering character, not the landing display size. Keep Persuade on the landing and Operate in the application.
+**The Surface Scale Rule.** Share the type family and compact lettering character. Reserve display sizes for the landing and use compact, readable sizes in the application.
 
 ## Layout
 
@@ -347,5 +347,3 @@ The landing runs one bounded 13-second point/tell/review/apply sequence with man
 - **Don't** replace saved themes or uploaded fonts with hard-coded brand defaults.
 - **Don't** introduce decorative eyebrows, text glyph icons or hard offset shadows as house style.
 - **Don't** merge current changes, historical versions and captured context into one undifferentiated panel.
-
-Not canonized: the earlier disconnected demo connector and orphaned tablet headline were defects, now corrected in source and the inspected tablet capture. No decorative eyebrow, glyph-action icon or hard-offset-shadow defect was promoted into a reusable rule. This documentation pass did not redesign or repair code.

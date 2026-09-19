@@ -11,10 +11,9 @@ El ejecutable incluye los recursos web compilados. Node se utiliza para compilar
 y ejecutar las pruebas del proyecto; NudgeThis no lo necesita para funcionar después de compilarse.
 Tu aplicación o el agente elegido pueden tener sus propios requisitos, incluido Node.
 
-[English](README.md) · [Migración](docs/migration.es.md) · [Agentes](docs/agents.md) · [Roadmap validado](docs/roadmap-review.es.md)
+[English](README.md) · [Migración](docs/migration.es.md) · [Agentes](docs/agents.md) · [Roadmap](ROADMAP.md)
 
-El repositorio se llama **NudgeThis**. La alpha actual está en
-`feat/typescript-rust-agent-runtime`, pendiente de integrarse a `main`.
+El repositorio se llama **NudgeThis**. La alpha actual se mantiene en `main`.
 El CLI conserva el comando `nudgethis` por compatibilidad.
 
 ## Compilar y probar sin cuenta de agente
@@ -22,7 +21,7 @@ El CLI conserva el comando `nudgethis` por compatibilidad.
 Requisitos de desarrollo: Git, Node.js 24.15+ y Rust estable con compilador C.
 
 ```bash
-git clone --branch feat/typescript-rust-agent-runtime https://github.com/gerardoyxy/nudgethis.git
+git clone https://github.com/gerardoyxy/nudgethis.git
 cd nudgethis
 npm ci
 npm run build
