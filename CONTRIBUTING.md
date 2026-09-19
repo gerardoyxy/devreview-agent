@@ -2,9 +2,15 @@
 
 Thanks for helping improve the feedback-to-fix loop.
 
-Use Node.js 24.15+ and Git. No dependency installation or build is required:
+Use Node.js 24.15+, Git and stable Rust. Build the TypeScript frontend and native
+agent runtime before testing:
 
 ```bash
+npm ci
+npm run build
+cargo fmt --all --check
+cargo clippy --locked --all-targets -- -D warnings
+cargo test --locked
 npm run check
 npm test
 npm run demo

@@ -1,4 +1,3 @@
-import { run } from '../../shared/src/index.js';
 
 export function buildPrompt(task) {
   const messages = [];
@@ -49,19 +48,5 @@ export function codexMessages(onMessage) {
   };
 }
 
-export class CodexAgent {
-  name = 'codex';
-  constructor({ command = 'codex', timeout = 600000, model } = {}) { Object.assign(this, { command, timeout, model }); }
-  async run({ task, cwd, signal, onMessage = () => {} }) {
-    const stream = codexMessages(onMessage);
-    const args = ['exec', '--sandbox', 'workspace-write', '--json', '--color', 'never'];
-    if (this.model) args.push('--model', this.model);
-    args.push('-');
-    // On Windows npm exposes codex.cmd; the command/arguments are trusted config,
-    // while all browser-supplied content remains separate on stdin.
-    const result = await run(this.command, args, { cwd, signal, timeout: this.timeout, input: buildPrompt(task), shell: process.platform === 'win32', onStdout: chunk => stream.push(chunk) });
-    const failure = stream.finish();
-    if (result.code || failure) throw Object.assign(new Error(failure || `Codex exited with code ${result.code}`), { result });
-    return { output: result.stdout, stderr: result.stderr };
-  }
-}
+// Legacy parsing helpers remain exported during migration; execution uses Rust.
+export { NativeAgent, CodexAgent } from './native.js';

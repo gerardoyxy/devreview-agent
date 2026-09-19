@@ -110,8 +110,8 @@ test('secret files and symlink patches cannot become ready', async t => {
   const core = await setup(t, { agent: { name: 'unsafe', async run({ cwd }) { await writeFile(path.join(cwd, '.env'), 'SECRET=value'); return {}; } } });
   const secret = await core.queue.submit(input); assert.equal((await finished(core, secret.id)).status, 'failed');
   if (process.platform !== 'win32') {
-    core.queue.agent = { name: 'symlink', async run({ cwd }) { await symlink('/tmp', path.join(cwd, 'escape')); return {}; } };
-    const link = await core.queue.submit(input); assert.match((await finished(core, link.id)).error, /Symlink/);
+    core.queue.agents.set('symlink', { name: 'symlink', async run({ cwd }) { await symlink('/tmp', path.join(cwd, 'escape')); return {}; } });
+    const link = await core.queue.submit({ ...input, agent: 'symlink' }); assert.match((await finished(core, link.id)).error, /Symlink/);
   }
 });
 

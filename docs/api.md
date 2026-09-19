@@ -19,10 +19,11 @@ Browser calls must also use an explicitly allowed loopback Origin.
 | DELETE | `/api/tasks/QA-1` | Delete an inactive, unapplied task and worktree |
 | GET | `/api/events` | SSE events named `connected` and `task` |
 
-Use `Content-Type: application/json` for POST, and `{}` for actions. A task body:
+Use `Content-Type: application/json` for POST, and `{}` for actions. A task body (optional `agent` selects a configured ID):
 
 ```json
 {
+  "agent": "codex",
   "request": "Align the button right on desktop and full width on mobile.",
   "context": {
     "url": "http://localhost:5173/team",
@@ -64,3 +65,16 @@ earlier replies that were never stored cannot be reconstructed.
 Each historical revision includes its attempt number, status, diff, files,
 validation results, base commit/branch and timestamp. Historical revisions are
 read-only. There is no endpoint that applies an obsolete revision.
+
+## Agent registry
+
+`GET /api/status` includes `agents`: configured IDs, display labels, transport names
+and current integration capabilities (`automatic`, `streaming`, `resume`, `images`).
+Executable paths and arguments are not returned. These are configured integrations,
+not proof that a provider is installed or authenticated.
+
+Task creation accepts an optional `agent` ID. An unknown ID returns 400 before a
+task is stored. Omission uses `defaultAgent`. The choice is persisted on the task
+and retained by follow-ups. The browser cannot provide commands or switch the
+provider of an existing conversation. Runtime protocol versions are independent of
+this temporary HTTP API; see [agents](agents.md).

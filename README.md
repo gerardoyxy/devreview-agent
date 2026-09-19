@@ -1,8 +1,8 @@
 # NudgeThis Agent
 
-**Turn feedback on localhost into an isolated, reviewable coding-agent task.**
+**Point at your UI. Tell your coding agent what to change.**
 
-NudgeThis is an experimental, local-first QA layer for developers. Select an
+NudgeThis is an experimental, local-first visual feedback layer for coding agents. Select an
 element in your running app, describe the problem, and keep reviewing. An agent
 works in a separate Git worktree; you inspect the diff and explicitly apply it.
 
@@ -16,16 +16,21 @@ Alt + right-click → comment → worktree → agent → validation → review �
 Your main coding workflow stays where it is. NudgeThis focuses on the small fixes
 you discover during QA: layout, responsive behavior, copy, and broken interactions.
 
-[Español](README.es.md) · [Architecture](docs/architecture.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
+[Español](README.es.md) · [Roadmap review](docs/roadmap-review.es.md) · [Agent transports](docs/agents.md) · [Architecture](docs/architecture.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
 
 ## Try it without an agent account
 
-Requirements: **Node.js 24.15+** and **Git** on your PATH. The application has no
-third-party runtime dependencies; it uses Node's built-in SQLite implementation.
+Requirements for the simulated demo: **Node.js 24.15+**, **Git**, and a frontend build.
+Automatic agent execution additionally requires a compiled **Rust** runtime.
+The browser frontend is TypeScript; the backend is migrating to Rust. The HTTP
+server, queue, SQLite and Git layers temporarily remain in Node. See the
+[migration scope](docs/roadmap-review.es.md#arquitectura-acordada-y-alcance-de-la-primera-etapa).
 
 ```bash
 git clone https://github.com/gerardoyxy/nudgethis.git
 cd nudgethis
+npm ci
+npm run build:frontend
 npm run demo
 ```
 
@@ -42,6 +47,9 @@ POSIX systems if port 7331 is occupied.
 
 The package is **not published to npm yet**. Run the CLI from this source checkout
 using its absolute path (or use `npm link` if you want the `nudgethis` command).
+
+Before connecting an agent, install stable Rust and run `cargo build --locked` in
+this source checkout. For multiple agents, use the [agent configuration](docs/agents.md).
 
 1. Install and authenticate [Codex CLI](https://developers.openai.com/codex/cli/)
    in the same environment as Node and Git. NudgeThis reuses that local login.
@@ -107,7 +115,8 @@ Set `modifier: 'none'` to capture ordinary right-click. Call the returned
 
 ![Conversation and follow-up inside the reviewed page](docs/conversation.png)
 
-Choose **Start conversation** after describing an issue. The in-page modal has:
+Choose a configured agent, then **Start conversation** after describing an issue.
+Use **Copy context** to paste feedback into an agent without an automated connection. The in-page modal has:
 
 - **Conversation:** your requests and public agent replies, updated as the agent works.
 - **Changes:** the current diff, files, and validation results.
@@ -125,8 +134,8 @@ commit applied changes first. Conflicting tasks require **Retry from HEAD**.
 
 Conversation messages and version snapshots persist locally in SQLite. Viewing an
 older version never applies it; Apply always uses the current ready version. This
-is a conversation with the CLI agent for that task, not a connection to an existing
-Codex App chat.
+is a conversation with the selected agent for that task, not a connection to an
+existing external application chat.
 
 ## What the alpha includes
 
@@ -134,7 +143,8 @@ Codex App chat.
 - Route, selector, text, viewport, and bounding box capture; opt-in sanitized DOM snippets.
 - A localhost API, SQLite task persistence, audit records, and authenticated SSE.
 - Configurable concurrent workers; each task has its own detached Git worktree.
-- An initial Codex CLI adapter with prompt via stdin and captured output/errors.
+- A Rust agent runtime for Codex, local ACP v1 (text-only subset), and custom JSONL adapters.
+- A per-task agent selector and portable Copy Context fallback.
 - Configurable validation commands with exit codes, timings, and logs.
 - A dashboard with real status updates, diff review, Apply, Reject, Retry, and Cancel.
 - An in-page conversation modal with live agent feedback and persistent patch history.
@@ -176,8 +186,10 @@ This is an early alpha. Screenshots, framework source mapping, console/network
 capture, automatic rebase, and visual regression are planned, not implemented.
 There is no dependency-aware scheduling. Windows and macOS are targeted, but the
 initial local verification was performed on Linux/WSL; CI defines all three.
-The Codex adapter requires a separate local Codex installation and account; the
-automated tests use deterministic adapters and do not consume model credits.
+Each configured agent requires its own installation and authentication. ACP
+interactive permissions, native session resume and images are not implemented yet.
+Automated tests use deterministic protocol peers and do not consume model credits
+or certify compatibility with every provider. The entire backend is not yet Rust.
 
 Core task storage stays local and has no telemetry. The configured coding agent
 may send source code and selected context to its provider. A Git worktree is not
@@ -187,12 +199,15 @@ commands in a repository.
 ## Development
 
 ```bash
+npm ci
+npm run build
 npm run check
+cargo test --locked
 npm test
 npm run demo
 ```
 
-No build or dependency install is required for these commands. Open issues and
+Node and stable Rust are required to build and test this migration branch. Open issues and
 small pull requests are welcome. APIs and the working name may change before a
 stable release.
 

@@ -17,7 +17,7 @@ await writeFile(path.join(root, 'validate.mjs'), "import assert from 'node:asser
 for (const args of [['init', '-b', 'main'], ['add', '.'], ['-c', 'user.name=NudgeThis Demo', '-c', 'user.email=demo@example.invalid', '-c', 'commit.gpgsign=false', 'commit', '-m', 'Demo app']]) {
   const result = await run('git', args, { cwd: root }); if (result.code) throw new Error(result.stderr);
 }
-const demoAgent = { name: 'demo (predefined button fix)', async run({ cwd, signal, task, onMessage }) {
+const demoAgent = { name: 'demo', label: 'Demo (predefined button fix)', async run({ cwd, signal, task, onMessage }) {
   onMessage('I’m checking the button layout in this task’s isolated copy. You can keep reviewing the page.');
   await new Promise(resolve => setTimeout(resolve, 900)); signal.throwIfAborted();
   if (task.attempt > 1) {

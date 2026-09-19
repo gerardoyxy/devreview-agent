@@ -6,12 +6,12 @@ import { AppError, assert, validateInput } from '../../shared/src/index.js';
 
 const assets = new Map([
   ['/', ['../public/index.html', 'text/html']],
-  ['/app.js', ['../public/app.js', 'text/javascript']],
+  ['/app.js', ['../../../dist/browser/app.js', 'text/javascript']],
   ['/style.css', ['../public/style.css', 'text/css']],
-  ['/overlay.js', ['../../overlay/src/index.js', 'text/javascript']],
-  ['/review.js', ['../../overlay/src/review.js', 'text/javascript']],
+  ['/overlay.js', ['../../../dist/browser/overlay.js', 'text/javascript']],
+  ['/review.js', ['../../../dist/browser/review.js', 'text/javascript']],
   ['/playground', ['../../../apps/playground/index.html', 'text/html']],
-  ['/playground.js', ['../../../apps/playground/app.js', 'text/javascript']]
+  ['/playground.js', ['../../../dist/browser/playground.js', 'text/javascript']]
 ]);
 
 async function jsonBody(req) {
@@ -64,7 +64,7 @@ export async function startServer(options = {}) {
         req.on('close', () => clients.delete(res)); return;
       }
       if (req.method === 'GET' && url.pathname === '/api/status') {
-        send(res, 200, { repository: await core.repository.inspect(), agent: core.queue.agent.name, validationCommands: core.config.commands, workers: core.config.maxConcurrent, playgroundUrl: options.playgroundUrl || null }); return;
+        send(res, 200, { repository: await core.repository.inspect(), agent: core.queue.agent.name, agents: [...core.queue.agents.values()].map(agent => agent.describe?.() ?? { id: agent.name, label: agent.label || agent.name, transport: 'custom', capabilities: { automatic: true, streaming: false, resume: false, images: false } }), validationCommands: core.config.commands, workers: core.config.maxConcurrent, playgroundUrl: options.playgroundUrl || null }); return;
       }
       if (url.pathname === '/api/tasks' && req.method === 'GET') { send(res, 200, core.store.list().map(summary)); return; }
       if (url.pathname === '/api/tasks' && req.method === 'POST') {

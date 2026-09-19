@@ -38,7 +38,8 @@ export function validateInput(input) {
       return [field, Number.isFinite(value) ? Math.max(-100000, Math.min(100000, value)) : 0];
     }));
   }
-  return { request, context };
+  if (input.agent !== undefined) assert(typeof input.agent === 'string' && /^[a-z][a-z0-9_-]{0,63}$/.test(input.agent), 'Invalid agent ID');
+  return { request, context, ...(input.agent === undefined ? {} : { agent: input.agent }) };
 }
 
 // Arguments and stdin are separate. Browser comments never become shell commands.

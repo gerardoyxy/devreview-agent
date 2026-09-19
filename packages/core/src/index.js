@@ -5,7 +5,7 @@ import path from 'node:path';
 import { Repository } from '../../git/src/index.js';
 import { TaskStore } from '../../queue/src/store.js';
 import { TaskQueue } from '../../queue/src/index.js';
-import { CodexAgent } from '../../agent-sdk/src/index.js';
+import { CodexAgent, NativeAgent } from '../../agent-sdk/src/index.js';
 import { assert } from '../../shared/src/index.js';
 
 export const defineConfig = config => config;
@@ -22,7 +22,8 @@ export async function loadConfig(root) {
     maxConcurrent: user.workers?.maxConcurrent ?? 2,
     commands: user.validation?.commands ?? [],
     validationTimeout: user.validation?.timeout ?? 120000,
-    agentOptions: user.agent ?? {}
+    agentOptions: user.agent ?? {},
+    agents: user.agents, defaultAgent: user.defaultAgent
   };
   assert(Number.isInteger(config.port) && config.port >= 0 && config.port <= 65535, 'Invalid server port');
   assert(Number.isInteger(config.maxConcurrent) && config.maxConcurrent >= 1 && config.maxConcurrent <= 8, 'Workers must be between 1 and 8');
@@ -64,7 +65,19 @@ export async function createCore({ root, config, agent } = {}) {
     assert(/^[a-f0-9]{64}$/.test(token), 'Invalid local token file');
     store = new TaskStore(path.join(stateDir, 'tasks.sqlite'));
     store.recover();
-    queue = new TaskQueue({ store, repository, agent: agent ?? new CodexAgent(config.agentOptions), ...config });
+    const agents = config.agents === undefined ? undefined : new Map();
+    if (agents) {
+      assert(Array.isArray(config.agents) && config.agents.length > 0, 'agents must be a non-empty list');
+      for (const entry of config.agents) {
+        const adapter = new NativeAgent(entry);
+        assert(!agents.has(adapter.name), 'Duplicate agent ID');
+        agents.set(adapter.name, adapter);
+      }
+    }
+    if (agent && agents) agents.set(agent.name, agent);
+    const defaultAgent = agent ?? (agents ? agents.get(config.defaultAgent ?? agents.keys().next().value) : new CodexAgent(config.agentOptions));
+    assert(defaultAgent, 'defaultAgent must match a configured agent ID');
+    queue = new TaskQueue({ ...config, store, repository, agent: defaultAgent, agents });
     return { root, stateDir, token, config, store, queue, repository,
       async close() { await queue.close(); store.close(); await unlink(lockPath); }
     };
