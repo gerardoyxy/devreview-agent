@@ -9,9 +9,10 @@ changes to your branch, without automatic commits or pushes.
 
 [Español](README.es.md) · [Agents](docs/agents.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Migration](docs/migration.es.md) · [Security](SECURITY.md)
 
-The public interface is **NudgeThis**. Its English [static landing](apps/site/README.md)
-builds with `npm run build:site` and is prepared for GitHub Pages.
-[Publication setup](docs/landing.md). The CLI and repository currently keep the DevReview name.
+The project and repository are **NudgeThis**. Its English [static landing](apps/site/README.md)
+builds with `npm run build:site` and is published at [nudgethis.click](https://nudgethis.click/).
+[Publication setup](docs/landing.md). The CLI still uses `devreview` for compatibility.
+The current alpha is on `feat/typescript-rust-agent-runtime`, pending integration into `main`.
 
 ## Build and try
 
@@ -23,8 +24,8 @@ Your configured agent or application may independently require Node.
 Build requirements: Git, Node.js 24.15+, stable Rust and a C compiler for bundled SQLite.
 
 ```bash
-git clone https://github.com/gerardoyxy/devreview-agent.git
-cd devreview-agent
+git clone --branch feat/typescript-rust-agent-runtime https://github.com/gerardoyxy/nudgethis.git
+cd nudgethis
 npm ci
 npm run build
 ./target/debug/devreview demo

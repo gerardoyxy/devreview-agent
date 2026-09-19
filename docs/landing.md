@@ -2,7 +2,7 @@
 
 NudgeThis has a static landing and a separate local Rust application. GitHub
 Pages hosts only the landing. The user owns **nudgethis.click at Namecheap**.
-The personal repository is `gerardoyxy/devreview-agent`; do not switch or reuse
+The personal repository is `gerardoyxy/nudgethis`; do not switch or reuse
 `hejoirsys` authentication for this project.
 
 ## Current status
