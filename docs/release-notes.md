@@ -1,32 +1,36 @@
-NudgeThis 0.3.0-alpha.1 adds workspace tasks, review-only operation and route coverage.
+NudgeThis 0.3.0-alpha.2 adds Chromium device emulation to route review.
 
-- Create and edit drafts for frontend, backend, tests, documentation and general changes.
-- Detect project frameworks and package managers; inspect setup with `devreview doctor`.
-- Configure dependency preparation separately from validation; see unchecked patches clearly.
-- Capture existing local edits without changing the user's Git index or branch. Apply checks
-  affected files against the snapshot; Undo refuses to overwrite later edits. Interrupted
-  Apply/Undo operations retain a recovery record and require manual inspection.
-- Navigate selected elements through parents, children and siblings. Stale selectors must
-  still match captured identity hints. Source-file hints remain unverified.
-- Scan route candidates, resolve dynamic URLs, switch desktop/mobile layout widths, track
-  manual review coverage, record blockers, create contextual tasks and export a report.
-- Search and filter the queue; retain the shared blue style and custom colors/fonts.
+- Open an owned Chrome, Edge or Chromium window from Route review, with generic phone,
+  tablet and desktop profiles. Change orientation, touch, pixel density and mobile user
+  agent/client hints; return to desktop with its original user agent and mouse input.
+- Keep the session in a temporary profile, separate from existing browser accounts/tabs.
+  Explicit close and graceful server shutdown stop the owned browser and remove its profile.
+- Record device settings, browser version and observed viewport metrics with a manual review.
+  Closed tabs, stale sessions, incomplete loads and redirects cannot confirm the requested view.
+- Find browser availability in `doctor`/Workspace setup. Keep the embedded layout preview
+  when a supported browser is unavailable. The mobile route list can collapse to show controls.
+- Read the new foundation evidence map for implemented basics and outstanding first-run,
+  framework, recovery, accessibility and distribution work.
 
-Archives contain one executable with embedded browser assets, build metadata, license and
-installation instructions. Verify downloads against `SHA256SUMS.txt`. Builds are unsigned
-and not notarized; this is a prerelease, not a stable or provider-certified release.
+Validation covers application code only: 13 Rust tests, five API/browser test cases with
+execution disabled, strict TypeScript, Clippy and local Chromium UI checks at desktop and
+390/320px widths. Real Chromium checks include touch input, rotation, density, user agent,
+client hints, desktop reset, redirects, loading, stale sessions and browser/profile lifecycle.
+Linux CI runs the browser suite; Windows/macOS CI build and test the native application.
+This is not evidence of visible browser-window interaction on every operating system.
+No agent, model, agent fixture or demo was exercised.
 
-Validation is restricted to application code: Rust Git/store/input tests, API tests with
-execution disabled, TypeScript/static checks and local browser review. The release workflow
-checks the native executable on Linux x64, Windows x64, macOS Apple Silicon and macOS Intel.
-No agent/model integrations, deterministic agent fixtures or demos were exercised for this release.
+Device mode uses Chromium emulation, not Safari/WebKit or physical hardware. One mobile
+record represents its saved profile/orientation, not every device. Visual approval remains
+manual; source changes do not invalidate coverage automatically. Temporary profiles may
+remain after an abrupt crash and require deliberate cleanup after stopping their browser.
+An installed Chrome, Edge or Chromium is needed for device mode; Node/ChromeDriver are not.
 
-Route discovery is a bounded static scan, not a guarantee that all runtime routes exist.
-Coverage counts explicit human review; loading a route does not certify its rendering.
-Mobile preview resizes the layout viewport, without emulating user agent, touch or hardware.
-Full device checks remain available through the browser's own developer tools. Worktrees are
-not OS sandboxes; provider support still depends on the configured adapter.
+Archives contain the executable with embedded frontend assets, build metadata, license and
+installation instructions. Verify downloads against `SHA256SUMS.txt`. Builds remain unsigned,
+not notarized and experimental. Worktrees are not OS sandboxes and provider compatibility
+is not certified by these checks.
 
-See [installation](https://github.com/gerardoyxy/nudgethis/blob/main/docs/install.md),
-[route review](https://github.com/gerardoyxy/nudgethis/blob/main/docs/route-review.md) and
-[recovery](https://github.com/gerardoyxy/nudgethis/blob/main/docs/recovery.md).
+See [device browser](https://github.com/gerardoyxy/nudgethis/blob/main/docs/route-review.md#device-browser),
+[foundation evidence](https://github.com/gerardoyxy/nudgethis/blob/main/docs/foundations.md) and
+[installation](https://github.com/gerardoyxy/nudgethis/blob/main/docs/install.md).

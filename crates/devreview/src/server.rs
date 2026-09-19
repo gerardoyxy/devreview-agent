@@ -184,6 +184,52 @@ async fn route(app: &App, req: Request) -> Result<Response, ApiError> {
         "Local token required",
     )?;
     let core = &app.core;
+    if path == "/api/device-preview" && method == Method::GET {
+        return Ok(json(core.device_preview.status().await));
+    }
+    if path == "/api/device-preview" && method == Method::POST {
+        let data = body(req, 4096).await?;
+        if data["action"] == "close" {
+            core.device_preview.close().await?;
+            return Ok(json(core.device_preview.status().await));
+        }
+        check(
+            data["action"] == "open",
+            400,
+            "Unknown device preview action",
+        )?;
+        let origin = crate::route_review::origin(data["origin"].as_str().unwrap_or(""))?;
+        check(
+            allowed_origin(app, &origin),
+            403,
+            "Add the project's exact origin to server.allowedOrigins and restart",
+        )?;
+        let route = data["path"].as_str().unwrap_or("");
+        check(
+            crate::route_review::concrete_path(route),
+            400,
+            "Choose a concrete route without a query or fragment",
+        )?;
+        let url = url::Url::parse(&format!("{origin}{route}"))?;
+        check(
+            url.origin().ascii_serialization() == origin,
+            400,
+            "Route must belong to the selected origin",
+        )?;
+        let session = core
+            .device_preview
+            .open(
+                &core.repository.root.join(".devreview"),
+                url.as_str(),
+                data["profile"].as_str().unwrap_or(""),
+                data["orientation"].as_str().unwrap_or(""),
+                &core.stop,
+            )
+            .await?;
+        let mut result = crate::device_preview::availability();
+        result["session"] = session;
+        return Ok(json(result));
+    }
     if path == "/api/route-review" && method == Method::GET {
         return Ok(json(core.store.route_review()?));
     }
@@ -200,7 +246,49 @@ async fn route(app: &App, req: Request) -> Result<Response, ApiError> {
             )?;
             crate::route_review::scan(&core.repository, &data).await?
         } else {
-            crate::route_review::change(&core.store.route_review()?, &data)?
+            let report = core.store.route_review()?;
+            check(
+                report["revision"] == revision.unwrap(),
+                409,
+                "Route review changed in another window. Reopen it before saving",
+            )?;
+            if data["action"] == "review"
+                && data["status"] == "reviewed"
+                && data["method"] == "device"
+            {
+                let route = report["routes"]
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .find(|route| route["id"] == data["id"]);
+                check(
+                    route.is_some_and(|route| route["needsUrl"] == false),
+                    409,
+                    "Resolve this route before reviewing it",
+                )?;
+                let url = url::Url::parse(&format!(
+                    "{}{}",
+                    report["origin"].as_str().unwrap_or(""),
+                    route.unwrap()["path"].as_str().unwrap_or("")
+                ))?;
+                let evidence = core
+                    .device_preview
+                    .evidence(
+                        data["sessionId"].as_str().unwrap_or(""),
+                        url.as_str(),
+                        data["viewport"].as_str().unwrap_or(""),
+                    )
+                    .await?;
+                crate::route_review::change_with_device(&report, &data, Some(evidence))?
+            } else {
+                check(
+                    data["method"].is_null()
+                        || matches!(data["method"].as_str(), Some("embedded" | "device")),
+                    400,
+                    "Unknown review method",
+                )?;
+                crate::route_review::change(&report, &data)?
+            }
         };
         return Ok(json(
             core.store.save_route_review(value, revision.unwrap())?,

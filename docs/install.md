@@ -44,6 +44,13 @@ commands, then restart without `--no-execution`. `[execution] enabled = false` o
 `NUDGETHIS_DISABLE_EXECUTION=1` also disables execution; remove that setting deliberately.
 NudgeThis does not install or authenticate agents, change their accounts or modify global Git settings.
 
+For **Device browser**, install Chrome, Edge or Chromium. Workspace setup and `doctor`
+check common executable locations without starting a browser. If necessary, set
+`NUDGETHIS_BROWSER_PATH` to its absolute executable path in the server's environment and
+restart NudgeThis. The embedded layout preview does not require a separate browser process.
+Device review opens an isolated temporary profile; see the
+[device browser guide](https://github.com/gerardoyxy/nudgethis/blob/main/docs/route-review.md#device-browser).
+
 ## Updating
 
 Stop the running service with `devreview stop` or Ctrl+C. Back up `.devreview/` while the

@@ -89,3 +89,13 @@ application's own JavaScript can run; no agent is launched. The origin must be c
 Cross-origin frames cannot reliably report page failures, redirects or authentication state.
 Coverage is a human record, not automated validation. Reports include local routes, notes,
 source hints and timestamps; inspect them before sharing.
+
+Device browser explicitly launches an installed Chromium browser with an owned temporary
+profile and loopback-only remote debugging. It does not attach to existing user profiles,
+inject the NudgeThis token into pages, expose arbitrary CDP commands or read page text.
+The local app may make its own network requests and follow redirects. Automatic review
+confirmation checks the requested route; it is not a network sandbox. The debugging port
+has no separate token and must remain local. Other processes under the local account are
+trusted. Profile data can include login cookies until close; graceful shutdown removes it
+after stopping the process. Abrupt crashes may leave profile directories for manual cleanup.
+`NUDGETHIS_BROWSER_PATH` is trusted server environment configuration, never browser input.
