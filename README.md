@@ -12,7 +12,8 @@ changes to your branch, without automatic commits or pushes.
 The project and repository are **NudgeThis**. Its English [static landing](apps/site/README.md)
 builds with `npm run build:site` and is published at [nudgethis.click](https://nudgethis.click/).
 [Publication setup](docs/landing.md). The CLI still uses `devreview` for compatibility.
-The current alpha is on `feat/typescript-rust-agent-runtime`, pending integration into `main`.
+The current source alpha is maintained on `main`. See the [roadmap](ROADMAP.md) for
+implemented capabilities, release requirements and planned features.
 
 ## Build and try
 
@@ -24,7 +25,7 @@ Your configured agent or application may independently require Node.
 Build requirements: Git, Node.js 24.15+, stable Rust and a C compiler for bundled SQLite.
 
 ```bash
-git clone --branch feat/typescript-rust-agent-runtime https://github.com/gerardoyxy/nudgethis.git
+git clone https://github.com/gerardoyxy/nudgethis.git
 cd nudgethis
 npm ci
 npm run build
@@ -154,8 +155,8 @@ styles stay inside DevReview's Shadow DOM and do not restyle the inspected appli
 
 The default blue identity is shared by the landing, dashboard and overlay: self-hosted
 Archivo, fine borders and compact controls. Saved custom themes keep their own colors and fonts.
-The redesign follows [Impeccable](https://github.com/pbakaus/impeccable) and the approved blue
-reference. [Design system](DESIGN.md) · [Design decisions](docs/design.es.md).
+Design work used [Impeccable](https://github.com/pbakaus/impeccable).
+[Design system](DESIGN.md) · [Appearance details](docs/design.es.md).
 
 ## Git and persistence
 
@@ -189,7 +190,7 @@ from `devreview.toml`; if you override `start --port`, update the config for CLI
 
 This remains an alpha. Screenshots, stable element identity, safe Undo, framework source
 mapping, automatic rebase and post-HMR visual verification are future work. The
-[72-item roadmap audit](docs/roadmap-review.es.md) distinguishes implemented and planned work.
+[roadmap](ROADMAP.md) distinguishes implemented capabilities from release work and future features.
 Tests use deterministic agents and do not certify every provider. ACP and custom agents must
 supply their own filesystem/network sandbox; a Git worktree is not an OS sandbox.
 

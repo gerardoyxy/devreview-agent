@@ -3,7 +3,7 @@
 An English static landing for the NudgeThis brand. The application UI and repository share the NudgeThis name;
 CLI identifiers remain DevReview for compatibility. This site does not rename CLI commands, connect to a
 local application, or invoke agents. It introduces the current alpha honestly and
-links to the branch containing the Rust implementation.
+links to the source alpha on `main`.
 
 ## Build
 
@@ -25,7 +25,7 @@ to support a custom domain, a `pages.dev` address, or a GitHub project subpath.
 
 ## Design and assets
 
-The approved blue Reference desk direction is shared with the application. The landing
+The blue design system is shared with the application. The landing
 uses a 45/55 split hero, large Archivo lettering, fine borders, and a connected browser
 and conversation example. The application adapts the same identity to compact working UI.
 See [the design system](../../DESIGN.md).
@@ -51,9 +51,7 @@ See [publication instructions](../../docs/landing.md) for GitHub Pages with the 
 
 ## Deployment
 
-The Landing workflow builds every matching push/PR. Only a push to
-`feat/typescript-rust-agent-runtime` publishes `dist/site` to GitHub Pages.
-The `github-pages` environment permits that branch explicitly. The custom
-domain is `nudgethis.click`; Namecheap DNS must point to GitHub for it to resolve.
-When the migration is merged, update the workflow conditions and environment
-branch policy to `main` before expecting automatic production deployments there.
+The Landing workflow builds matching pull requests and pushes to `main`.
+Only `main` publishes `dist/site` to GitHub Pages, through the branch-restricted
+`github-pages` environment. A manual workflow run on `main` can rebuild the site.
+The production domain is `nudgethis.click`. See [deployment instructions](../../docs/landing.md).
