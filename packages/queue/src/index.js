@@ -64,11 +64,12 @@ export class TaskQueue {
       });
     }
   }
-  async message(id, content) {
+  async message(id, content, attempt) {
     return this.control(async () => {
       assert(!this.stopped, 'Server is stopping', 503);
       assert(typeof content === 'string' && content.trim() && content.length <= 8000, 'Message must contain 1–8000 characters');
       const task = this.store.get(id);
+      assert(attempt === undefined || attempt === task.attempt, 'This task has a newer version. Review it before continuing.', 409);
       assert(!this.active.has(id) && ['ready', 'awaiting_feedback', 'failed', 'cancelled', 'applied', 'rejected'].includes(task.status),
         'Wait for the agent to finish, or retry a conflicting task before sending a follow-up.', 409);
       let fresh = ['applied', 'rejected'].includes(task.status);
@@ -85,9 +86,10 @@ export class TaskQueue {
       this.pump(); return this.store.details(id);
     });
   }
-  async action(id, action) {
+  async action(id, action, attempt) {
     return this.control(async () => {
       const task = this.store.get(id);
+      assert(attempt === undefined || attempt === task.attempt, 'This task has a newer version. Review it before continuing.', 409);
       const active = this.active.get(id);
       if (action === 'cancel') {
         assert(['pending', 'analyzing', 'working', 'validating'].includes(task.status), 'Task cannot be cancelled in its current state', 409);
