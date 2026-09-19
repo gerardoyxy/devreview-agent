@@ -7,16 +7,16 @@ The personal repository is `gerardoyxy/devreview-agent`; do not switch or reuse
 
 ## Current status
 
-The approved blue landing is implemented. The `Landing` workflow builds a review
-artifact for matching pushes and pull requests, and publishes `dist/site` only
-on pushes to `feat/typescript-rust-agent-runtime`. The `github-pages` environment
-is restricted to that branch. The custom domain is `nudgethis.click`; activation
-requires the DNS records below and GitHub certificate provisioning.
+The blue landing is published at **https://nudgethis.click/**. The `Landing`
+workflow builds a review artifact for matching pushes and pull requests, and
+publishes `dist/site` only on pushes to `feat/typescript-rust-agent-runtime`.
+The `github-pages` environment is restricted to that branch.
 
-Public DNS checked on September 18, 2026 pointed the apex to
-`162.255.119.84` and `www` to `parkingpage.namecheap.com`. The authoritative
-nameservers are Namecheap's `dns1.registrar-servers.com` and
-`dns2.registrar-servers.com`.
+On September 19, 2026, GitHub validated the apex and `www` DNS records, approved
+a certificate for both names, and HTTPS enforcement was enabled. The HTTPS
+landing returned HTTP 200; HTTPS `www` redirected to the apex. Namecheap remains
+the DNS provider, using `dns1.registrar-servers.com` and
+`dns2.registrar-servers.com`. The records below describe the active setup.
 
 ## Build and review
 
