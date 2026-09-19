@@ -179,9 +179,9 @@ export function createMyStyle(mount: HTMLElement | ShadowRoot, api: Api, onApply
     if(target==='element'&&!context){status('Select an element in your page first, or choose a page or project.',true);return;}
     if(target==='page'&&(!path.startsWith('/')||path.startsWith('//')||/[?#\\\s]/.test(path))){status('Enter a page path such as /settings, without a query or fragment.',true);return;}
     if(!await mutate('publish',{profileId:draft.id}))return;
-    const area=target==='element'?'the selected element':target==='page'?`the page at ${path}`:'the frontend across this project';
+    const area=target==='element'?(context?.elements ? `all ${context.elements.length} selected elements` : 'the selected element'):target==='page'?`the page at ${path}`:'the frontend across this project';
     ui.dialog.close();onApply({request:`Apply my style “${draft.name}” (v${draft.version}) to ${area}. Use the attached style instructions. Preserve functionality and content, reuse the existing design system where possible, and check desktop and mobile layouts. Explain any conflicts before changing them.`,...(target==='element'&&context?{context}:{}),contextIds:[`my-${draft.id}`]});
   };
   $('.ms-example-button').onclick=()=>status('This is a style preview. Use Apply my style to prepare a project change.');$('.ms-example-link').onclick=e=>{e.preventDefault();status('This is an example link in your style preview.');};
-  return {async open(selected?: ElementContext){context=selected;$<HTMLOptionElement>('#ms-scope option[value="element"]').disabled=!context;$<HTMLSelectElement>('#ms-scope').value=context?'element':'project';$<HTMLInputElement>('#ms-page').value=context?.route||'';scope();if(!ui.dialog.open)ui.dialog.showModal();await load();},destroy:ui.destroy};
+  return {async open(selected?: ElementContext){context=selected;$<HTMLOptionElement>('#ms-scope option[value="element"]').textContent=context?.elements ? `Selected elements (${context.elements.length})` : 'Selected element';$<HTMLOptionElement>('#ms-scope option[value="element"]').disabled=!context;$<HTMLSelectElement>('#ms-scope').value=context?'element':'project';$<HTMLInputElement>('#ms-page').value=context?.route||'';scope();if(!ui.dialog.open)ui.dialog.showModal();await load();},destroy:ui.destroy};
 }

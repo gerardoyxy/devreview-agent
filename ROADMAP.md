@@ -1,6 +1,6 @@
 # NudgeThis roadmap
 
-Version `0.5.0-alpha.1` is an experimental application preview, available as native archives
+Version `0.6.0-alpha.1` is an experimental application preview, available as native archives
 with release notes and SHA-256 checksums.
 This preview includes the local welcome, project starters, owned previews and guided Git/GitHub workflows.
 A working feature or passing application test does not certify an agent or a production deployment.
@@ -38,6 +38,9 @@ A working feature or passing application test does not certify an agent or a pro
   picking, a gesture test area, and persistent selection preferences synchronized across windows.
 - Parent/child/sibling selection, minimized context and conservative reidentification of
   unique matching targets. Source hints are explicitly unverified; Copy context remains available.
+- Multiple selection by click/tap, an extra configurable modifier, or a dragged area.
+  Review and remove up to 20 elements before creating one conversation. Group context
+  persists in drafts and revisions, appears in review, and is included in Copy context.
 - Persistent instructions, text skills and documents with immutable task snapshots. Importing
   text does not install executable skills, plugins or referenced tools.
 - Custom light/dark palettes, semantic colors, font roles, local WOFF/WOFF2, sizing, radius

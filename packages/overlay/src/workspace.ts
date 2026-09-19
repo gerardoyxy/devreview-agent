@@ -1,4 +1,5 @@
 import { createContextPicker, contextStyles } from './project-context.js';
+import { renderElementContext } from './context.js';
 import type { Api, Diagnostics, ServerStatus, Task, TaskKind, ElementContext } from '../../contracts/src/index.js';
 import { errorMessage, query } from '../../contracts/src/index.js';
 
@@ -14,6 +15,7 @@ export function shell(mount: HTMLElement | ShadowRoot, title: string) {
 export function createTaskComposer(mount: HTMLElement | ShadowRoot, api: Api, onSaved: (task: Task) => void) {
   const ui = shell(mount, 'New change'), form = element('form');
   form.innerHTML = `<p>Describe a change to your interface, backend, tests or documentation. Selecting a page element is optional.</p><div class="nt-workspace-grid"><div><label for="nt-kind">Change type</label><select id="nt-kind"><option value="general">General</option><option value="frontend">Frontend</option><option value="backend">Backend</option><option value="tests">Tests</option><option value="documentation">Documentation</option></select></div><div><label for="nt-provider">Coding agent</label><select id="nt-provider" required></select></div></div><label for="nt-request">What needs to change?</label><textarea id="nt-request" required maxlength="8000" rows="5" placeholder="Describe the result you want and any constraints…"></textarea><label for="nt-files">File references (optional)</label><textarea id="nt-files" rows="2" placeholder="src/api/users.ts&#10;tests/users.test.ts" aria-describedby="nt-files-hint"></textarea><p id="nt-files-hint">One repository-relative path per line, up to 32. References guide the request; they are not an edit allowlist.</p><div class="nt-context"></div><p class="nt-mode nt-workspace-note"></p><p class="nt-workspace-error" role="alert" hidden></p><div class="nt-workspace-actions"><button type="submit" name="intent" value="draft">Save draft</button><button class="primary" type="submit" name="intent" value="start">Start change</button></div>`;
+  const selectedContext = element('div'); selectedContext.className = 'nt-selected-context'; form.prepend(selectedContext);
   ui.dialog.append(form);
   const $ = <E extends HTMLElement = HTMLElement>(selector: string) => query<E>(form, selector);
   const picker = createContextPicker($('.nt-context'), api);
@@ -40,6 +42,7 @@ export function createTaskComposer(mount: HTMLElement | ShadowRoot, api: Api, on
     if (seed || (!task && editing)) form.reset(); seedContext = seed?.context;
     if (seed) { $<HTMLTextAreaElement>('#nt-request').value = seed.request; $<HTMLSelectElement>('#nt-kind').value = 'frontend'; }
     editing = task; ui.heading.textContent = task ? 'Edit draft' : 'New change'; showError('');
+    selectedContext.replaceChildren(); renderElementContext(selectedContext, task?.context || seedContext);
     if (task) { $<HTMLTextAreaElement>('#nt-request').value = task.request; $<HTMLTextAreaElement>('#nt-files').value = (task.references || []).join('\n'); $<HTMLSelectElement>('#nt-kind').value = task.kind || 'general'; }
     if (!ui.dialog.open) ui.dialog.showModal();
     busy = true; controls();

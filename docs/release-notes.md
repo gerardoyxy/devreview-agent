@@ -1,38 +1,30 @@
-NudgeThis 0.5.0-alpha.1 adds a local welcome, project starters and a portable launcher,
-and brings guided branches, saved versions and GitHub publishing into the downloads.
+NudgeThis 0.6.0-alpha.1 adds multiple-element selection and area selection for shared visual changes.
 
-- Open the welcome with **Open NudgeThis.exe**, **NudgeThis.app**, the Linux launcher,
-  or `nudgethis welcome`. Running the CLI without a subcommand also opens it.
-- Start from an idea, choose a maintained starter or open an existing local folder.
-  Local rules recommend a starting stack and save the goal in Project context.
-- Review a new folder and file list before creation. HTML/CSS previews without extra
-  tools; Astro and React + TypeScript use explicitly reviewed npm operations.
-- Start, stop and restart owned previews. Preview credentials stay out of source files
-  and production builds. Removing a library entry preserves its project files.
-- Initialize local version history, review a first commit, choose a working branch,
-  save reviewed changes, publish exact commits and propose changes on GitHub.
-  Merge availability follows the repository's checks and review requirements.
-- Keep visual selection, conversations, context, route/device review, appearance,
-  My Style, guarded Apply/Undo and history from earlier releases.
+- **Select multiple** adds or removes controls with clicks or taps. A configurable extra
+  modifier works with existing mouse and keyboard shortcuts.
+- **Select area** adds visible elements inside a dragged rectangle, including touch input.
+  Nested control contents and ancestor containers are collapsed to avoid redundant targets.
+- **Review selection** shows numbered targets and lets you remove any before describing
+  one change for the group. **Add more elements** preserves the request while you keep picking.
+- Groups stay attached to drafts, conversations and historical revisions. Review, My Style
+  and Copy context include the group. Changed or ambiguous targets require reselection or removal.
+- Existing single-element integrations and saved selection preferences remain supported.
+- The website adds a branded social preview image and simplified page title.
 
-The welcome starts agents disabled. Setting up and enabling a real coding agent still
-requires local installation, authentication, configuration and a terminal launch.
-Managed preview supports the maintained static starter and npm Astro/Vite projects;
-other development servers can be started separately. Accounts, payments and shared storage
-are not preimplemented by the starter diagnosis. GitHub repository creation is not automatic.
+Groups are limited to 20 unique elements from one page and 48 KiB of minimized context.
+Area discovery inspects up to 5,000 elements in the visible viewport; it does not enter
+iframe contents or shadow roots. An oversized selection is rejected rather than silently
+reduced. Source hints remain unverified and private-content capture rules still apply.
 
-Application validation covers TypeScript, Rust formatting/Clippy, native/API persistence,
-Git operations, welcome and preview lifecycle, Chromium desktop/mobile flows and all three
-landing profiles. The React and Astro starters are installed, built for production and
-previewed using their actual frameworks. No agent, model, provider fixture or demo agent
-is run by these checks. Native packages run application checks on all four build targets.
+Application checks cover API validation, persistence and historical group context,
+clipboard minimization, gesture isolation, stale targets, desktop selection and Chromium
+touch emulation. These checks run with execution disabled, without agents or models.
 
-Archives contain the native application, launcher (a bundle on macOS), embedded frontend,
-build metadata, license and installation guide. Verify against `SHA256SUMS.txt`.
-Downloads remain unsigned, not notarized and experimental. There is no automatic updater
-or signed installer. Worktrees are not OS sandboxes and device emulation is not a physical
-phone or Safari. Real-provider behavior is outside this release's validation.
+Archives include the native application, portable launcher, embedded frontend, license,
+build metadata and installation guide. Verify downloads against `SHA256SUMS.txt`.
+This remains an unsigned, unnotarized alpha with no automatic updater. The welcome starts
+agents disabled; configuring a real coding agent still requires local setup and a terminal.
+Worktrees are not OS sandboxes. Browser emulation is not physical-device or Safari coverage.
 
-See [installation](https://github.com/gerardoyxy/nudgethis/blob/main/docs/install.md),
-[project starters](https://github.com/gerardoyxy/nudgethis/blob/main/docs/project-starter.md),
-and [branches and publishing](https://github.com/gerardoyxy/nudgethis/blob/main/docs/branch-publish.md).
+See [selection controls](https://github.com/gerardoyxy/nudgethis/blob/main/docs/selection-controls.md)
+and [installation](https://github.com/gerardoyxy/nudgethis/blob/main/docs/install.md).

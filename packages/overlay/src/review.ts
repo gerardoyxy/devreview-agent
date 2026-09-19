@@ -1,4 +1,5 @@
 import { createContextPicker, contextStyles, renderContextSnapshot } from './project-context.js';
+import { renderElementContext } from './context.js';
 import type { Api, Task, Revision } from '../../contracts/src/index.js';
 import { errorMessage, query } from '../../contracts/src/index.js';
 
@@ -101,7 +102,7 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
     task = next;
     $('.dr-state').textContent = `${task.id} · ${taskStatusLabels[task.status] || task.status} · revision ${task.attempt}${task.savedVersion ? ' · Saved in Git' : task.versionSavePending ? ' · Save needs attention' : ''}`;
     $('.dr-title').textContent = task.request;
-    $('.dr-meta').textContent = `${task.agent} · ${task.kind || 'frontend'} · ${task.context.route || 'Workspace task'}${task.context.selector ? ' · ' + task.context.selector : ''}${task.baseBranch ? ` · Branch: ${task.baseBranch}${currentBranch() !== undefined && currentBranch() !== task.baseBranch ? ' (return to this branch to apply)' : ''}` : ''}${task.snapshotIncludesLocalChanges ? ' · Includes local edits' : ''}`;
+    $('.dr-meta').textContent = `${task.agent} · ${task.kind || 'frontend'} · ${task.context.route || 'Workspace task'}${task.context.elements ? ` · ${task.context.elements.length} selected elements` : task.context.selector ? ' · ' + task.context.selector : ''}${task.baseBranch ? ` · Branch: ${task.baseBranch}${currentBranch() !== undefined && currentBranch() !== task.baseBranch ? ' (return to this branch to apply)' : ''}` : ''}${task.snapshotIncludesLocalChanges ? ' · Includes local edits' : ''}`;
     error(task.error || task.cleanupWarning);
     const log = $('.dr-messages'), stick = log.scrollHeight - log.scrollTop - log.clientHeight < 80 || !renderedMessages.size;
     for (const message of task.messages || []) {
@@ -122,7 +123,7 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
     $('.dr-files').replaceChildren(...task.files.map(file => node('div', '', file))); patch($('.dr-diff'), task.diff); $('.dr-download').hidden = !task.diff; $('.dr-diff').setAttribute('aria-label', 'Patch preview, up to 4000 lines. Download for the complete patch.');
     const reference = $('.dr-context-snapshot'); reference.querySelector('.dr-references')?.remove(); const refs = node('div', 'dr-references');
     if (task.references?.length) refs.append(node('h3', '', 'File references'), node('pre', '', task.references.join('\n')));
-    if (task.context.source) refs.append(node('h3', '', 'Source hint · unverified'), node('pre', '', task.context.source));
+    renderElementContext(refs, task.context);
     reference.append(refs);
     $('.dr-revisions').replaceChildren();
     for (const revision of task.revisions || []) {
@@ -138,7 +139,7 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
           const files = node('div', 'dr-files'); files.textContent = old.files.join(' · '); past.append(files);
           for (const check of old.validation) past.append(node('div', 'dr-check', `${check.passed ? 'Passed' : 'Failed'} ${check.command}`));
           const code = node('pre'); patch(code, old.diff); past.append(code);
-          const context = node('div'); renderContextSnapshot(context, old.projectContext); past.append(node('h3', '', 'Context used'), context);
+          const context = node('div'); renderContextSnapshot(context, old.projectContext); renderElementContext(context, old.context); past.append(node('h3', '', 'Context used'), context);
         } catch (err) { if (task?.id === id) error(errorMessage(err)); }
         finally { button.disabled = false; }
       };

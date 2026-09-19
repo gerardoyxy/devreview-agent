@@ -132,7 +132,7 @@ The snapshot is bounded and versioned by the Rust server; see the [API](api.md#p
 
 ## Manual fallback
 
-**Copy context** exports the selected element's minimized context and request as
+**Copy context** exports the selected element or group's minimized context and request as
 text, including the currently selected project context when the library is loaded. You can paste it into any agent that accepts text. It does not create a task,
 run an agent, read a remote conversation or import its reply. It works in the mounted
 overlay even without a token/server session, subject to the browser's clipboard permission.

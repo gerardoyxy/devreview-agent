@@ -2,7 +2,7 @@ import { createPreview } from './preview.js';
 import { createBranchPublish } from './branch-publish.js';
 import { createSavedVersions } from './versions.js';
 import { createMyStyle } from './my-style.js';
-import { bindSelectionInput } from './selection-input.js';
+import { createElementSelection } from './multi-selection.js';
 import { createSelectionControls, defaultSelectionControls, validSelectionControls, pointerLabel, keyboardLabel, type SelectionControls } from './selection-controls.js';
 import { createRouteReview } from './route-review.js';
 import { createTaskComposer, createDiagnostics } from './workspace.js';
@@ -11,7 +11,7 @@ import { icon } from './icons.js';
 import { brandLogo } from './brand.js';
 import { createProjectContext, createContextPicker, contextStyles } from './project-context.js';
 import { createAppearance, themeDefaults } from './appearance.js';
-import { portableContext } from './context.js';
+import { portableContext, contextElements } from './context.js';
 import type { Api, ElementContext, Task, TaskSummary, TaskEvent, ServerStatus } from '../../contracts/src/index.js';
 import { errorMessage, query } from '../../contracts/src/index.js';
 import { createTaskReview } from './review.js';
@@ -73,7 +73,7 @@ export function elementContext(element: Element, { captureDom = false } = {}): E
   const context: ElementContext = {
     url: url.href, route: url.pathname, selector, tagName: element.tagName.toLowerCase(),
     text: privateElement ? '' : (cloned.textContent || '').trim().replace(/\s+/g, ' ').slice(0, 1000),
-    testId: element.getAttribute('data-testid') || '', ariaLabel: element.getAttribute('aria-label') || '',
+    testId: element.getAttribute('data-testid') || '', ariaLabel: privateElement ? '' : element.getAttribute('aria-label') || '',
     sourceVerified: false, source: element.getAttribute('data-nudgethis-source') || '',
     boundingBox: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
     viewport: { width: innerWidth, height: innerHeight }
@@ -104,7 +104,7 @@ export function resolveElement(context: ElementContext): Element | undefined {
   } catch { return; }
 }
 
-export interface OverlayOptions { server?: string; token?: string; enabled?: boolean; modifier?: 'alt' | 'none'; selection?: Pick<SelectionControls, 'pointer' | 'keyboard'>; captureDom?: boolean }
+export interface OverlayOptions { server?: string; token?: string; enabled?: boolean; modifier?: 'alt' | 'none'; selection?: Pick<SelectionControls, 'pointer' | 'keyboard' | 'additiveModifier'>; captureDom?: boolean }
 
 export const NudgeThis = {
   init({ server = 'http://127.0.0.1:7331', token, enabled = false, modifier = 'alt', selection, captureDom = false }: OverlayOptions = {}) {
@@ -126,20 +126,21 @@ export const NudgeThis = {
     <div class="outline" hidden></div>
     <form class="panel" hidden role="dialog" aria-label="Report a QA issue">
       <div class="head"><strong>What needs to change?</strong><button class="close" type="button" aria-label="Close">${icon('close')}</button></div>
-      <div class="target"></div><div class="target-navigation"><button type="button" class="target-parent">Parent</button><button type="button" class="target-child">First child</button><button type="button" class="target-next">Next sibling</button></div><p class="target-hint" role="status"></p><label for="request">Your request</label>
+      <div class="target"></div><div class="selection-summary" hidden><ol class="selection-items"></ol><button class="edit-selection" type="button">Add more elements</button></div><div class="target-navigation"><button type="button" class="target-parent">Parent</button><button type="button" class="target-child">First child</button><button type="button" class="target-next">Next sibling</button></div><p class="target-hint" role="status"></p><label for="request">Your request</label>
       <textarea id="request" maxlength="8000" required placeholder="Make this wider, move it up, give it more space…"></textarea>
       <label for="agent">Coding agent</label><select id="agent" class="agent-select" aria-label="Coding agent"><option value="">Connect to load agents</option></select>
       <div class="capture-context"></div><p class="hint">The agent works in a separate worktree. You review before applying.</p><p class="error" role="alert" hidden></p>
       <div class="prompt-actions"><button class="style-target" type="button">My Style</button><button class="copy-context" type="button">Copy context</button><button class="save-draft" type="submit" value="draft" disabled>Save draft</button><button class="save" type="submit" value="start" disabled>Start conversation</button></div><p class="copy-status" role="status" hidden></p>
     </form>
-    <div class="overlay-tools"><button type="button" class="pick-launcher" aria-pressed="false">Pick element</button><button type="button" class="controls-launcher" aria-label="Selection controls">Controls</button><button class="launcher" type="button" aria-label="Open NudgeThis conversations">${brandLogo()}<span class="dot"></span><span class="label">NudgeThis · connecting</span></button></div><p class="pick-notice" role="status" hidden>Click or tap an element · Escape to cancel</p>
+    <div class="overlay-tools"><button type="button" class="pick-launcher" aria-pressed="false">Pick element</button><button type="button" class="multiple-launcher" aria-pressed="false">Select multiple</button><button type="button" class="area-launcher" aria-pressed="false">Select area</button><button type="button" class="controls-launcher" aria-label="Selection controls">Controls</button><button class="launcher" type="button" aria-label="Open NudgeThis conversations">${brandLogo()}<span class="dot"></span><span class="label">NudgeThis · connecting</span></button></div><p class="pick-notice" role="status" hidden>Click or tap an element · Escape to cancel</p>
     <dialog class="review-dialog" aria-label="NudgeThis conversations"><div class="review-shell"><header class="review-header"><div class="review-brand">${brandLogo()}<span>NudgeThis</span></div><div class="review-header-actions"><button type="button" class="appearance-button new-change">New change</button><button type="button" class="appearance-button branch-open">Branch &amp; publish</button><button type="button" class="appearance-button versions-open">Saved versions</button><button type="button" class="appearance-button routes-open">Routes</button><button type="button" class="appearance-button preview-open">Preview</button><button type="button" class="appearance-button workspace-setup">Setup</button><button type="button" class="appearance-button project-context-button">Project context</button><button type="button" class="appearance-button selection-open">Selection controls</button><button type="button" class="appearance-button my-style-open">My Style</button><button type="button" class="appearance-button appearance-open">Appearance</button><a class="dashboard-link" target="_blank" rel="noopener">Dashboard</a><button type="button" class="review-close" aria-label="Close conversations">${icon('close')}</button></div></header><div class="review-body"><aside class="review-sidebar"><span class="review-caption">Your changes</span><select class="review-filter" aria-label="Filter conversations"><option value="all">All changes</option><option value="page">This page</option><option value="applied">Applied changes</option></select><div class="branch-guide"></div><div class="version-reminder"></div><div class="review-task-list"></div></aside><div class="review-detail"><p class="review-empty">Your changes and their conversations live here.<br><span class="selection-hint"></span></p></div></div></div></dialog>`;
     document.documentElement.append(host);
     const $ = <E extends HTMLElement = HTMLElement>(selector: string) => query<E>(shadow, selector);
     $<HTMLAnchorElement>('.dashboard-link').href = `${server}/#token=${encodeURIComponent(token)}`;
-    const panel = $<HTMLFormElement>('.panel'), outline = $('.outline'), textarea = $<HTMLTextAreaElement>('textarea'), error = $('.error');
+    const panel = $<HTMLFormElement>('.panel'), textarea = $<HTMLTextAreaElement>('textarea'), error = $('.error');
     let agentsReady = false, executionEnabled = false, currentBranch = '', workspaceKey = '';
     let selected: Element | undefined, context: ElementContext | undefined, previousFocus: Element | null, saving = false;
+    let selectionStarted = false;
     const tasks = new Map<string, TaskSummary>(), markers = new Map<string, HTMLButtonElement>();
     const dialog = $<HTMLDialogElement>('.review-dialog');
     let selectedId: string | undefined, review: ReturnType<typeof createTaskReview> | undefined, refreshTimer: ReturnType<typeof setTimeout> | undefined, refreshSequence = 0, online = false;
@@ -182,12 +183,12 @@ export const NudgeThis = {
         if ([...select.options].some(option => option.value === previous)) select.value = previous;
         agentsReady = select.options.length > 0; executionEnabled = status.executionEnabled !== false;
         $('.hint').textContent = status.workspace && !status.workspace.ready ? 'Set up local version history in Branch & publish. You can save a draft now.' : executionEnabled ? 'Save a draft or start in a separate workspace. You review before applying.' : 'Execution is disabled. Save a draft without running anything.';
-        $<HTMLButtonElement>('.save').disabled = saving || !agentsReady || !executionEnabled;
-        $<HTMLButtonElement>('.save-draft').disabled = saving || !agentsReady;
+        syncSelection();
       } catch { agentsReady = false; $<HTMLButtonElement>('.save').disabled = true; $<HTMLButtonElement>('.save-draft').disabled = true; }
     };
     $('.copy-context').onclick = async () => {
-      if (!context) return;
+      selectionInput.refresh();
+      if (!context || !selectionInput.valid()) return;
       try {
         await navigator.clipboard.writeText(portableContext(context, textarea.value) + contextPicker.portable());
         $('.copy-status').textContent = 'Context copied. Paste it into your coding agent.'; $('.copy-status').hidden = false;
@@ -235,19 +236,10 @@ export const NudgeThis = {
     $('.review-close').onclick = () => dialog.close();
     $<HTMLSelectElement>('.review-filter').onchange = renderList;
     const position = () => {
-      if (!panel.hidden && context) {
-        if (!selected?.isConnected) selected = resolveElement(context);
-        outline.hidden = !selected;
-        $('.target-hint').textContent = !selected ? 'Target no longer matches. Select it again; your request is preserved.' : context.source ? 'Source hint supplied by this page · unverified' : 'Page element selected. Source file is not verified.';
-        $<HTMLButtonElement>('.save').disabled = saving || !agentsReady || !executionEnabled || !selected;
-      }
-      if (selected?.isConnected && !panel.hidden) {
-        const rect = selected.getBoundingClientRect();
-        Object.assign(outline.style, { left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` });
-      }
+      selectionInput.refresh();
       for (const [id, marker] of markers) {
         const task = tasks.get(id)!;
-        const target = resolveElement(task.context);
+        const target = contextElements(task.context).map(resolveElement).find(Boolean);
         marker.hidden = !target || task.context.route !== location.pathname || ['rejected', 'cancelled'].includes(task.status);
         if (target && !marker.hidden) {
           const rect = target.getBoundingClientRect();
@@ -255,25 +247,35 @@ export const NudgeThis = {
         }
       }
     };
-    const close = () => { if (saving) return; panel.hidden = true; outline.hidden = true; if (previousFocus instanceof HTMLElement) previousFocus.focus({ preventScroll: true }); };
-    const pick = (target: EventTarget | null | undefined, preserve = false) => {
-      if (!(target instanceof Element) || target === host || saving) return;
-      selected = target; previousFocus = document.activeElement; context = elementContext(target, { captureDom });
-      $('.target').textContent = context.selector || context.tagName;
-      if (!preserve && panel.hidden) textarea.value = ''; error.hidden = true; $('.copy-status').hidden = true; panel.hidden = false; outline.hidden = false;
-      const rect = target.getBoundingClientRect();
+    const close = () => { if (saving) return; panel.hidden = true; selectionInput.clear(); selectionStarted = false; if (previousFocus instanceof HTMLElement) previousFocus.focus({ preventScroll: true }); };
+    const openSelection = () => {
+      if (!selected || !context) return;
+      if (document.activeElement !== host) previousFocus = document.activeElement;
+      error.hidden = true; $('.copy-status').hidden = true; panel.hidden = false;
+      const rect = selected.getBoundingClientRect();
       panel.style.left = `${Math.max(12, Math.min(rect.left, innerWidth - 372))}px`;
-      panel.style.top = `${Math.max(12, Math.min(rect.bottom + 10, innerHeight - 440))}px`;
+      panel.style.top = `${Math.max(12, Math.min(rect.bottom + 10, innerHeight - 580))}px`;
       panel.style.maxHeight = `${innerHeight - parseFloat(panel.style.top) - 12}px`;
-      if (!preserve) void contextPicker.load();
-      $<HTMLButtonElement>('.target-parent').disabled = !target.parentElement || target.parentElement === document.documentElement;
-      $<HTMLButtonElement>('.target-child').disabled = !target.firstElementChild;
-      $<HTMLButtonElement>('.target-next').disabled = !target.nextElementSibling || target.nextElementSibling === host;
       position(); textarea.focus();
     };
-    $('.target-parent').onclick = () => pick(selected?.parentElement, true);
-    $('.target-child').onclick = () => pick(selected?.firstElementChild, true);
-    $('.target-next').onclick = () => pick(selected?.nextElementSibling, true);
+    const pick = (target?: Element | null) => { if (target && !saving) selectionInput.replace(target); };
+    $('.target-parent').onclick = () => pick(selected?.parentElement);
+    $('.target-child').onclick = () => pick(selected?.firstElementChild);
+    $('.target-next').onclick = () => pick(selected?.nextElementSibling);
+    const syncSelection = () => {
+      context = selectionInput.context(); selected = selectionInput.primary();
+      if (context && !selectionStarted) { textarea.value = ''; selectionStarted = true; void contextPicker.load(); }
+      const valid = selectionInput.valid(), count = selectionInput.count();
+      $('.target').textContent = count > 1 ? `${count} elements · one conversation` : context?.selector || context?.tagName || 'No elements selected';
+      $('.target-navigation').hidden = count !== 1;
+      $('.target-hint').textContent = !count ? 'Select at least one element.' : !valid ? 'A target no longer matches. Select it again or remove it; your request is preserved.' : count > 1 ? 'Your request applies to this entire group. Source hints are unverified.' : context?.source ? 'Source hint supplied by this page · unverified' : 'Page element selected. Source file is not verified.';
+      $<HTMLButtonElement>('.target-parent').disabled = !selected?.parentElement || selected.parentElement === document.documentElement;
+      $<HTMLButtonElement>('.target-child').disabled = !selected?.firstElementChild;
+      $<HTMLButtonElement>('.target-next').disabled = !selected?.nextElementSibling || selected.nextElementSibling === host;
+      $<HTMLButtonElement>('.save').disabled = saving || !agentsReady || !executionEnabled || !valid;
+      $<HTMLButtonElement>('.save-draft').disabled = saving || !agentsReady || !valid;
+      $<HTMLButtonElement>('.copy-context').disabled = saving || !valid;
+    };
     const keydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') close();
       if (event.key === 'Tab' && !panel.hidden && !dialog.open) {
@@ -295,11 +297,12 @@ export const NudgeThis = {
       }
       tasks.set(task.id, task);
       if (!markers.has(task.id)) { const marker = document.createElement('button'); marker.type = 'button'; marker.className = 'marker'; marker.onclick = () => void openReview(task.id); shadow.append(marker); markers.set(task.id, marker); }
-      markers.get(task.id)!.textContent = `${task.id} · ${task.status.replaceAll('_', ' ')}`; position(); renderList();
+      markers.get(task.id)!.textContent = `${task.id}${task.context.elements ? ` · ${task.context.elements.length} elements` : ''} · ${task.status.replaceAll('_', ' ')}`; position(); renderList();
       if (selectedId === task.id && dialog.open) { clearTimeout(refreshTimer); refreshTimer = setTimeout(() => void refreshReview(), 40); }
     };
     panel.addEventListener('submit', async event => {
       event.preventDefault(); if (saving || !agentsReady || !textarea.value.trim()) return;
+      selectionInput.refresh(); if (!selectionInput.valid()) return;
       const draft = (event as SubmitEvent).submitter?.getAttribute('value') !== 'start';
       if (!draft && (!executionEnabled || !selected?.isConnected)) return;
       saving = true; $<HTMLButtonElement>('.save').disabled = true; $<HTMLButtonElement>('.save-draft').disabled = true; error.hidden = true;
@@ -309,15 +312,14 @@ export const NudgeThis = {
         const data = await response.json(); if (!response.ok) throw new Error(data.error);
         update(data); saving = false; close(); await openReview(data.id);
       } catch (err) { error.textContent = errorMessage(err); error.hidden = false; }
-      finally { saving = false; $<HTMLButtonElement>('.save').disabled = !agentsReady || !executionEnabled; $<HTMLButtonElement>('.save-draft').disabled = !agentsReady; }
+      finally { saving = false; syncSelection(); }
     });
     $('.close').addEventListener('click', close);
-    const selectionInput = bindSelectionInput({
-      host, controls: () => selectionControls,
+    const selectionInput = createElementSelection({
+      host, shadow, controls: () => selectionControls,
       available: () => !saving && !shadow.querySelector('dialog[open]'),
-      select: element => pick(element),
-      armed: value => { $('.pick-launcher').setAttribute('aria-pressed', String(value)); $('.pick-launcher').textContent = value ? 'Cancel picking' : 'Pick element'; $('.pick-notice').hidden = !value; },
-      hover: element => { if (!element) { position(); if (panel.hidden) outline.hidden = true; return; } const rect = element.getBoundingClientRect(); outline.hidden = false; Object.assign(outline.style, { left: `${rect.x}px`, top: `${rect.y}px`, width: `${rect.width}px`, height: `${rect.height}px` }); }
+      capture: element => elementContext(element, { captureDom }), resolve: resolveElement,
+      onChange: syncSelection, onReview: openSelection, onPicking: () => { panel.hidden = true; }, onCancel: () => { panel.hidden = true; selectionStarted = false; }
     });
     const selectionEditor = createSelectionControls(shadow, api, value => {
       selectionControls = value; selectionInput.cancel();
@@ -325,7 +327,6 @@ export const NudgeThis = {
       if (hint) hint.textContent = `${pointerLabel(value)} to select, or use Pick element.`;
       $('.pick-launcher').title = `${pointerLabel(value)} · Focused element: ${keyboardLabel(value)}`;
     }, fallbackControls);
-    $('.pick-launcher').onclick = () => selectionInput.toggle();
     const openControls = () => { selectionInput.cancel(); void selectionEditor.open(); };
     $('.controls-launcher').onclick = openControls; $('.selection-open').onclick = openControls;
     if (token) void selectionEditor.load().catch(() => {});

@@ -9,8 +9,9 @@ export interface SelectionControls {
   revision: number;
   pointer: { button: number | null; modifiers: Modifier[] };
   keyboard: { code: string; modifiers: Modifier[] } | null;
+  additiveModifier?: Modifier | null;
 }
-export const defaultSelectionControls = (): SelectionControls => ({ version: 1, revision: 0, pointer: { button: 2, modifiers: ['alt'] }, keyboard: { code: 'KeyD', modifiers: ['alt', 'shift'] } });
+export const defaultSelectionControls = (): SelectionControls => ({ version: 1, revision: 0, pointer: { button: 2, modifiers: ['alt'] }, keyboard: { code: 'KeyD', modifiers: ['alt', 'shift'] }, additiveModifier: 'shift' });
 const labels: Record<Modifier, string> = { control: 'Ctrl', alt: 'Alt / Option', shift: 'Shift', meta: 'Meta / Command / Windows' };
 const buttons = ['Left click', 'Middle click', 'Right click', 'Side button: Back', 'Side button: Forward'];
 export const validKey = (code: string) => /^(Key[A-Z]|Digit[0-9]|F([1-9]|1[0-2])|Space|Enter|Backquote|Minus|Equal|BracketLeft|BracketRight|Backslash|Semicolon|Quote|Comma|Period|Slash|Arrow(Up|Down|Left|Right)|Home|End|PageUp|PageDown|Insert|Delete|Backspace|Numpad([0-9]|Add|Subtract|Multiply|Divide|Decimal|Enter))$/.test(code);
@@ -20,7 +21,8 @@ export function validSelectionControls(value: unknown): value is SelectionContro
   const validModifiers = (m: unknown): m is Modifier[] => Array.isArray(m) && m.length <= 4 && new Set(m).size === m.length && m.every(k => modifiers.includes(k));
   return v.version === 1 && Number.isSafeInteger(v.revision) && v.revision >= 0 && !!v.pointer
     && (v.pointer.button === null || Number.isInteger(v.pointer.button) && v.pointer.button >= 0 && v.pointer.button <= 4)
-    && validModifiers(v.pointer.modifiers) && (v.keyboard === null || !!v.keyboard && typeof v.keyboard.code === 'string' && validKey(v.keyboard.code) && validModifiers(v.keyboard.modifiers));
+    && validModifiers(v.pointer.modifiers) && (v.keyboard === null || !!v.keyboard && typeof v.keyboard.code === 'string' && validKey(v.keyboard.code) && validModifiers(v.keyboard.modifiers))
+    && (v.additiveModifier === undefined || v.additiveModifier === null || modifiers.includes(v.additiveModifier));
 }
 export function eventModifiers(event: MouseEvent | KeyboardEvent): Modifier[] {
   return modifiers.filter(key => event[key === 'control' ? 'ctrlKey' : key === 'meta' ? 'metaKey' : key === 'alt' ? 'altKey' : 'shiftKey']);
@@ -44,6 +46,8 @@ export function createSelectionControls(mount: HTMLElement | ShadowRoot, api: Ap
     <label for="nt-selection-button">Mouse button</label><select id="nt-selection-button"><option value="-1">Off — use Pick element or the keyboard</option>${buttons.map((label, n) => `<option value="${n}">${label}</option>`).join('')}</select>
     <fieldset class="nt-selection-keys"><legend>Hold these keys</legend>${modifiers.map(m => `<label><input type="checkbox" data-modifier="${m}">${labels[m]}</label>`).join('')}</fieldset>
     <p class="nt-workspace-note" data-pointer-summary></p>
+    <label for="nt-selection-additive">Add to selection modifier</label><select id="nt-selection-additive"><option value="">Off</option>${modifiers.map(m => `<option value="${m}">${labels[m]}</option>`).join('')}</select>
+    <p>Hold this extra key with your mouse gesture or keyboard shortcut to add or remove an element. Choose a key not already used by that gesture. You can also use <strong>Select multiple</strong> to pick with clicks or taps, or <strong>Select area</strong> to drag a rectangle.</p>
     <h3>Keyboard shortcut</h3><p>Focus an element with Tab, then use your shortcut to select it. Unmodified typing keys are ignored inside text fields.</p>
     <div class="nt-selection-shortcut"><button type="button" data-record aria-label="Record keyboard shortcut"></button><button type="button" data-disable>Turn shortcut off</button></div>
     <p>Press Record, then your preferred key combination. Escape cancels recording. Some shortcuts and side buttons are reserved by your browser or operating system; test your choice below.</p>
@@ -58,6 +62,7 @@ export function createSelectionControls(mount: HTMLElement | ShadowRoot, api: Ap
   const summary = () => { $('[data-pointer-summary]').textContent = `${pointerLabel(draft)}. ${draft.pointer.button !== null && !draft.pointer.modifiers.length ? 'This replaces the normal action of that button on the inspected page.' : 'Other mouse gestures keep their normal action.'}`; };
   const render = () => {
     $<HTMLSelectElement>('#nt-selection-button').value = String(draft.pointer.button ?? -1);
+    $<HTMLSelectElement>('#nt-selection-additive').value = draft.additiveModifier === undefined ? 'shift' : draft.additiveModifier || '';
     for (const m of modifiers) $<HTMLInputElement>(`[data-modifier="${m}"]`).checked = draft.pointer.modifiers.includes(m);
     setRecording(false); summary();
   };
@@ -77,6 +82,7 @@ export function createSelectionControls(mount: HTMLElement | ShadowRoot, api: Ap
   ui.close.onclick = close; $('[data-cancel]').onclick = close;
   ui.dialog.addEventListener('cancel', event => { event.preventDefault(); if (recording) setRecording(false); else close(); });
   $<HTMLSelectElement>('#nt-selection-button').onchange = () => { const button = Number($<HTMLSelectElement>('#nt-selection-button').value); draft.pointer.button = button < 0 ? null : button; dirty = true; summary(); };
+  $<HTMLSelectElement>('#nt-selection-additive').onchange = () => { draft.additiveModifier = $<HTMLSelectElement>('#nt-selection-additive').value as Modifier || null; dirty = true; };
   for (const m of modifiers) $<HTMLInputElement>(`[data-modifier="${m}"]`).onchange = () => { draft.pointer.modifiers = modifiers.filter(key => $<HTMLInputElement>(`[data-modifier="${key}"]`).checked); dirty = true; summary(); };
   $('[data-record]').onclick = () => { setRecording(true); $('[data-record]').focus(); };
   $('[data-record]').onblur = () => setRecording(false);

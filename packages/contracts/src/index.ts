@@ -1,15 +1,18 @@
 /** Browser/API contracts shared by the TypeScript clients; exercised against the Rust HTTP API. */
 export type TaskStatus = 'draft' | 'pending' | 'analyzing' | 'preparing' | 'working' | 'validating' | 'ready' | 'awaiting_feedback' | 'undoing' | 'applying' | 'applied' | 'undone' | 'recovery_required' | 'failed' | 'conflict' | 'rejected' | 'cancelled';
 export type TaskKind = 'frontend' | 'backend' | 'tests' | 'documentation' | 'general';
-export interface ElementContext {
+export interface ElementTarget {
   url: string; route: string; selector: string; tagName: string; text: string;
   testId: string; ariaLabel: string; source: string; domSnippet?: string;
   boundingBox: { x: number; y: number; width: number; height: number };
   viewport: { width: number; height: number };
   sourceVerified?: boolean;
 }
+/** Groups include every target, including the first mirrored at the top level for older clients. */
+export interface ElementContext extends ElementTarget { elements?: ElementTarget[] }
 export interface Validation { command: string; passed: boolean; code: number; durationMs: number; output?: string }
 export interface Revision {
+  context?: ElementContext;
   projectContext?: ContextSnapshot | null;
   attempt: number; status: TaskStatus; diff: string; files: string[];
   validation: Validation[]; updatedAt: string; baseCommit: string; baseBranch: string; error?: string | null;

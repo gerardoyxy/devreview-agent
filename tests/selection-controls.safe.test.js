@@ -20,7 +20,8 @@ test('selection preferences: validation, concurrent edits, persistence and reset
     { ...original, keyboard: { code: 'F01', modifiers: [] } },
     { ...original, keyboard: undefined },
     { ...original, pointer: { modifiers: [] } },
-    { ...original, command: 'never-run-this' }
+    { ...original, command: 'never-run-this' },
+    { ...original, additiveModifier: 'command' }, { ...original, additiveModifier: [] }
   ]) assert.equal((await post(value)).status, 400);
   const saved = await post(original); assert.equal(saved.status, 200); assert.equal(saved.data.revision, 1);
   assert.equal((await post(original)).status, 409, 'A stale window must not overwrite a saved preference');
@@ -32,6 +33,11 @@ test('selection preferences: validation, concurrent edits, persistence and reset
   }
   const reset = await post({ version: 1, revision, pointer: { button: 2, modifiers: ['alt'] }, keyboard: { code: 'KeyD', modifiers: ['alt', 'shift'] } });
   assert.equal(reset.status, 200);
+  for (const additiveModifier of ['control', 'alt', 'shift', 'meta', null]) {
+    const current = (await app.api('/api/selection-controls')).data;
+    assert.equal((await post({ ...current, additiveModifier })).status, 200);
+    assert.equal((await app.api('/api/selection-controls')).data.additiveModifier, additiveModifier);
+  }
   assert.equal((await app.api('/api/status')).data.executionEnabled, false);
   assert.deepEqual((await app.api('/api/tasks')).data, []);
 });

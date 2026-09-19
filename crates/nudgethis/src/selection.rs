@@ -11,6 +11,8 @@ struct Controls {
     revision: u64,
     pointer: Pointer,
     keyboard: Option<Keyboard>,
+    #[serde(default, rename = "additiveModifier")]
+    additive_modifier: Option<String>,
 }
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -40,6 +42,14 @@ pub fn validate(value: &Value) -> Result<()> {
     let parsed = serde_json::from_value::<Controls>(value.clone());
     check(parsed.is_ok(), 400, "Invalid selection controls")?;
     let controls = parsed?;
+    check(
+        controls
+            .additive_modifier
+            .as_deref()
+            .is_none_or(|value| matches!(value, "alt" | "control" | "shift" | "meta")),
+        400,
+        "Choose a modifier for adding elements, or disable it",
+    )?;
     check(
         controls.version == 1 && controls.revision < 9_007_199_254_740_991,
         400,

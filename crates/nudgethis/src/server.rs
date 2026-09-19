@@ -487,7 +487,7 @@ async fn route(app: &App, req: Request) -> Result<Response, ApiError> {
             return Ok((
                 StatusCode::ACCEPTED,
                 Json(
-                    core.submit(validate_input(body(req, 32768).await?)?)
+                    core.submit(validate_input(body(req, 131072).await?)?)
                         .await?,
                 ),
             )
@@ -516,7 +516,7 @@ async fn route(app: &App, req: Request) -> Result<Response, ApiError> {
             return Ok(json(core.store.revision(id, attempt?)?));
         }
         if parts.len() == 4 && method == Method::POST {
-            let data = body(req, 32768).await?;
+            let data = body(req, if parts[3] == "draft" { 131072 } else { 32768 }).await?;
             check(
                 data.get("attempt")
                     .is_none_or(|a| a.as_u64().is_some_and(|n| n > 0)),

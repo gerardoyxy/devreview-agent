@@ -57,7 +57,17 @@ Use `Content-Type: application/json` for POST, and `{}` for actions. A task body
 URLs are stripped of credentials, query strings and fragments. Extra fields are
 ignored; the server does not accept executable commands or a repository root from task bodies.
 Optional `references` are safe relative file hints, not an allowlist or file-reading request.
-Payloads are limited to 32 KB. A conflict or invalid lifecycle action returns 409.
+Task creation and draft edits accept up to 128 KiB; other task action payloads are
+limited to 32 KiB. A conflict or invalid lifecycle action returns 409.
+
+For a group, provide `context.elements`, a flat array of 1–20 element context objects
+with the same fields as the single-target example. Every member needs a unique nonempty
+selector, tag name and HTTP(S) URL. All sanitized URLs must identify the same page.
+The returned top-level context mirrors the first member for compatibility; `elements`
+contains the entire group, including that first member. Single-target requests remain valid.
+The server strips credentials, queries and fragments from every URL, bounds each field,
+rejects nested groups and limits the complete normalized context to 48 KiB. Source hints
+remain unverified. Draft edits, task details and historical revisions preserve the group.
 
 SSE uses `fetch` with the authorization header, rather than putting a token in
 an EventSource URL. Reconnect clients should refetch `/api/tasks`; SSE is an update
@@ -84,6 +94,17 @@ earlier replies that were never stored cannot be reconstructed.
 Each historical revision includes its attempt number, status, diff, files,
 validation results, base commit/branch and timestamp. Historical revisions are
 read-only. There is no endpoint that applies an obsolete revision.
+
+## Selection controls
+
+GET `/api/selection-controls` returns saved controls, or `null` before the first save.
+POST a complete version-1 preference with the current `revision`, `pointer` (button and
+modifiers), `keyboard` (code and modifiers, or `null`) and optional `additiveModifier`.
+The extra modifier accepts `control`, `alt`, `shift`, `meta` or `null` to disable it;
+older preferences that omit it use Shift in the client. Pointer and keyboard behavior
+remain unchanged when their existing modifiers already contain this key. Successful
+saves increment the revision and broadcast `selection-controls`; stale saves return 409.
+See [selection controls](selection-controls.md) for gestures and group limits.
 
 ## Project context
 

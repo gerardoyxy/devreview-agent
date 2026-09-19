@@ -13,7 +13,7 @@ changes to your branch, without automatic commits or pushes.
 
 ## Start without a project
 
-Download the [portable alpha](https://github.com/gerardoyxy/nudgethis/releases/tag/v0.5.0-alpha.1),
+Download the [portable alpha](https://github.com/gerardoyxy/nudgethis/releases/tag/v0.6.0-alpha.1),
 extract it and open NudgeThis. Choose **Start from an idea**, **Use a starter** or
 **Open a project**. The local welcome helps choose HTML/CSS, Astro or React + TypeScript,
 records your goals in Project context and creates a fresh folder after review.
@@ -119,6 +119,12 @@ choose your mouse button, modifiers and keyboard shortcut. Preferences persist l
 for this repository and update connected overlays. See [selection controls](docs/selection-controls.md).
 Set `modifier: 'none'` for ordinary right-click before preferences are saved. Select an agent and start a conversation, or use **Copy context**
 to paste the minimized request into any agent that accepts text.
+
+Use **Select multiple** to add or remove elements with clicks or taps, or **Select area**
+to drag a rectangle around visible elements. **Review selection** lets you remove targets
+and describe one change for the group, such as “give these three buttons the same size.”
+The group stays attached to its conversation, draft and history. Up to 20 elements can be
+selected on one page. See [selection controls](docs/selection-controls.md#select-a-group).
 
 ## Conversations and review
 
@@ -253,7 +259,7 @@ from `nudgethis.toml`; if you override `start --port`, update the config for CLI
 
 ## Limits and development
 
-This remains an alpha. Screenshots, framework-verified source mapping, multi-select,
+This remains an alpha. Screenshots, framework-verified source mapping,
 automatic rebase, post-HMR visual verification and native provider resume remain future work.
 Element reidentification is conservative: changed or ambiguous targets require selection again.
 The [roadmap](ROADMAP.md) distinguishes implemented behavior from remaining work.

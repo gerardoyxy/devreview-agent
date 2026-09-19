@@ -682,61 +682,7 @@ pub fn validate_input(input: Value) -> Result<Value> {
         400,
         "Use up to 8000 characters for the request",
     )?;
-    let source = &input["context"];
-    check(
-        source.is_null() || source.is_object(),
-        400,
-        "Invalid element context",
-    )?;
-    let mut context = json!({"sourceVerified":false});
-    for (key, max) in [
-        ("url", 2000),
-        ("route", 1000),
-        ("selector", 1000),
-        ("tagName", 80),
-        ("text", 1000),
-        ("testId", 200),
-        ("ariaLabel", 200),
-        ("source", 1000),
-        ("domSnippet", 4000),
-    ] {
-        context[key] = source[key]
-            .as_str()
-            .unwrap_or("")
-            .chars()
-            .take(max)
-            .collect::<String>()
-            .into();
-    }
-    if context["url"] != "" {
-        let url = url::Url::parse(context["url"].as_str().unwrap());
-        check(url.is_ok(), 400, "A valid HTTP page URL is required")?;
-        let mut url = url?;
-        check(
-            matches!(url.scheme(), "http" | "https"),
-            400,
-            "A valid HTTP page URL is required",
-        )?;
-        let _ = url.set_username("");
-        let _ = url.set_password(None);
-        url.set_query(None);
-        url.set_fragment(None);
-        context["url"] = url.as_str().into();
-        context["route"] = url.path().into();
-    }
-    for (key, fields) in [
-        ("viewport", vec!["width", "height"]),
-        ("boundingBox", vec!["x", "y", "width", "height"]),
-    ] {
-        context[key] = json!({});
-        for field in fields {
-            context[key][field] = source[key][field]
-                .as_f64()
-                .unwrap_or(0.)
-                .clamp(-100_000., 100_000.)
-                .into();
-        }
-    }
+    let context = crate::element_context::normalize(&input["context"])?;
     let mut references = vec![];
     if let Some(files) = input.get("references") {
         check(

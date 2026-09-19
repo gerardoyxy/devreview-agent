@@ -4,6 +4,40 @@ Open **Selection controls** from the dashboard toolbar, the page overlay's **Con
 button, or its conversations window. Selection only opens a request; it never starts an
 agent or applies a code change.
 
+## Select a group
+
+1. Choose **Select multiple** in the page overlay, then click or tap each element.
+   Selecting it again removes it. Nested text or icons inside a control select that control.
+2. Or choose **Select area** and drag a rectangle in either direction. Fully enclosed,
+   visible elements are added to the group. Nested button contents and ancestor containers
+   are collapsed to avoid redundant targets. On touch screens, drag with one finger.
+3. Inspect the numbered outlines and selection list. Remove individual targets, clear the
+   group, or choose **Review selection**. **Add more elements** returns to picking while
+   preserving your request.
+4. Describe the shared change, then copy the context, save a draft or start one conversation.
+   The same group appears under **Context used** and in saved task revisions. My Style can
+   also prepare a request for the selected group.
+
+**Add to selection modifier** controls an extra key used with your existing mouse gesture
+or keyboard shortcut. The default is Shift: with the default mouse gesture, use
+Alt + Shift + right-click. If a shortcut already uses the extra key, it remains a single
+selection shortcut; choose a different extra modifier or use **Select multiple**.
+Choosing **Off** disables only the extra-key gesture. Saved controls synchronize across windows.
+
+Escape or leaving the window cancels picking or an unfinished rectangle; the existing
+group remains available for review. **Cancel** in the selection list clears the group.
+Selection gestures consume their associated clicks so they do not activate the inspected app.
+
+Groups contain up to 20 unique targets from one page, with at most 48 KiB of minimized
+browser context. Area discovery inspects at most 5,000 elements. An oversized area is
+rejected with an explanation; narrow it or pick individual elements. Area selection uses
+the visible viewport and does not enter iframe contents or shadow roots. Scroll between
+selections as needed. Changed or ambiguous targets must be selected again or removed
+before sending. Passwords, field values and private DOM content follow the same capture
+rules as individual selections.
+
+## Mouse and keyboard preferences
+
 - Choose left, middle, right, Back or Forward mouse button, or turn the mouse gesture off.
 - Combine the button with any combination of Ctrl, Alt/Option, Shift and Meta/Command/Windows.
   The combination must match exactly. With no modifiers, the selected button replaces its
