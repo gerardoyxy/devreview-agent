@@ -30,14 +30,23 @@ export class TaskQueue {
   async execute(task, signal) {
     try {
       this.store.update(task.id, { status: 'analyzing' });
-      const cwd = await this.repository.prepare(task);
+      const cwd = task.continueWorktree ? await this.repository.continue(task) : await this.repository.prepare(task);
       signal.throwIfAborted();
       this.store.update(task.id, { status: 'working' });
-      const result = await this.agent.run({ task, cwd, signal });
+      let messageCount = 0;
+      const onMessage = text => {
+        if (signal.aborted || typeof text !== 'string' || !text.trim()) return;
+        this.store.addMessage(task.id, 'assistant', text.slice(0, 32000)); messageCount++;
+      };
+      const result = await this.agent.run({ task: { ...task, messages: this.store.messages(task.id) }, cwd, signal, onMessage });
       signal.throwIfAborted();
+      if (!messageCount && result.message) onMessage(result.message);
       this.store.update(task.id, { output: result.output || '', agentErrors: result.stderr || '' });
       const patch = await this.repository.collect(task);
-      assert(patch.diff, 'The agent produced no changes', 409);
+      if (!patch.diff) {
+        this.store.update(task.id, { ...patch, status: messageCount ? 'awaiting_feedback' : 'failed', error: messageCount ? null : 'The agent produced no changes or response' });
+        return;
+      }
       this.store.update(task.id, { ...patch, status: 'validating' });
       const validation = await validate(this.commands, cwd, {
         signal, timeout: this.validationTimeout,
@@ -54,6 +63,27 @@ export class TaskQueue {
         ...(error.result ? { output: error.result.stdout, agentErrors: error.result.stderr } : {})
       });
     }
+  }
+  async message(id, content) {
+    return this.control(async () => {
+      assert(!this.stopped, 'Server is stopping', 503);
+      assert(typeof content === 'string' && content.trim() && content.length <= 8000, 'Message must contain 1–8000 characters');
+      const task = this.store.get(id);
+      assert(!this.active.has(id) && ['ready', 'awaiting_feedback', 'failed', 'cancelled', 'applied', 'rejected'].includes(task.status),
+        'Wait for the agent to finish, or retry a conflicting task before sending a follow-up.', 409);
+      let fresh = ['applied', 'rejected'].includes(task.status);
+      if (!fresh) {
+        try { await this.repository.continue(task); }
+        catch (error) { if (error.code !== 'ENOENT') throw error; fresh = true; }
+      }
+      const snapshot = fresh ? await this.repository.snapshot() : {};
+      this.store.archive(task);
+      this.store.update(id, { ...snapshot, attempt: task.attempt + 1, continueWorktree: !fresh,
+        diff: '', files: [], validation: [], output: '', agentErrors: '', error: null, cleanupWarning: null });
+      this.store.addMessage(id, 'user', content.trim());
+      this.store.update(id, { status: 'pending' });
+      this.pump(); return this.store.details(id);
+    });
   }
   async action(id, action) {
     return this.control(async () => {
@@ -76,10 +106,11 @@ export class TaskQueue {
         try { await this.repository.cleanup(id); }
         catch (error) { this.store.update(id, { cleanupWarning: error.message }); }
       } else if (action === 'retry') {
-        assert(['failed', 'conflict', 'cancelled', 'rejected', 'ready'].includes(task.status), 'Task cannot be retried in its current state', 409);
+        assert(['failed', 'conflict', 'cancelled', 'rejected', 'ready', 'awaiting_feedback'].includes(task.status), 'Task cannot be retried in its current state', 409);
         const snapshot = await this.repository.snapshot();
         await this.repository.cleanup(id);
-        this.store.update(id, { ...snapshot, status: 'pending', attempt: task.attempt + 1, error: null, diff: '', files: [], validation: [], output: '', agentErrors: '', cleanupWarning: null });
+        this.store.archive(task);
+        this.store.update(id, { ...snapshot, continueWorktree: false, status: 'pending', attempt: task.attempt + 1, error: null, diff: '', files: [], validation: [], output: '', agentErrors: '', cleanupWarning: null });
         this.pump();
       } else if (action === 'reject' || action === 'delete') {
         assert(!['applied', 'applying'].includes(task.status), 'An applied task cannot be rejected or deleted', 409);

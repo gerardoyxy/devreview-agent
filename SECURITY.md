@@ -26,14 +26,16 @@ you trust and under your own operating-system account.
 ## Context and privacy
 
 The core has no telemetry. SQLite, patches, audit entries and process output stay
-local. The coding agent may send selected page context and source to its provider
+local, including conversation history and older patch versions. The coding agent may send selected page context and source to its provider
 using your configured account. Treat agent logs and diffs as potentially sensitive.
 
 The overlay omits form values and strips URL queries/fragments. DOM snippets are
 off by default. Add `data-devreview-private` around content that should be excluded
 from text/snippet capture. This is data minimization, not a complete secret scanner;
 visible text, selectors, attributes and source files may still contain sensitive data.
-Screenshots are not captured in this alpha.
+Screenshots are not captured in this alpha. Conversation text is rendered as text,
+not executable HTML. Only the server can append an assistant message. A new message
+cannot apply code; the current validated patch still requires explicit Apply.
 
 ## Reporting vulnerabilities
 

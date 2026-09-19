@@ -6,6 +6,21 @@ Mantén pulsada **Alt** y haz clic derecho en un elemento, describe el cambio y 
 revisando. El agente trabaja en un worktree separado. DevReview ejecuta las
 validaciones configuradas y muestra el diff. Tú decides cuándo aplicarlo.
 
+Cada cambio tiene su propia conversación en una ventana dentro de tu aplicación:
+
+- **Conversation:** solicitudes, respuestas del agente y ajustes posteriores.
+- **Changes:** archivos, diff actual y resultados de validación.
+- **History:** versiones anteriores del cambio y registro de actividad.
+
+Puedes cerrar la ventana y volver desde el botón DevReview o la etiqueta del
+elemento. El historial queda guardado localmente, incluso después de reiniciar.
+Durante una ejecución puedes preparar tu respuesta; se envía cuando termina ese
+turno. Los ajustes conservan el trabajo anterior y vuelven a validarlo. Si ya
+aplicaste un cambio, guarda un commit antes de continuar esa conversación.
+
+El chat se comunica con el agente de Codex CLI de esa tarea. No se conecta a una
+conversación abierta de Codex App.
+
 ## Prueba local
 
 Necesitas Node.js 24.15 o posterior y Git:
@@ -18,7 +33,8 @@ npm run demo
 
 Abre los enlaces de la terminal. Reporta el botón **Add teammate** solicitando
 alineación a la derecha en escritorio y ancho completo en móvil. Revisa el diff y
-pulsa **Apply**. La demo usa un cambio CSS predefinido, un repositorio temporal y
+pulsa **Apply**. Puedes enviar un segundo mensaje para probar el ajuste predefinido
+de las esquinas del botón. La demo usa cambios CSS predefinidos, un repositorio temporal y
 ninguna llamada a modelos. Ctrl+C la detiene y elimina su repositorio temporal.
 
 Para corregir tu propia aplicación, instala y autentica Codex CLI, ejecuta

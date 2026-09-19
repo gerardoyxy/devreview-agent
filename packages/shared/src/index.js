@@ -43,7 +43,7 @@ export function validateInput(input) {
 
 // Arguments and stdin are separate. Browser comments never become shell commands.
 export function run(command, args = [], options = {}) {
-  const { cwd, input, signal, timeout = 120000, shell = false, maxOutput = 2 * 1024 * 1024, env } = options;
+  const { cwd, input, signal, timeout = 120000, shell = false, maxOutput = 2 * 1024 * 1024, env, onStdout } = options;
   return new Promise((resolve, reject) => {
     if (signal?.aborted) return reject(new AppError('Cancelled', 409));
     const child = spawn(command, args, { cwd, shell, env, windowsHide: true,
@@ -66,7 +66,10 @@ export function run(command, args = [], options = {}) {
     signal?.addEventListener('abort', abort, { once: true });
     const append = (which, chunk) => {
       if (stdout.length + stderr.length + chunk.length > maxOutput) return stop('Command output exceeded limit');
-      if (which === 'stdout') stdout += chunk; else stderr += chunk;
+      if (which === 'stdout') {
+        stdout += chunk;
+        try { onStdout?.(chunk); } catch (error) { stop(`Output handler failed: ${error.message}`); }
+      } else stderr += chunk;
     };
     child.stdout.setEncoding('utf8'); child.stderr.setEncoding('utf8');
     child.stdout.on('data', chunk => append('stdout', chunk));
