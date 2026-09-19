@@ -19,34 +19,83 @@ target the build platform. Build from source for platforms without a matching ar
 2. Verify its SHA-256 checksum before extracting. On Linux use `sha256sum <archive>`;
    on macOS use `shasum -a 256 <archive>`; in PowerShell use
    `Get-FileHash .\<archive> -Algorithm SHA256`. Compare the entire hash with the matching line.
-3. Extract into a directory you own. The archive contains `nudgethis` or `nudgethis.exe`,
-   the license, build metadata and these instructions. Keep it there or add the directory to PATH.
-4. Install Git. The compiled app does not require Node or Rust. Your project, package manager
-   and chosen coding agent have their own requirements.
+3. Extract into a folder you own. Keep all files together.
+4. Open **Open NudgeThis.exe** on Windows, **NudgeThis.app** on macOS, or the
+   **Open NudgeThis** executable on Linux. Linux file managers may ask you to choose
+   “Run”; an executable permission and a graphical desktop with `xdg-open` are required.
+5. Your browser opens the local welcome. Choose **Start from an idea**, **Use a starter**
+   or **Open a project**. No GitHub account or existing repository is required.
 
-From your application's repository root:
+Unsigned downloads can be blocked by your operating system. Verify the release and checksum,
+then use the operating system's normal per-application approval flow if you trust the download.
+Do not disable system-wide security protections. The macOS bundle is not notarized; the
+portable Windows launcher is not a signed installer. This is still an alpha onboarding path.
+
+## Start your first project
+
+The welcome asks about your goal, audience, data needs and optional accounts or payments.
+Recommendations use local rules; no model is called. Review the starter, destination and
+file list before creating a new folder. Your decisions become **Project context**.
+
+| Starter | Additional requirements | Preview |
+| --- | --- | --- |
+| Simple website | None | Built-in Rust file server |
+| Content website | Node.js 22.12+ and npm | Astro development server |
+| Interactive app | Node.js 22.12+ and npm | React + TypeScript + Vite |
+
+Accounts, payments and shared storage are planning choices, not completed features. The
+React checklist is example data in memory. Node/Rust are not required to run the compiled
+NudgeThis application. Projects and agents may have separate dependencies.
+
+After creating a project, choose **Open workspace & preview**. **Project preview** reviews
+installation or startup before it runs. It can stop and restart the processes it owns.
+Dependency installation uses npm with lifecycle scripts disabled and never installs globally.
+A project requiring install scripts may need manual setup. Managed preview currently supports
+maintained website starters and npm-based Astro/Vite projects with a `dev` script. Existing
+Bun, pnpm, Yarn, Angular or backend projects can use their own development servers and normal
+overlay integration; opening their folder does not imply managed preview support.
+
+The library and default project folder live under `NudgeThis` in your user directory.
+**Remove from list** preserves project files. **Close workspace** stops its owned preview.
+**Quit NudgeThis** stops the welcome and every workspace it opened. Closing a browser tab
+alone does not stop the service. Reopening the launcher reuses an existing local welcome.
+
+## Version history and agents
+
+Fresh projects and projects opened from the welcome have **agent execution disabled**.
+Install Git when you want version history. **Branch & publish** guides initialization,
+a reviewed first commit, working branches, version saving and optional GitHub publishing.
+It does not silently commit or create a remote repository. See [the branch guide](branch-publish.md).
+
+To enable an agent later, close that workspace in the welcome, configure your locally
+installed agent and project commands in `nudgethis.toml`, deliberately set
+`[execution] enabled = true`, then start the project from a terminal:
 
 ```sh
-/path/to/nudgethis init
-/path/to/nudgethis doctor
-/path/to/nudgethis start --no-execution
+/path/to/nudgethis --root /absolute/path/to/project doctor
+/path/to/nudgethis --root /absolute/path/to/project start
 ```
 
-The `0.4.0-alpha.1` archive requires a repository with at least one commit. Current source
-also opens folders without Git history: **Branch & publish** guides local initialization
-and a reviewed first version, while drafts and context remain available beforehand.
-Git is needed to run changes; GitHub CLI is optional for the separate publishing workflow.
-See [the branch guide](branch-publish.md). `init` adds `.nudgethis/` to `.gitignore` and
-suggests commands from project metadata without executing them. Review `nudgethis.toml`.
-The last command opens the local service in review mode: drafts, route review, context,
-appearance, existing Apply/Undo and history remain available; setup, validation and agents
-cannot run. Open the dashboard URL printed by the server. On Windows use the equivalent
-path to `nudgethis.exe` in PowerShell.
+The welcome never overrides an agent's disabled state to start it. It does not install or
+authenticate agents, switch accounts or change global Git settings.
 
-When you choose to enable execution, configure your locally installed agent and project
-commands, then restart without `--no-execution`. `[execution] enabled = false` or
-`NUDGETHIS_DISABLE_EXECUTION=1` also disables execution; remove that setting deliberately.
-NudgeThis does not install or authenticate agents, change their accounts or modify global Git settings.
+## Terminal options
+
+```sh
+nudgethis welcome
+nudgethis welcome --library /absolute/path/to/my-library
+nudgethis welcome --no-browser
+nudgethis --root /absolute/path/to/project start --no-execution
+```
+
+Running `nudgethis` without a subcommand also opens the welcome. Set
+`NUDGETHIS_LIBRARY_DIR` to override its default folder. On Windows use `nudgethis.exe`.
+`start --no-execution` and `[execution] enabled = false` prevent agents, agent setup and
+validation commands. Separately reviewed **Project preview** commands remain available.
+`NUDGETHIS_DISABLE_EXECUTION=1` also blocks preview package installation and external preview
+commands; the built-in website server still works. Native folder selection is optional:
+Windows uses a system folder dialog, macOS uses Finder, and Linux uses Zenity or KDialog
+when available. You can always paste an absolute folder path.
 
 For **Device browser**, install Chrome, Edge or Chromium. Workspace setup and `doctor`
 check common executable locations without starting a browser. If necessary, set
@@ -61,8 +110,9 @@ When updating from an earlier preview with different executable/configuration na
 the [0.4 transition guide](https://github.com/gerardoyxy/nudgethis/blob/main/docs/upgrade-0.4.md)
 first. It explains the new integration identifiers, local-state boundary and source-history reset.
 
-Stop the running service with `nudgethis stop` or Ctrl+C. Back up `.nudgethis/` while the
-service is stopped, download and verify the new archive, then replace the executable.
+Choose **Quit NudgeThis**, or stop a terminal service with `nudgethis stop` or Ctrl+C.
+Back up the library and each project’s `.nudgethis/` while stopped, download and verify
+the new archive, then replace the complete extracted application folder.
 Keep your repository's configuration and state. Run `doctor` before restarting.
 There is no automatic updater or startup download.
 

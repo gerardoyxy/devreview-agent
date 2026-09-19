@@ -1,4 +1,5 @@
 import './demo.js';
+import './profiles.js';
 
 // Static landing only. No local agent connections or backend requests.
 const root = document.documentElement;

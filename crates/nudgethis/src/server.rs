@@ -24,6 +24,26 @@ pub struct App {
 }
 const ASSETS: &[(&str, &str, &[u8])] = &[
     (
+        "/welcome",
+        "text/html",
+        include_bytes!("../../../packages/server/public/welcome.html"),
+    ),
+    (
+        "/welcome.css",
+        "text/css",
+        include_bytes!("../../../packages/server/public/welcome.css"),
+    ),
+    (
+        "/welcome.js",
+        "text/javascript",
+        include_bytes!("../../../dist/browser/welcome.js"),
+    ),
+    (
+        "/starter-bridge.js",
+        "text/javascript",
+        include_bytes!("../../../dist/browser/starter-bridge.js"),
+    ),
+    (
         "/favicon.svg",
         "image/svg+xml",
         include_bytes!("../../../assets/brand/nudgethis-icon.svg"),
@@ -64,19 +84,24 @@ const ASSETS: &[(&str, &str, &[u8])] = &[
         include_bytes!("../../../dist/browser/playground.js"),
     ),
 ];
-pub async fn serve(core: Arc<Core>, listener: tokio::net::TcpListener) -> anyhow::Result<()> {
-    let port = listener.local_addr()?.port();
-    let app = App {
-        core: core.clone(),
-        port,
-    };
-    core.start();
-    let shutdown = core.stop.clone();
-    axum::serve(listener, Router::new().fallback(handler).with_state(app))
-        .with_graceful_shutdown(async move { shutdown.cancelled().await })
-        .await?;
-    core.close().await;
-    Ok(())
+pub fn serve(
+    core: Arc<Core>,
+    listener: tokio::net::TcpListener,
+) -> futures_util::future::BoxFuture<'static, anyhow::Result<()>> {
+    Box::pin(async move {
+        let port = listener.local_addr()?.port();
+        let app = App {
+            core: core.clone(),
+            port,
+        };
+        core.start();
+        let shutdown = core.stop.clone();
+        axum::serve(listener, Router::new().fallback(handler).with_state(app))
+            .with_graceful_shutdown(async move { shutdown.cancelled().await })
+            .await?;
+        core.close().await;
+        Ok(())
+    })
 }
 async fn handler(State(app): State<App>, req: Request) -> Response {
     let origin = req.headers().get(header::ORIGIN).cloned();
@@ -92,8 +117,12 @@ async fn handler(State(app): State<App>, req: Request) -> Response {
     headers.insert(header::CACHE_CONTROL, "no-store".parse().unwrap());
     headers.insert("X-Content-Type-Options", "nosniff".parse().unwrap());
     headers.insert("Referrer-Policy", "no-referrer".parse().unwrap());
-    let frame_origins = app.core.config.server.allowed_origins.join(" ");
-    headers.insert("Content-Security-Policy",format!("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' blob:; connect-src 'self'; img-src 'self' data:; frame-src 'self' {frame_origins}; frame-ancestors 'none'; base-uri 'none'; form-action 'none'").parse().unwrap());
+    let frame_origins = format!(
+        "{} {}",
+        app.core.config.server.allowed_origins.join(" "),
+        app.core.preview.origin().unwrap_or_default()
+    );
+    headers.insert("Content-Security-Policy",format!("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' blob:; connect-src 'self'; img-src 'self' data:; frame-src 'self' http://127.0.0.1:* {frame_origins}; frame-ancestors 'none'; base-uri 'none'; form-action 'none'").parse().unwrap());
     if origin_allowed {
         headers.insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, origin.unwrap());
         headers.insert(header::VARY, "Origin".parse().unwrap());
@@ -109,6 +138,7 @@ fn allowed_origin(app: &App, origin: &str) -> bool {
         .any(|o| o == origin)
         || origin == format!("http://127.0.0.1:{}", app.port)
         || origin == format!("http://localhost:{}", app.port)
+        || app.core.preview.origin().is_some_and(|o| o == origin)
 }
 async fn body(req: Request, limit: usize) -> Result<Value, ApiError> {
     check(
@@ -184,6 +214,48 @@ async fn route(app: &App, req: Request) -> Result<Response, ApiError> {
         "Local token required",
     )?;
     let core = &app.core;
+    if path == "/api/starter" && method == Method::GET {
+        return Ok(json(core.starter_status().await?));
+    }
+    if path == "/api/starter/diagnose" && method == Method::POST {
+        return Ok(json(crate::starter::diagnose(&body(req, 8192).await?)?));
+    }
+    if path == "/api/starter/plan" && method == Method::POST {
+        return Ok(json(core.starter_plan(body(req, 16384).await?).await?));
+    }
+    if path == "/api/starter/create" && method == Method::POST {
+        return Ok(json(core.starter_create(body(req, 4096).await?).await?));
+    }
+    if path == "/api/starter/import" && method == Method::POST {
+        return Ok(json(core.starter_import(body(req, 8192).await?).await?));
+    }
+    if path == "/api/starter/open" && method == Method::POST {
+        return Ok(json(core.starter_open(body(req, 4096).await?).await?));
+    }
+    if path == "/api/starter/remove" && method == Method::POST {
+        return Ok(json(core.starter_remove(body(req, 4096).await?).await?));
+    }
+    if path == "/api/starter/close" && method == Method::POST {
+        return Ok(json(core.starter_close(body(req, 4096).await?).await?));
+    }
+    if path == "/api/starter/pick-folder" && method == Method::POST {
+        body(req, 4096).await?;
+        return Ok(json(
+            crate::launcher::pick_folder(&core.repository.root).await?,
+        ));
+    }
+    if path == "/api/preview" && method == Method::GET {
+        return Ok(json(core.preview_status()?));
+    }
+    if path == "/api/preview/review" && method == Method::POST {
+        return Ok(json(core.preview_review(body(req, 4096).await?).await?));
+    }
+    if path == "/api/preview" && method == Method::POST {
+        return Ok(json(
+            core.preview_action(body(req, 4096).await?, app.port)
+                .await?,
+        ));
+    }
     if path == "/api/github" && method == Method::GET {
         return Ok(json(core.github_status().await?));
     }

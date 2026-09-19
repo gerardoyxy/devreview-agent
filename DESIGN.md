@@ -389,3 +389,16 @@ One TypeScript clock seeks paused native animation tracks and positions the curs
 - **Don't** replace saved themes or uploaded fonts with hard-coded brand defaults.
 - **Don't** introduce decorative eyebrows, text glyph icons or hard offset shadows as house style.
 - **Don't** merge current changes, historical versions and captured context into one undifferentiated panel.
+
+### Welcome and profile introductions
+
+The local welcome retains the application palette, font roles and configurable radius. Its
+three entry points lead to goal diagnosis, maintained templates or a local folder. Review
+screens show the destination, requirements and next steps before creating files. The project
+library uses ruled rows; removal keeps a clear distinction between membership and source files.
+
+The public hero offers three one-click profiles: an idea, AI-assisted visual work and code
+review. Each selects its own introduction, workflow captions and illustrative animation.
+The existing point/tell/review/apply scene is preserved. The other scenes show goal-to-preview
+and branch-to-proposal sequences. Only the visible scene runs. All profiles retain manual
+steps, pause/replay, keyboard controls, offscreen/tab suspension and reduced-motion end poses.

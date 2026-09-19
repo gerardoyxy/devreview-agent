@@ -1,3 +1,4 @@
+import { createPreview } from '../../overlay/src/preview.js';
 import { createBranchPublish } from '../../overlay/src/branch-publish.js';
 import { createSavedVersions } from '../../overlay/src/versions.js';
 import { createMyStyle } from '../../overlay/src/my-style.js';
@@ -36,6 +37,9 @@ $('#context-button').onclick = () => { void projectContext.open(); };
 $('#appearance-button').onclick = () => { void appearance.open(); };
 const composer = createTaskComposer(document.body, api, task => { void refresh(); void openTask(task.id); });
 const diagnostics = createDiagnostics(document.body, api);
+const preview = createPreview(document.body, api);
+$('#preview-button').onclick = () => { void preview.open(); };
+if (params.get('preview') === '1') void preview.open();
 const myStyle = createMyStyle(document.body, api, seed => { void composer.open(undefined, seed); }, id => { void openTask(id); });
 $('#style-button').onclick = () => { void myStyle.open(); };
 const routes = createRouteReview(document.body, api, seed => { void composer.open(undefined, seed); });

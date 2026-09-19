@@ -327,3 +327,29 @@ reviews are scoped to the current server session. `github` events contain only
 `{changed:true}`; consumers refetch status. GitHub operations use bounded process/network
 timeouts; browser requests allow five minutes. These endpoints work with agent execution
 disabled. See [Branch & publish](branch-publish.md) for review limits and recovery.
+
+## Project library and managed previews
+
+All endpoints below require the same local token, Host and Origin validation as task APIs.
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/api/starter` | Local library, curated templates and prerequisite presence |
+| POST | `/api/starter/diagnose` | Goal/audience/data/accounts/payments/budget answers; deterministic recommendation |
+| POST | `/api/starter/plan` | `answers`, `name`, optional `parent` and `template`; review a new directory and file list |
+| POST | `/api/starter/create` | `previewId`, `confirm: true`; create the reviewed project |
+| POST | `/api/starter/import` | Absolute `path`, `confirm: true`; add a local project |
+| POST | `/api/starter/open` | Library `id`; return an owned workspace's authenticated dashboard URL |
+| POST | `/api/starter/close` | Library `id`; close the owned workspace and previews |
+| POST | `/api/starter/remove` | `id`, `confirm: true`; close and remove membership, preserving project files |
+| POST | `/api/starter/pick-folder` | Open the optional native folder chooser; return a path or cancellation |
+| GET | `/api/preview` | Recipe, prerequisites and installation/preview state |
+| POST | `/api/preview/review` | `action`: `install`, `start` or `restart`; inspect fixed command and project script |
+| POST | `/api/preview` | `previewId`, `confirm: true`; execute a current reviewed operation; or `action: stop` |
+
+Project plans and command reviews expire after ten minutes. The server retains their actual
+contents; clients cannot replace them during confirmation. Project-command reviews include
+a configuration fingerprint and reject changes before execution. Returned workspace/preview
+URLs contain local tokens in fragments; treat them as private credentials. The endpoints
+never accept arbitrary shell commands, template URLs or browser executable arguments.
+See [project starters](project-starter.md) for execution modes and supported preview stacks.

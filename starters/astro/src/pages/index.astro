@@ -1,0 +1,10 @@
+---
+import project from '../project.json';
+import '../style.css';
+const bridge = import.meta.env.DEV && import.meta.env.PUBLIC_NUDGETHIS_SERVER;
+---
+<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>{project.title}</title><meta name="description" content={project.objective} /></head><body>
+<header><strong>{project.title}</strong><nav aria-label="Main navigation"><a href="/">Home</a><a href="/first-note">First note</a></nav></header>
+<main><section class="hero"><p class="eyebrow">Ideas worth sharing</p><h1>{project.title}</h1><p>{project.objective}</p><a class="button" href="/first-note">Read the first note</a></section><section class="grid" aria-label="About this project"><article><h2>A place to begin</h2><p>One good page can be the start of something useful.</p></article><article><h2>For our readers</h2><p>{project.audience}</p></article><article><h2>Room to grow</h2><p>Add the stories and resources your audience needs.</p></article></section></main><footer>{project.title} · A project in progress.</footer>
+{bridge && <script is:inline type="module" src={`${bridge}/starter-bridge.js`}></script>}
+</body></html>

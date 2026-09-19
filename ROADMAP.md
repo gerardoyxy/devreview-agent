@@ -1,16 +1,23 @@
 # NudgeThis roadmap
 
-Version `0.4.0-alpha.1` is an experimental application preview. The current source lives on
+Version `0.5.0-alpha.1` is an experimental application preview. The current source lives on
 `main`; tagged previews provide native archives with release notes and SHA-256 checksums.
-This preview includes selection controls, My Style and the complete NudgeThis naming transition.
+This preview includes the local welcome, project starters, owned previews and guided Git/GitHub workflows.
 A working feature or passing application test does not certify an agent or a production deployment.
 
 ## Implemented
 
-- Source after `0.4.0-alpha.1`: guided Review & save, editable commit names, explicit author,
+- Portable double-click launcher and local project library, with goal diagnosis, editable
+  starter selection, reviewed folder creation and saved Project context. Maintained HTML/CSS,
+  Astro and React + TypeScript starters, owned preview controls and actual framework builds.
+  Agents remain disabled in the welcome. See [Project starters](docs/project-starter.md).
+- Profile-specific landing introductions and animations for first projects, AI-assisted
+  visual editing and branch/publish workflows, with pause, manual steps and reduced motion.
+
+- Guided Review & save, editable commit names, explicit author,
   local Git version history and safe preservation of unrelated staging. Publishing stays
   separate; hooks and mixed edits use the user's Git client. See [Saved versions](docs/saved-versions.md).
-- Source after `0.4.0-alpha.1`: no-repository onboarding, reviewed first commit, branch
+- No-repository onboarding, reviewed first commit, branch
   education/create/switch, live indicators, explicit GitHub account/repository selection,
   reviewed publication, editable pull requests and gated merge. GitHub API simulations and
   local bare-repository tests accompany Chromium UI checks; live service policies remain
@@ -22,8 +29,8 @@ A working feature or passing application test does not certify an agent or a pro
   and draft editing with version history. An element selection is optional.
 - Project metadata detection for common frontend/backend frameworks, npm/Bun/pnpm/Yarn
   suggestions, read-only `doctor`, separate worktree preparation and validation results.
-- Explicit execution-disabled mode for reviewing and preparing work without running commands
-  or agents. Empty validation lists remain visibly unchecked.
+- Explicit execution-disabled mode for reviewing and preparing work without running agent setup, validation
+  or agents. Separately reviewed preview commands require their own approval. Empty validation lists remain visibly unchecked.
 - Local workspace snapshots through a private Git index, retaining uncommitted source without
   modifying branch/index. Apply checks affected paths; Undo protects later work. Mutation
   journals retain interruption evidence for manual recovery.
@@ -60,7 +67,7 @@ A working feature or passing application test does not certify an agent or a pro
 | Framework depth | Evidence-based source mapping, router AST adapters, nested/generated route resolution, real application integration examples and language-aware file references. |
 | Style learning depth | Selector-aware evidence, utility-class/token adapters and semantic technique recognition. Current suggestions detect exact supported CSS values locally; they do not infer personal intent or train a model. |
 | Visual verification | Opt-in redacted screenshots, post-HMR checks, before/after evidence and per-device review matrices. Chromium emulation exists; physical-device and Safari/WebKit behavior still need separate checks. |
-| Basic workflow completion | Guided first project connection, real framework fixtures, clearer recovery/retention and broader accessibility/install checks. See the [foundation evidence map](docs/foundations.md). |
+| Basic workflow completion | Agent setup without a terminal, broader framework fixtures, clearer recovery/retention and wider accessibility/install checks. See the [foundation evidence map](docs/foundations.md). |
 | Recovery and scale | More automated recovery only when file state proves the action, snapshot retention controls, API pagination, review sessions and conflict visualization. |
 | Agent depth | Native resume, interactive ACP permissions, image context and additional transport capability negotiation with versioned evidence. |
 | Interchange | Export/import review sessions, scoped MCP integration and deeper GitHub workflows beyond branch publishing/PR/merge. Team/cloud execution and remote agents need separate workflow and security design. |

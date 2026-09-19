@@ -1,0 +1,6 @@
+---
+import project from '../project.json';
+import '../style.css';
+const bridge = import.meta.env.DEV && import.meta.env.PUBLIC_NUDGETHIS_SERVER;
+---
+<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" /><title>First note · {project.title}</title></head><body><header><strong>{project.title}</strong><a href="/">Back home</a></header><main><article class="hero"><p class="eyebrow">First note</p><h1>Every project starts somewhere.</h1><p>{project.objective}</p><p>This is a sample article. Replace it with something useful for your readers. Your words and decisions will make this space yours.</p></article></main><footer>{project.title}</footer>{bridge && <script is:inline type="module" src={`${bridge}/starter-bridge.js`}></script>}</body></html>

@@ -9,13 +9,25 @@ Each task has its own conversation, live public agent replies, diff, validation 
 persistent version history. Agents edit isolated Git worktrees. You explicitly apply reviewed
 changes to your branch, without automatic commits or pushes.
 
-[Install](docs/install.md) · [My Style](docs/my-style.md) · [Route review](docs/route-review.md) · [Agents](docs/agents.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Migration](docs/migration.md) · [Security](SECURITY.md)
+[Install](docs/install.md) · [Start a project](docs/project-starter.md) · [My Style](docs/my-style.md) · [Route review](docs/route-review.md) · [Agents](docs/agents.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Migration](docs/migration.md) · [Security](SECURITY.md)
 
 The project and repository are **NudgeThis**. Its English [static landing](apps/site/README.md)
 builds with `npm run build:site` and is published at [nudgethis.click](https://nudgethis.click/).
 [Publication setup](docs/landing.md). The CLI, configuration and browser integration use NudgeThis throughout.
 The current alpha is maintained on `main`; native preview archives are distributed through [GitHub Releases](https://github.com/gerardoyxy/nudgethis/releases). See the [roadmap](ROADMAP.md) for
 implemented capabilities, release requirements and planned features.
+
+## Start without a project
+
+Download the [portable alpha](https://github.com/gerardoyxy/nudgethis/releases/tag/v0.5.0-alpha.1),
+extract it and open NudgeThis. Choose **Start from an idea**, **Use a starter** or
+**Open a project**. The local welcome helps choose HTML/CSS, Astro or React + TypeScript,
+records your goals in Project context and creates a fresh folder after review.
+
+A simple website previews with the built-in Rust server. Astro and React starters require
+Node.js 22.12+ and npm, with reviewed dependency installation and Start/Stop/Restart controls.
+You can begin without Git or GitHub. Agents start disabled. See [installation](docs/install.md)
+for operating-system approval, version history, agent setup and current alpha limitations.
 
 ## Build and try
 
@@ -219,7 +231,7 @@ version name and choose **Save version**. Unrelated staged and unstaged files ar
 stale or mixed edits require another review. **Saved versions** keeps the local history in
 the dashboard and overlay. Publishing to GitHub remains separate. See
 [Saved versions](docs/saved-versions.md) for author details, hooks, signing and recovery.
-This flow is available in current source; the `0.4.0-alpha.1` download predates it.
+This flow is included in `0.5.0-alpha.1` and later.
 
 **Branch & publish** also supports projects without Git history: keep drafts and context,
 explicitly enable local history, review files and save a first version. The guide explains

@@ -1,7 +1,7 @@
 import { build } from 'esbuild';
 
 await build({
-  entryPoints: { playground: 'apps/playground/app.ts', overlay: 'packages/overlay/src/index.ts', review: 'packages/overlay/src/review.ts', app: 'packages/server/public/app.ts' },
+  entryPoints: { playground: 'apps/playground/app.ts', overlay: 'packages/overlay/src/index.ts', review: 'packages/overlay/src/review.ts', app: 'packages/server/public/app.ts', welcome: 'packages/server/public/welcome.ts', 'starter-bridge': 'packages/overlay/src/starter-bridge.ts' },
   loader: { '.woff2': 'binary', '.svg': 'text' },
   outdir: 'dist/browser', bundle: true, format: 'esm', target: 'es2022', sourcemap: true
 });

@@ -34,6 +34,7 @@ if (demo) {
   let playing = !reduced.matches;
   let looping = !reduced.matches;
   let visible = false;
+  let selected = !demo.hidden;
   let frame = 0;
   let lastTime: number | undefined;
   let renderedStep = -1;
@@ -142,7 +143,7 @@ if (demo) {
   }
   function tick(time: number): void {
     frame = 0;
-    if (!playing || !visible || document.hidden) { lastTime = undefined; return; }
+    if (!playing || !visible || !selected || document.hidden) { lastTime = undefined; return; }
     if (lastTime !== undefined) elapsed += time - lastTime;
     lastTime = time;
     if (looping && elapsed >= total) elapsed %= total;
@@ -153,7 +154,7 @@ if (demo) {
   function sync(): void {
     if (frame) cancelAnimationFrame(frame);
     frame = 0; lastTime = undefined;
-    const running = playing && visible && !document.hidden;
+    const running = playing && visible && selected && !document.hidden;
     demo!.dataset.running = String(running);
     const ended = !looping && elapsed >= finish;
     play.textContent = playing ? 'Pause' : ended ? 'Play again' : 'Play';
@@ -184,6 +185,7 @@ if (demo) {
     if (reduced.matches) { playing = false; looping = false; elapsed = finish; render(); sync(); }
   });
   document.addEventListener('visibilitychange', sync);
+  demo.addEventListener('profilechange', () => { selected = !demo.hidden; if (selected) { elapsed = reduced.matches ? finish : 0; playing = !reduced.matches; looping = !reduced.matches; renderedStep = -1; measure(); render(); } sync(); });
   const geometry = new ResizeObserver(() => { measure(); render(); });
   geometry.observe(stage); geometry.observe(target); geometry.observe(conversation); geometry.observe(composer); geometry.observe(apply);
   new IntersectionObserver(entries => { visible = entries[0]?.isIntersecting ?? false; sync(); }, { threshold: .15 }).observe(demo);

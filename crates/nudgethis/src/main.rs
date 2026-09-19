@@ -7,13 +7,17 @@ mod device_preview;
 mod error;
 mod git;
 mod github;
+mod launcher;
 mod my_style;
+mod preview;
 mod process;
 mod project;
 mod project_context;
 mod route_review;
 mod selection;
 mod server;
+mod starter;
+mod starters;
 mod store;
 mod versions;
 mod workspace;
@@ -27,10 +31,17 @@ struct Cli {
     #[arg(long, global = true, default_value = ".")]
     root: PathBuf,
     #[command(subcommand)]
-    command: Command,
+    command: Option<Command>,
 }
 #[derive(Subcommand)]
 enum Command {
+    /// Open the welcome screen to create or open a project. No agents are started.
+    Welcome {
+        #[arg(long)]
+        library: Option<PathBuf>,
+        #[arg(long)]
+        no_browser: bool,
+    },
     /// Create nudgethis.toml and ignore local state. Does not overwrite configuration.
     Init,
     /// Inspect setup without executing project commands or contacting providers.
@@ -83,7 +94,14 @@ async fn main() {
 }
 async fn run() -> Result<()> {
     let cli = Cli::parse();
-    match cli.command {
+    match cli.command.unwrap_or(Command::Welcome {
+        library: None,
+        no_browser: false,
+    }) {
+        Command::Welcome {
+            library,
+            no_browser,
+        } => launcher::welcome(library, no_browser).await?,
         Command::AgentRun => {
             ensure!(
                 std::env::var("NUDGETHIS_DISABLE_EXECUTION").as_deref() != Ok("1"),
@@ -206,23 +224,23 @@ async fn start(root: &std::path::Path, config: config::Config) -> Result<()> {
         core.token, core.token
     );
     let stop = core.stop.clone();
-    tokio::spawn(async move {
-        #[cfg(unix)]
-        {
-            let mut term =
-                tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
-                    .expect("signal handler");
-            tokio::select! {_=tokio::signal::ctrl_c()=>{},_=term.recv()=>{}}
-        }
-        #[cfg(not(unix))]
-        {
-            let _ = tokio::signal::ctrl_c().await;
-        }
-        stop.cancel();
-    });
+    tokio::spawn(shutdown_signal(stop));
     let result = server::serve(core.clone(), listener).await;
     core.close().await;
     result
+}
+async fn shutdown_signal(stop: tokio_util::sync::CancellationToken) {
+    #[cfg(unix)]
+    {
+        let mut term = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+            .expect("signal handler");
+        tokio::select! {_=tokio::signal::ctrl_c()=>{},_=term.recv()=>{}}
+    }
+    #[cfg(not(unix))]
+    {
+        let _ = tokio::signal::ctrl_c().await;
+    }
+    stop.cancel();
 }
 async fn demo(port: u16) -> Result<()> {
     let root = std::env::temp_dir().join(format!(

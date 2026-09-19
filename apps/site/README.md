@@ -72,3 +72,12 @@ The Landing workflow builds matching pull requests and pushes to `main`.
 Only `main` publishes `dist/site` to GitHub Pages, through the branch-restricted
 `github-pages` environment. A manual workflow run on `main` can rebuild the site.
 The production domain is `nudgethis.click`. See [deployment instructions](../../docs/landing.md).
+
+## Profile introductions
+
+The hero selects between starting from an idea, building with AI and writing code. Each
+profile updates the introduction and workflow and shows a distinct illustrative sequence.
+The scenes are static product examples driven by local animation clocks; no API or agent
+connection is made. Hidden scenes pause, and reduced motion shows a stable final pose.
+Native buttons provide keyboard selection, manual steps, pause and replay. Download links
+point to the portable release and the installation guide explains unsigned builds.

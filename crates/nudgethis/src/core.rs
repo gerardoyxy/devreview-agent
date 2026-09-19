@@ -20,6 +20,8 @@ pub struct Core {
     pub store: Store,
     pub token: String,
     pub device_preview: crate::device_preview::DevicePreview,
+    pub preview: crate::preview::Preview,
+    pub(crate) starter: tokio::sync::Mutex<crate::starter::Library>,
     pub(crate) control: tokio::sync::Mutex<()>,
     pub(crate) version_previews: Mutex<HashMap<String, crate::versions::Plan>>,
     pub(crate) github: tokio::sync::Mutex<crate::github::Hub>,
@@ -113,6 +115,8 @@ impl Core {
             store,
             token,
             device_preview: crate::device_preview::DevicePreview::default(),
+            preview: crate::preview::Preview::default(),
+            starter: tokio::sync::Mutex::new(crate::starter::Library::default()),
             control: tokio::sync::Mutex::new(()),
             version_previews: Mutex::new(HashMap::new()),
             github: tokio::sync::Mutex::new(crate::github::Hub::default()),
@@ -180,6 +184,14 @@ impl Core {
     }
     pub async fn close(&self) {
         self.stop.cancel();
+        self.preview.close().await;
+        let opened = self.starter.lock().await.drain();
+        for child in &opened {
+            child.core.stop.cancel();
+        }
+        for child in opened {
+            let _ = tokio::time::timeout(std::time::Duration::from_secs(20), child.task).await;
+        }
         if let Err(error) = self.device_preview.close().await {
             eprintln!("Device preview shutdown: {error}");
         }

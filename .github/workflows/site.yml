@@ -27,6 +27,8 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    outputs:
+      release-ready: ${{ steps.release.outputs.ready }}
     permissions:
       contents: read
       pages: read
@@ -38,6 +40,19 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build:site
+      - name: Check that linked downloads are published
+        id: release
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v$(node -p 'JSON.parse(require("fs").readFileSync("package.json")).version')"
+          if gh release view "$tag" --json isDraft --jq 'select(.isDraft == false)' | grep -q false; then
+            echo 'ready=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'ready=false' >> "$GITHUB_OUTPUT"
+            echo 'Landing built. Deployment waits for the linked portable release; rerun after publication.' >> "$GITHUB_STEP_SUMMARY"
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: nudgethis-landing
@@ -53,7 +68,7 @@ jobs:
         with:
           path: dist/site
   deploy:
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.build.outputs.release-ready == 'true'
     needs: build
     runs-on: ubuntu-latest
     permissions:
