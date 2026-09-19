@@ -9,12 +9,12 @@ Each task has its own conversation, live public agent replies, diff, validation 
 persistent version history. Agents edit isolated Git worktrees. You explicitly apply reviewed
 changes to your branch, without automatic commits or pushes.
 
-[Agents](docs/agents.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Migration](docs/migration.md) · [Security](SECURITY.md)
+[Install](docs/install.md) · [Route review](docs/route-review.md) · [Agents](docs/agents.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Migration](docs/migration.md) · [Security](SECURITY.md)
 
 The project and repository are **NudgeThis**. Its English [static landing](apps/site/README.md)
 builds with `npm run build:site` and is published at [nudgethis.click](https://nudgethis.click/).
 [Publication setup](docs/landing.md). The CLI still uses `nudgethis` for compatibility.
-The current source alpha is maintained on `main`. See the [roadmap](ROADMAP.md) for
+The current alpha is maintained on `main`; native preview archives are distributed through [GitHub Releases](https://github.com/gerardoyxy/nudgethis/releases). See the [roadmap](ROADMAP.md) for
 implemented capabilities, release requirements and planned features.
 
 ## Build and try
@@ -31,17 +31,13 @@ git clone https://github.com/gerardoyxy/nudgethis.git
 cd nudgethis
 npm ci
 npm run build
-./target/debug/nudgethis demo
+./target/debug/nudgethis --help
 ```
 
-Windows: `target\debug\nudgethis.exe demo`. For a release executable, run
-`cargo build --release --locked` after building the frontend. Use `demo --port 7441`
-if port 7331 is occupied. No npm package or binary release is published yet.
-
-The demo uses a disposable Git repository and a labelled, deterministic Rust agent. It
-changes `button.css` without model calls. Open the printed Playground link, report the button,
-review the patch, send a follow-up and apply. The capture page is not a live preview of that
-CSS file. Ctrl+C stops the demo and removes its repository.
+Windows: `target\debug\nudgethis.exe --help`. For a release executable, run
+`cargo build --release --locked -p nudgethis` after building the frontend.
+[Installation and checksums](docs/install.md) cover native archives, updating and removal.
+To inspect your project without running agents, use `start --no-execution` below.
 
 ## Use with your application
 
@@ -52,8 +48,9 @@ From your application's **repository root**:
 
 ```bash
 /absolute/path/to/nudgethis init
-# Edit nudgethis.toml, then commit it and .gitignore along with application changes.
-/absolute/path/to/nudgethis start
+# Review detected setup and validation commands in nudgethis.toml.
+/absolute/path/to/nudgethis doctor
+/absolute/path/to/nudgethis start --no-execution
 ```
 
 Example trusted `nudgethis.toml`:
@@ -68,8 +65,12 @@ allowedOrigins = ["http://localhost:5173"]
 [workers]
 maxConcurrent = 2
 
+[setup]
+commands = ["npm ci"]
+timeout = 120000
+
 [validation]
-commands = ["npm ci", "npm test"]
+commands = ["npm test"]
 timeout = 120000
 
 [[agents]]
@@ -79,6 +80,8 @@ transport = "codex"
 command = "codex"
 timeout = 600000
 ```
+
+The execution-disabled mode supports drafts, route review, project context and existing patch review without running setup, validation or agents. Restart without `--no-execution` when you choose to enable execution; `[execution] enabled = false` and `NUDGETHIS_DISABLE_EXECUTION=1` also keep execution disabled.
 
 Open the dashboard URL printed by `start`. Its fragment contains a local access token;
 the dashboard removes it and stores the token in session storage. The token is also in
@@ -115,11 +118,31 @@ and **Context used**.
 Follow-ups retain previous worktree edits and pass recent conversation context to the agent.
 A question-only reply waits for feedback. Every resulting patch is validated again.
 History keeps prior patches; Apply always targets the current ready version. Stale UI actions
-are rejected. Applied/rejected tasks get a new worktree when continued; commit applied changes
-first. Conflicting tasks require Retry from HEAD.
+are rejected. Applied/rejected/undone tasks get a fresh snapshot and worktree when continued,
+including current local edits. Conflicting tasks require Retry from workspace.
 
 This is a new conversation with the selected agent, not a connection to an existing chat in
 another application. ACP native resume, interactive permissions and images remain unsupported.
+
+## Workspace tasks and route coverage
+
+**New change** accepts frontend, backend, tests, documentation and general requests without
+selecting a page element. Add up to 32 relative file references and selected project context.
+Save a draft, edit it with version history, or start it when execution is enabled. File
+references guide the agent; they are not an edit allowlist. The queue filters by type and status.
+
+**Workspace setup** reports framework/package-manager detection, executable availability,
+configured preparation and validation. It does not run commands or verify agent sign-in.
+`init` suggests npm, Bun, pnpm or Yarn commands from project declarations/lockfiles; review
+those commands before execution. Each fresh worktree runs `[setup]` once, then each patch
+runs `[validation]`. Failed setup and unchecked patches are visible in review.
+
+**Route review** scans static candidates from page files and router declarations. Resolve
+dynamic URLs, add missing routes, switch desktop/mobile widths, and mark each viewport
+reviewed or blocked with notes. Progress counts completed viewports; loading a page is not
+review. Use Next pending view, export JSON coverage and create a task from the current route.
+Mobile preview changes the layout viewport; browser developer tools provide full device
+emulation. Discovery is bounded and cannot guarantee every runtime route. [Guide](docs/route-review.md).
 
 ## Project context
 
@@ -162,27 +185,33 @@ Design work used [Impeccable](https://github.com/pbakaus/impeccable).
 
 ## Git and persistence
 
-New tasks require a clean checkout at committed HEAD. Dependencies are not copied into
-worktrees; configure trusted setup/validation commands where needed. Apply requires the
-original branch, clean affected files and a successful `git apply --check`. Unrelated local
-edits are preserved. Binary additions/deletions are supported; secret, symlink and submodule
-patches require manual handling. Validation that changes source blocks Apply.
+New tasks capture a private snapshot of current tracked and untracked source, preserving the
+user's index, branch and working files. Dependencies and ignored files are not copied;
+configure `[setup]` for each fresh worktree. Apply checks affected files against the snapshot,
+the original branch and `git apply --check`. Unrelated local edits are preserved. Binary
+additions/deletions and CRLF files are supported. Protected, symlink and submodule changes
+require manual handling; setup or validation that changes source blocks review.
 
-Retry discards that task's worktree and starts from current HEAD. Reject removes its worktree.
-Stop cancels running processes; interrupted active tasks recover as failed on restart. A stale
-`.nudgethis/server.lock` after a crash requires confirming that the previous server is stopped
-before manual removal. SQLite migration from the Node alpha creates a WAL-aware backup before
-schema changes and preserves task IDs, tokens, messages and patch versions.
+**Undo applied changes** restores a patch only while affected files still match the recorded
+applied state. It refuses to overwrite newer work. Apply/Undo keep a journal; an interruption
+retains a **Recovery required** record for manual inspection. They do not commit or push.
+Retry starts from the current workspace; Reject removes only that task's worktree.
+[Snapshots, Undo and recovery](docs/recovery.md) explain limits and crash handling.
+
+SQLite keeps tasks, drafts, conversations, versions, project context, route coverage and
+appearance. Legacy migration creates a WAL-aware backup before schema changes. Tokens
+and snapshot refs are local development state; never publish them with a mirror push.
 
 ## CLI
 
 ```text
-nudgethis init                  nudgethis start [--port 7331]
+nudgethis init                  nudgethis doctor
+nudgethis start [--port 7331] [--no-execution]
 nudgethis stop                  nudgethis status
 nudgethis tasks                 nudgethis task QA-1
-nudgethis apply QA-1             nudgethis reject QA-1
+nudgethis apply QA-1             nudgethis undo QA-1
+nudgethis reject QA-1
 nudgethis retry QA-1             nudgethis cancel QA-1
-nudgethis demo [--port 7441]
 ```
 
 Use `--root /absolute/repository` with any repository command. Client commands read the port
@@ -190,11 +219,13 @@ from `nudgethis.toml`; if you override `start --port`, update the config for CLI
 
 ## Limits and development
 
-This remains an alpha. Screenshots, stable element identity, safe Undo, framework source
-mapping, automatic rebase and post-HMR visual verification are future work. The
-[roadmap](ROADMAP.md) distinguishes implemented capabilities from release work and future features.
-Tests use deterministic agents and do not certify every provider. ACP and custom agents must
-supply their own filesystem/network sandbox; a Git worktree is not an OS sandbox.
+This remains an alpha. Screenshots, framework-verified source mapping, multi-select,
+automatic rebase, post-HMR visual verification and native provider resume remain future work.
+Element reidentification is conservative: changed or ambiguous targets require selection again.
+The [roadmap](ROADMAP.md) distinguishes implemented behavior from remaining work.
+Default tests exercise application code with execution disabled. Agent fixtures require a
+separate explicit opt-in and do not certify real providers. No agent/model integrations were
+exercised for the 0.3 preview. Worktrees are not OS sandboxes. See [security](SECURITY.md).
 
 ```bash
 npm ci
@@ -202,7 +233,7 @@ npm run build
 npm run check
 cargo fmt --all --check
 cargo clippy --locked --all-targets -- -D warnings
-cargo test --locked
+cargo test --locked -p nudgethis --bin nudgethis
 npm test
 ```
 

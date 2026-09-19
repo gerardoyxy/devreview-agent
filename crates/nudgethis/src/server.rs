@@ -92,7 +92,8 @@ async fn handler(State(app): State<App>, req: Request) -> Response {
     headers.insert(header::CACHE_CONTROL, "no-store".parse().unwrap());
     headers.insert("X-Content-Type-Options", "nosniff".parse().unwrap());
     headers.insert("Referrer-Policy", "no-referrer".parse().unwrap());
-    headers.insert("Content-Security-Policy","default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' blob:; connect-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'".parse().unwrap());
+    let frame_origins = app.core.config.server.allowed_origins.join(" ");
+    headers.insert("Content-Security-Policy",format!("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' blob:; connect-src 'self'; img-src 'self' data:; frame-src 'self' {frame_origins}; frame-ancestors 'none'; base-uri 'none'; form-action 'none'").parse().unwrap());
     if origin_allowed {
         headers.insert(header::ACCESS_CONTROL_ALLOW_ORIGIN, origin.unwrap());
         headers.insert(header::VARY, "Origin".parse().unwrap());
@@ -183,6 +184,34 @@ async fn route(app: &App, req: Request) -> Result<Response, ApiError> {
         "Local token required",
     )?;
     let core = &app.core;
+    if path == "/api/route-review" && method == Method::GET {
+        return Ok(json(core.store.route_review()?));
+    }
+    if path == "/api/route-review" && method == Method::POST {
+        let data = body(req, 32768).await?;
+        let revision = data["revision"].as_u64();
+        check(revision.is_some(), 400, "Include the route review revision")?;
+        let value = if data["action"] == "scan" {
+            let origin = crate::route_review::origin(data["origin"].as_str().unwrap_or(""))?;
+            check(
+                allowed_origin(app, &origin),
+                403,
+                "Add the project's exact origin to server.allowedOrigins in nudgethis.toml and restart",
+            )?;
+            crate::route_review::scan(&core.repository, &data).await?
+        } else {
+            crate::route_review::change(&core.store.route_review()?, &data)?
+        };
+        return Ok(json(
+            core.store.save_route_review(value, revision.unwrap())?,
+        ));
+    }
+    if path == "/api/diagnostics" && method == Method::GET {
+        return Ok(json(crate::project::doctor(
+            &core.repository.root,
+            &core.config,
+        )?));
+    }
     if path == "/api/events" && method == Method::GET {
         let mut rx = core.store.events.subscribe();
         let stop = core.stop.clone();
@@ -208,7 +237,7 @@ async fn route(app: &App, req: Request) -> Result<Response, ApiError> {
     if path == "/api/status" && method == Method::GET {
         let agents:Vec<_>=core.config.agents.iter().map(|a|json!({"id":a.id,"label":if a.label.is_empty(){&a.id}else{&a.label},"transport":a.transport,"capabilities":{"automatic":true,"streaming":true,"resume":false,"images":false}})).collect();
         return Ok(json(
-            json!({"repository":core.repository.inspect().await?,"agent":core.config.default_agent,"agents":agents,"validationCommands":core.config.validation.commands,"workers":core.config.workers.max_concurrent,"playgroundUrl":null,"runtime":"rust"}),
+            json!({"repository":core.repository.inspect().await?,"agent":core.config.default_agent,"agents":agents,"executionEnabled":core.config.execution_enabled(),"setupCommands":core.config.setup.commands,"validationCommands":core.config.validation.commands,"workers":core.config.workers.max_concurrent,"playgroundUrl":null,"runtime":"rust"}),
         ));
     }
     if path == "/api/shutdown" && method == Method::POST {
@@ -277,6 +306,9 @@ async fn route(app: &App, req: Request) -> Result<Response, ApiError> {
                 "Invalid attempt",
             )?;
             let attempt = data["attempt"].as_u64();
+            if parts[3] == "draft" {
+                return Ok(json(core.edit_draft(id, data, attempt).await?));
+            }
             if parts[3] == "messages" {
                 return Ok((
                     StatusCode::ACCEPTED,

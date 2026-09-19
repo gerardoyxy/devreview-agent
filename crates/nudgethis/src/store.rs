@@ -18,6 +18,8 @@ pub fn terminal(status: &str) -> bool {
             | "applied"
             | "rejected"
             | "cancelled"
+            | "undone"
+            | "recovery_required"
     )
 }
 pub fn task_number(id: &str) -> Result<i64> {
@@ -81,7 +83,9 @@ impl Store {
             {
                 store.archive(&task)?;
             }
-            if matches!(status, "analyzing" | "working" | "validating" | "applying") {
+            if matches!(status, "applying" | "undoing") {
+                store.update(task["id"].as_str().unwrap(), json!({"status":"recovery_required","error":"The server stopped during Apply or Undo. Files may already have changed. Inspect the diff and Undo record; no automatic retry was performed."}))?;
+            } else if matches!(status, "analyzing" | "preparing" | "working" | "validating") {
                 store.update(task["id"].as_str().unwrap(), json!({"status":"failed","error":"Server stopped during execution. Inspect the worktree / active files, then retry."}))?;
             }
         }
@@ -116,7 +120,12 @@ impl Store {
         .collect()
     }
     pub fn create(&self, mut task: Value) -> Result<Value> {
-        task.as_object_mut().unwrap().extend(json!({"status":"pending","attempt":1,"createdAt":now(),"updatedAt":now(),"diff":"","files":[],"validation":[],"output":"","error":null}).as_object().unwrap().clone());
+        let status = if task["draft"] == true {
+            "draft"
+        } else {
+            "pending"
+        };
+        task.as_object_mut().unwrap().extend(json!({"status":status,"attempt":1,"createdAt":now(),"updatedAt":now(),"diff":"","files":[],"validation":[],"validationStatus":"not_run","setupChecks":[],"output":"","error":null}).as_object().unwrap().clone());
         let id = {
             let mut db = self.db.lock().unwrap();
             let tx = db.transaction()?;
@@ -163,6 +172,39 @@ impl Store {
         }
         self.emit("task", summary(task.clone()));
         Ok(task)
+    }
+    pub fn edit_draft(&self, id: &str, patch: Value) -> Result<Value> {
+        let previous = self.get(id)?;
+        let mut task = previous.clone();
+        task.as_object_mut()
+            .unwrap()
+            .extend(patch.as_object().unwrap().clone());
+        task["updatedAt"] = now().into();
+        {
+            let mut db = self.db.lock().unwrap();
+            let tx = db.transaction()?;
+            archive_in(&tx, &previous)?;
+            tx.execute(
+                "UPDATE tasks SET data=? WHERE id=?",
+                params![task.to_string(), task_number(id)?],
+            )?;
+            tx.execute(
+                "INSERT INTO messages(task_id,role,content,attempt,at) VALUES(?,'user',?,?,?)",
+                params![
+                    id,
+                    task["request"].as_str().unwrap(),
+                    task["attempt"].as_i64().unwrap(),
+                    now()
+                ],
+            )?;
+            tx.execute(
+                "INSERT INTO audit(task_id,action,at) VALUES(?,'draft_edited',?)",
+                params![id, now()],
+            )?;
+            tx.commit()?;
+        }
+        self.emit("task", summary(task));
+        self.details(id)
     }
     pub fn messages(&self, id: &str) -> Result<Vec<Value>> {
         let db = self.db.lock().unwrap();
@@ -218,7 +260,8 @@ impl Store {
             let mut v: Value = serde_json::from_str(&row?)?;
             let validations = v["validation"].as_array().cloned().unwrap_or_default();
             v["checks"] = validations.len().into();
-            v["passed"] = validations.iter().all(|c| c["passed"] == true).into();
+            v["passed"] =
+                (!validations.is_empty() && validations.iter().all(|c| c["passed"] == true)).into();
             v.as_object_mut().unwrap().remove("projectContext");
             v.as_object_mut().unwrap().remove("diff");
             v.as_object_mut().unwrap().remove("validation");
@@ -259,6 +302,45 @@ impl Store {
         self.emit("project-context", json!({"revision":value["revision"]}));
         Ok(value)
     }
+    pub fn route_review(&self) -> Result<Value> {
+        let db = self.db.lock().unwrap();
+        let data: Option<String> = db
+            .query_row(
+                "SELECT data FROM preferences WHERE key='route-review'",
+                [],
+                |r| r.get(0),
+            )
+            .optional()?;
+        Ok(data
+            .map(|s| serde_json::from_str(&s))
+            .transpose()?
+            .unwrap_or_else(crate::route_review::empty))
+    }
+    pub fn save_route_review(&self, mut value: Value, expected: u64) -> Result<Value> {
+        let mut db = self.db.lock().unwrap();
+        let tx = db.transaction()?;
+        let data: Option<String> = tx
+            .query_row(
+                "SELECT data FROM preferences WHERE key='route-review'",
+                [],
+                |r| r.get(0),
+            )
+            .optional()?;
+        let previous: Value = data
+            .map(|s| serde_json::from_str(&s))
+            .transpose()?
+            .unwrap_or_else(crate::route_review::empty);
+        check(
+            previous["revision"] == expected,
+            409,
+            "Route coverage changed in another window. Reopen Route review before saving.",
+        )?;
+        value["revision"] = (expected + 1).into();
+        tx.execute("INSERT INTO preferences(key,data) VALUES('route-review',?) ON CONFLICT(key) DO UPDATE SET data=excluded.data", [value.to_string()])?;
+        tx.commit()?;
+        self.emit("route-review", json!({"revision":value["revision"]}));
+        Ok(value)
+    }
     pub fn preference(&self) -> Result<Value> {
         let data: Option<String> = self
             .db
@@ -297,6 +379,10 @@ fn read_project_context(db: &Connection) -> Result<Value> {
 fn archive_in(db: &Connection, task: &Value) -> Result<()> {
     let mut revision = json!({});
     for key in [
+        "request",
+        "kind",
+        "references",
+        "context",
         "attempt",
         "status",
         "diff",
@@ -307,6 +393,10 @@ fn archive_in(db: &Connection, task: &Value) -> Result<()> {
         "baseBranch",
         "updatedAt",
         "error",
+        "validationStatus",
+        "setupChecks",
+        "undo",
+        "snapshotIncludesLocalChanges",
     ] {
         revision[key] = task[key].clone();
     }
@@ -314,8 +404,13 @@ fn archive_in(db: &Connection, task: &Value) -> Result<()> {
     Ok(())
 }
 pub fn summary(mut task: Value) -> Value {
-    for key in ["diff", "output", "agentErrors", "projectContext"] {
+    for key in ["diff", "output", "agentErrors", "projectContext", "undo"] {
         task.as_object_mut().unwrap().remove(key);
+    }
+    if let Some(checks) = task["setupChecks"].as_array_mut() {
+        for check in checks {
+            check.as_object_mut().unwrap().remove("output");
+        }
     }
     if let Some(checks) = task["validation"].as_array_mut() {
         for check in checks {

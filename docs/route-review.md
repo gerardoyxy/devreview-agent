@@ -1,0 +1,53 @@
+# Route review
+
+Open **Route review** in the dashboard, or **Routes** in the overlay. Enter the exact
+origin of your running local application and choose **Scan routes**. The origin must
+appear in `server.allowedOrigins`. NudgeThis reads source files; it does not start your
+development server, run package scripts or contact an agent.
+
+Discovery recognizes common file routes in Next.js `app`/`pages`, Nuxt/Vue/Astro `pages`,
+SvelteKit `src/routes`, and literal `path` declarations used by React/Vue/Angular routers.
+It is a candidate inventory, not a framework compiler or exhaustive runtime crawl.
+Dynamic parameters, relative nested routes, generated routes, router base paths and
+authentication may require adjustment. Source hints remain unverified.
+
+Use **Add a missing route** for URLs the scan missed. Resolve a dynamic pattern such
+as `/products/[id]` to a real path such as `/products/42`. Add extra concrete URLs
+separately to review multiple data cases. **Exclude route** removes false positives
+from the checklist and denominator. No source files are changed by these controls.
+
+## Desktop and mobile
+
+The preview embeds your application in a browser frame. Switch between **Desktop**
+(1024–1920 px presets) and **Mobile** (320–480 px presets); the default widths are
+1440 and 390 px. Fit preview scales the frame visually while retaining its chosen
+layout width. Turn it off to inspect at actual size and scroll the preview.
+
+Mobile mode exercises CSS media queries and the layout viewport. It does **not**
+emulate a mobile user agent, touch, device pixel ratio, hardware or a physical phone.
+For those checks, use **Open in a tab** and the browser's device toolbar. Login
+requirements, redirects and frame restrictions may prevent an embedded preview.
+NudgeThis cannot reliably identify cross-origin frame errors or confirm a rendered
+route; verify the URL/content yourself and record blockers honestly.
+
+Each route has separate desktop and mobile records: `pending`, `reviewed` or `blocked`.
+Loading a route never marks it reviewed. After checking the requested page at the selected
+width, confirm the checkbox and choose **Mark desktop/mobile reviewed**. Record a reason
+when marking a view blocked. Notes retain their draft text when switching views.
+
+Progress is `reviewed viewports / (included routes × 2)`. A route is complete only when
+both viewports are reviewed. Blocked views remain incomplete. **Next pending view**
+walks the remaining checklist; filters show incomplete, completed, blocked or unresolved
+routes. Coverage records a point in time, not continuous monitoring: rescan after code
+changes to start a fresh checklist. Export the current report first to preserve it.
+
+**Create change** opens a task composer carrying the route, viewport and notes. You can
+save a draft without execution or start the configured agent when execution is enabled.
+**Export report** downloads JSON with source candidates, checks, notes, timestamps,
+widths and the Git HEAD recorded at scan time. This records manual review, not automated
+visual correctness or provider compatibility.
+
+Records persist in local SQLite. Concurrent saves use a revision number; a stale window
+must reopen Route review before saving. Scans skip ignored/generated/private paths,
+symlinks, source files over 256 KiB and literal scanning beyond 3000 source files. A
+checklist is limited to 1000 routes. No DOM screenshots or image uploads are collected.

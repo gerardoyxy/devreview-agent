@@ -7,15 +7,15 @@ ${contextStyles}
 .dr-review{font:var(--dr-size)/1.6 var(--dr-font-body);color:var(--dr-text);background:var(--dr-surface);display:flex;flex:1;width:100%;flex-direction:column;height:100%;min-height:0;min-width:0;text-align:left}.dr-review *{box-sizing:border-box}.dr-review button,.dr-review textarea{font:inherit}.dr-review button{cursor:pointer;touch-action:manipulation}.dr-review button:disabled{opacity:.5;cursor:default}.dr-review button:focus-visible,.dr-review textarea:focus-visible,.dr-review summary:focus-visible{outline:2px solid var(--dr-accent);outline-offset:3px}.dr-review [hidden]{display:none!important}.dr-review ::selection{background:var(--dr-accentSoft);color:var(--dr-text)}.dr-heading{padding:24px 26px 18px}.dr-title{font:700 calc(var(--dr-size) * 1.5714)/1.3 var(--dr-font-heading);letter-spacing:-.025em;margin:0 0 10px;overflow-wrap:anywhere}.dr-state{font-size:calc(var(--dr-size) * 0.7857);color:var(--dr-accent);margin:0 0 6px}.dr-meta{color:var(--dr-muted);font-size:calc(var(--dr-size) * 0.7857);overflow-wrap:anywhere}.dr-tabs{display:flex;flex-wrap:wrap;gap:24px;border-bottom:1px solid var(--dr-border);padding:0 26px}.dr-tab{padding:11px 0;background:none;border:0;border-bottom:2px solid transparent;color:var(--dr-muted);font-size:calc(var(--dr-size) * 0.8571)!important}.dr-tab[aria-selected=true]{border-bottom-color:var(--dr-accent);color:var(--dr-accent);font-weight:700}
 .dr-content{flex:1;min-height:0;overflow:auto}.dr-chat{height:100%;min-height:260px;display:flex;flex-direction:column}.dr-messages{flex:1;overflow:auto;padding:24px 26px;min-height:85px;display:flex;flex-direction:column;gap:22px}.dr-message{max-width:92%;white-space:pre-wrap;overflow-wrap:anywhere;font-size:var(--dr-size)}.dr-message.user{align-self:flex-end;background:var(--dr-accentSoft);border-radius:var(--dr-radius);padding:12px 16px}.dr-message.assistant{align-self:flex-start;padding:0}.dr-message-label{display:block;white-space:normal;color:var(--dr-muted);font-size:calc(var(--dr-size) * 0.7143);margin-bottom:7px}.dr-wait{color:var(--dr-muted);font-size:calc(var(--dr-size) * 0.8571);margin:0;padding:0 26px 10px}.dr-composer{border-top:1px solid var(--dr-border);padding:14px 26px 17px}.dr-composer label{font-size:calc(var(--dr-size) * 0.8571);color:var(--dr-muted);display:block;margin-bottom:6px}.dr-composer textarea{display:block;width:100%;min-height:78px;max-height:160px;resize:vertical;border:1px solid var(--dr-border);border-radius:var(--dr-radius);padding:10px 12px;background:var(--dr-surface);color:var(--dr-text);line-height:1.6;font-size:var(--dr-size);caret-color:var(--dr-accent)}.dr-composer textarea::placeholder{color:var(--dr-muted)}.dr-composer-bottom{display:flex;justify-content:space-between;gap:15px;align-items:center;margin-top:11px}.dr-hint{font-size:calc(var(--dr-size) * 0.7857);color:var(--dr-muted);margin:0;max-width:350px;line-height:1.6}.dr-primary{background:var(--dr-accent);color:var(--dr-onAccent);border:1px solid var(--dr-accent);border-radius:var(--dr-radius);padding:9px 13px;font-size:calc(var(--dr-size) * 0.8571)!important;font-weight:700;white-space:nowrap}.dr-primary:hover{filter:brightness(.95)}.dr-secondary{border:1px solid var(--dr-border);background:var(--dr-surface);color:var(--dr-text);padding:8px 11px;border-radius:var(--dr-radius);font-size:calc(var(--dr-size) * 0.8571)!important}.dr-secondary:hover{background:var(--dr-elevated);border-color:var(--dr-accent)}.dr-error{margin:12px 26px 0;padding:10px 13px;background:var(--dr-warningSoft);color:var(--dr-warning);border-radius:var(--dr-radius);font-size:calc(var(--dr-size) * 0.8571);white-space:pre-wrap;overflow-wrap:anywhere}
 .dr-changes,.dr-history,.dr-context-used{padding:22px 26px}.dr-review h3{font:700 calc(var(--dr-size) * 1.0000)/1.4 var(--dr-font-heading);margin:24px 0 12px}.dr-review h3:first-child{margin-top:0}.dr-files{font:calc(var(--dr-size) * 0.8571)/1.8 var(--dr-font-mono);color:var(--dr-muted);overflow-wrap:anywhere}.dr-check{font-size:calc(var(--dr-size) * 0.8571);padding:10px 0;border-bottom:1px solid var(--dr-border)}.dr-check summary,.dr-history details summary{cursor:pointer}.dr-review pre{font:calc(var(--dr-size) * 0.8571)/1.7 var(--dr-font-mono);background:var(--dr-page);border:1px solid var(--dr-border);padding:12px;border-radius:var(--dr-radius);overflow:auto;max-height:380px;white-space:pre;tab-size:2}.dr-diff-line{display:block;min-height:1.7em}.dr-add{background:var(--dr-successSoft);color:var(--dr-success)}.dr-remove{background:var(--dr-dangerSoft);color:var(--dr-danger)}.dr-context{color:var(--dr-muted)}.dr-actions{display:flex;justify-content:flex-end;flex-wrap:wrap;gap:8px;padding:14px 26px;border-top:1px solid var(--dr-border);background:var(--dr-page)}.dr-revision{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--dr-border);gap:10px;font-size:calc(var(--dr-size) * 0.9286)}.dr-revision small{display:block;color:var(--dr-muted);font-size:calc(var(--dr-size) * 0.7857);margin-top:3px}.dr-timeline{border-left:1px solid var(--dr-border);margin:22px 0 0 4px;padding-left:17px}.dr-event{position:relative;font-size:calc(var(--dr-size) * 0.8571);margin:16px 0;color:var(--dr-text)}.dr-event:before{content:'';position:absolute;left:-21px;top:7px;width:7px;height:7px;background:var(--dr-accent);border-radius:50%}.dr-event small{display:block;font-size:calc(var(--dr-size) * 0.7143);color:var(--dr-muted);margin-top:3px}.dr-empty{padding:28px;color:var(--dr-muted);text-align:center}.dr-context-picker{font-size:calc(var(--dr-size) * 0.8571);margin:0 0 7px}.dr-context-used h3{margin-top:0}.dr-review .pc-snapshot pre{background:var(--dr-surface);font-size:calc(var(--dr-size) * 0.9286)!important}
-@media(max-width:600px){.dr-heading{padding:17px}.dr-title{font-size:calc(var(--dr-size) * 1.3571)}.dr-tabs{padding:0 17px;gap:18px}.dr-tab{font-size:calc(var(--dr-size) * 0.7857)!important;padding:9px 0}.dr-messages{padding:18px 17px}.dr-message{font-size:calc(var(--dr-size) * 0.9286);max-width:100%}.dr-composer{padding:11px 17px}.dr-hint{font-size:calc(var(--dr-size) * 0.7143);max-width:180px}.dr-composer-bottom{align-items:flex-end;gap:10px}.dr-composer textarea{font-size:calc(var(--dr-size) * 0.9286);min-height:70px}.dr-actions{padding:12px 17px}.dr-changes,.dr-history,.dr-context-used{padding:17px}.dr-error{margin-left:17px;margin-right:17px}.dr-primary,.dr-secondary{font-size:calc(var(--dr-size) * 0.7857)!important;padding:8px 10px}.dr-state,.dr-meta{font-size:calc(var(--dr-size) * 0.7143)}}
+@media(max-width:600px){.dr-heading{padding:17px}.dr-title{font-size:calc(var(--dr-size) * 1.3571)}.dr-tabs{padding:0 17px;gap:18px}.dr-tab{font-size:calc(var(--dr-size) * 0.7857)!important;padding:9px 0}.dr-messages{padding:18px 17px}.dr-message{font-size:calc(var(--dr-size) * 0.9286);max-width:100%}.dr-composer{padding:11px 17px}.dr-hint{font-size:calc(var(--dr-size) * 0.7143);max-width:180px}.dr-composer-bottom{align-items:flex-end;gap:10px}.dr-composer textarea{font-size:max(16px,var(--dr-size));min-height:70px}.dr-actions{padding:12px 17px}.dr-changes,.dr-history,.dr-context-used{padding:17px}.dr-error{margin-left:17px;margin-right:17px}.dr-primary,.dr-secondary{font-size:calc(var(--dr-size) * 0.7857)!important;padding:8px 10px}.dr-state,.dr-meta{font-size:calc(var(--dr-size) * 0.7143)}}
 `;
 
-export const taskStatusLabels: Record<string, string> = { pending: 'Queued', analyzing: 'Preparing task', working: 'Agent working', validating: 'Validating changes', ready: 'Ready for review', awaiting_feedback: 'Waiting for your reply', applying: 'Applying changes', applied: 'Applied', failed: 'Needs attention', conflict: 'Conflict', rejected: 'Rejected', cancelled: 'Cancelled', created: 'Task created' };
+export const taskStatusLabels: Record<string, string> = { draft_edited: 'Draft edited', draft: 'Draft', preparing: 'Preparing workspace', undoing: 'Undoing changes', undone: 'Undone', recovery_required: 'Recovery required', pending: 'Queued', analyzing: 'Preparing task', working: 'Agent working', validating: 'Validating changes', ready: 'Ready for review', awaiting_feedback: 'Waiting for your reply', applying: 'Applying changes', applied: 'Applied', failed: 'Needs attention', conflict: 'Conflict', rejected: 'Rejected', cancelled: 'Cancelled', created: 'Task created' };
 const node = <K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] => { const element = document.createElement(tag); if (className) element.className = className; if (text !== undefined) element.textContent = text; return element; };
 const time = (value: string) => new Date(value).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 
 /** Shared conversation/review UI, mounted in the overlay or dashboard's shadow root. */
-export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutation = () => {} }: { api: Api; onMutation?: (id: string) => void }) {
+export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutation = () => {}, executionEnabled = () => true, onEditDraft }: { api: Api; onMutation?: (id: string) => void; executionEnabled?: () => boolean; onEditDraft?: (task: Task) => void }) {
   const style = node('style'); style.textContent = styles; root.append(style);
   const view = node('section', 'dr-review');
   view.innerHTML = `<div class="dr-heading"><h2 class="dr-title"></h2><div class="dr-state"></div><div class="dr-meta"></div></div>
@@ -23,8 +23,8 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
     <div class="dr-error" role="alert" hidden></div><div class="dr-content">
     <section class="dr-chat" data-panel="conversation" role="tabpanel" aria-label="Conversation"><div class="dr-messages" role="log" aria-label="Task conversation" aria-live="polite" aria-relevant="additions"></div><p class="dr-wait" role="status"></p>
     <form class="dr-composer"><div class="dr-context-picker"></div><label>Message to the agent<textarea aria-label="Message to the agent" maxlength="8000" required placeholder="Ask a question or describe the next adjustment…"></textarea></label><div class="dr-composer-bottom"><p class="dr-hint"></p><button class="dr-primary dr-send" type="submit">Send follow-up</button></div></form></section>
-    <section class="dr-changes" data-panel="changes" role="tabpanel" aria-label="Changes" hidden><h3>Validation</h3><div class="dr-checks"></div><h3>Changed files</h3><div class="dr-files"></div><h3>Current patch</h3><pre class="dr-diff" tabindex="0"></pre></section>
-    <section class="dr-context-used" data-panel="context" role="tabpanel" aria-label="Context used" hidden><h3>Sent with this version</h3><div class="dr-context-snapshot"></div></section><section class="dr-history" data-panel="history" role="tabpanel" aria-label="History" hidden><h3>Change versions</h3><p class="dr-hint">Earlier versions are kept for reference. Apply always uses the current validated version.</p><div class="dr-revisions"></div><div class="dr-past" hidden></div><h3>Activity</h3><div class="dr-timeline"></div></section></div><div class="dr-actions"></div>`;
+    <section class="dr-changes" data-panel="changes" role="tabpanel" aria-label="Changes" hidden><h3>Workspace preparation</h3><div class="dr-setup"></div><h3>Validation</h3><div class="dr-checks"></div><h3>Changed files</h3><div class="dr-files"></div><h3>Current patch</h3><button class="dr-secondary dr-download" type="button">Download patch</button><pre class="dr-diff" tabindex="0"></pre></section>
+    <section class="dr-context-used" data-panel="context" role="tabpanel" aria-label="Context used" hidden><h3>Sent with this version</h3><div class="dr-context-snapshot"></div></section><section class="dr-history" data-panel="history" role="tabpanel" aria-label="History" hidden><h3>Change versions</h3><p class="dr-hint">Earlier versions are kept for reference. Apply always uses the current version. Check its validation results first.</p><div class="dr-revisions"></div><div class="dr-past" hidden></div><h3>Activity</h3><div class="dr-timeline"></div></section></div><div class="dr-actions"></div>`;
   root.append(view);
   const $ = <E extends HTMLElement = HTMLElement>(selector: string) => query<E>(view, selector);
   const contextPicker = createContextPicker($('.dr-context-picker'), api);
@@ -39,28 +39,30 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
   for (const button of view.querySelectorAll<HTMLButtonElement>('[data-tab]')) {
     button.onclick = () => selectTab(button.dataset.tab || 'conversation');
     button.onkeydown = event => {
-      if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
       event.preventDefault(); const tabs = [...view.querySelectorAll<HTMLButtonElement>('[data-tab]')];
-      const next = tabs[(tabs.indexOf(button) + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length]; selectTab(next.dataset.tab || 'conversation'); next.focus();
+      const next = tabs[event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (tabs.indexOf(button) + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length]; selectTab(next.dataset.tab || 'conversation'); next.focus();
     };
   }
-  const patch = (container: HTMLElement, value: string) => container.replaceChildren(...(value || 'No file changes in this version.').split('\n').map(line => node('span', `dr-diff-line ${line.startsWith('+') ? 'dr-add' : line.startsWith('-') ? 'dr-remove' : line.startsWith('@@') ? 'dr-context' : ''}`, line)));
+  const patch = (container: HTMLElement, value: string) => container.replaceChildren(...(value || 'No file changes in this version.').split('\n').slice(0, 4000).map(line => node('span', `dr-diff-line ${line.startsWith('+') ? 'dr-add' : line.startsWith('-') ? 'dr-remove' : line.startsWith('@@') ? 'dr-context' : ''}`, line)));
+  $('.dr-download').onclick = () => { if (!task?.diff) return; const url = URL.createObjectURL(new Blob([task.diff], { type: 'text/x-diff' })); const a = node('a'); a.href = url; a.download = `${task.id}-v${task.attempt}.patch`; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); };
   const controls = () => {
     if (!task) return;
-    const active = ['pending', 'analyzing', 'working', 'validating', 'applying'].includes(task.status);
-    const canSend = ['ready', 'awaiting_feedback', 'failed', 'cancelled', 'applied', 'rejected'].includes(task.status);
+    const active = ['pending', 'analyzing', 'preparing', 'working', 'validating', 'applying', 'undoing'].includes(task.status);
+    const canSend = executionEnabled() && ['undone', 'ready', 'awaiting_feedback', 'failed', 'cancelled', 'applied', 'rejected'].includes(task.status);
     $<HTMLButtonElement>('.dr-send').disabled = busy || !canSend;
     // Keep the draft editable while the agent works.
-    $('.dr-hint').textContent = task.status === 'applied' ? 'Commit the applied changes before continuing this conversation.' : task.status === 'conflict' ? 'Retry against HEAD to resolve the conflict before continuing.' : active ? 'You can draft a reply now. Send it when this turn finishes.' : 'Your reply stays in this task. Changes still need your approval.';
+    $('.dr-hint').textContent = !executionEnabled() ? 'Execution is disabled. Review and saved drafts remain available.' : task.status === 'draft' ? 'Edit this draft or start it when you are ready.' : task.status === 'recovery_required' ? 'Inspect affected files and the saved patch before continuing. Automatic actions are blocked.' : task.status === 'applied' || task.status === 'undone' ? 'Your next message starts from a snapshot of your current workspace, including local edits.' : task.status === 'conflict' ? 'Preserve your edits, then retry from the current workspace.' : active ? 'You can draft a reply now. Send it when this turn finishes.' : 'Your reply stays in this task. Changes still need your approval.';
     $('.dr-wait').textContent = active ? `${taskStatusLabels[task.status]}… You can close this window and keep reviewing.` : task.status === 'awaiting_feedback' ? 'The agent replied without file changes. You can continue the conversation.' : '';
     $('.dr-wait').hidden = !$('.dr-wait').textContent;
     $('.dr-actions').replaceChildren();
     const action = (name: string, label: string, primary = false) => {
       const attempt = task.attempt;
-      const button = node('button', primary ? 'dr-primary' : 'dr-secondary', label); button.disabled = busy;
+      const button = node('button', primary ? 'dr-primary' : 'dr-secondary', label); button.disabled = busy || (['start','retry'].includes(name) && !executionEnabled());
       button.onclick = async () => {
         const id = task.id;
-        if (name === 'apply' && !window.confirm(`Apply ${id} to your working tree? Files will change without a commit.`)) return;
+        if (name === 'apply' && !window.confirm(`Apply ${id} to your working tree? ${task.validationStatus === 'passed' ? 'Configured checks passed.' : 'This patch has not passed configured validation.'} Files will change without a commit.`)) return;
+        if (name === 'undo' && !window.confirm(`Undo ${id}? Only files still matching the applied version can be restored.`)) return;
         busy = true; controls(); error('');
         try {
           await api(`/api/tasks/${id}/${name}`, { method: 'POST', body: JSON.stringify({ attempt }) });
@@ -71,10 +73,16 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
       };
       $('.dr-actions').append(button);
     };
-    if (['pending', 'analyzing', 'working', 'validating'].includes(task.status)) action('cancel', 'Cancel task');
+    if (['pending', 'analyzing', 'preparing', 'working', 'validating'].includes(task.status)) action('cancel', 'Cancel task');
     if (['ready', 'awaiting_feedback', 'failed', 'conflict'].includes(task.status)) action('reject', 'Reject');
-    if (['ready', 'awaiting_feedback', 'failed', 'conflict', 'cancelled', 'rejected'].includes(task.status)) action('retry', 'Retry from HEAD');
-    if (task.status === 'ready') action('apply', 'Apply current changes', true);
+    if (['ready', 'awaiting_feedback', 'failed', 'conflict', 'cancelled', 'rejected'].includes(task.status)) action('retry', 'Retry from workspace');
+    if (task.status === 'draft') {
+      if (onEditDraft) { const edit = node('button', 'dr-secondary', 'Edit draft'); edit.disabled = busy; edit.onclick = () => onEditDraft(task); $('.dr-actions').append(edit); }
+      action('start', 'Start change', true);
+    }
+    if (task.status === 'applied' && task.undo?.after) action('undo', 'Undo applied changes');
+    if (task.status === 'undone') action('retry', 'Start from workspace');
+    if (task.status === 'ready') action('apply', task.validationStatus === 'passed' ? 'Apply current changes' : 'Apply unchecked changes', true);
   };
   function setTask(next: Task) {
     if (task?.id !== next.id) {
@@ -90,7 +98,7 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
     task = next;
     $('.dr-state').textContent = `${task.id} · ${taskStatusLabels[task.status] || task.status} · version ${task.attempt}`;
     $('.dr-title').textContent = task.request;
-    $('.dr-meta').textContent = `${task.agent} · ${task.context.route} · ${task.context.selector || task.context.tagName}`;
+    $('.dr-meta').textContent = `${task.agent} · ${task.kind || 'frontend'} · ${task.context.route || 'Workspace task'}${task.context.selector ? ' · ' + task.context.selector : ''}${task.snapshotIncludesLocalChanges ? ' · Includes local edits' : ''}`;
     error(task.error || task.cleanupWarning);
     const log = $('.dr-messages'), stick = log.scrollHeight - log.scrollTop - log.clientHeight < 80 || !renderedMessages.size;
     for (const message of task.messages || []) {
@@ -100,12 +108,19 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
       log.append(item); renderedMessages.add(message.id);
     }
     if (stick) requestAnimationFrame(() => { if (task?.id === next.id) log.scrollTop = log.scrollHeight; });
+    $('.dr-setup').replaceChildren();
+    for (const check of task.setupChecks || []) { const entry = node('details', 'dr-check'); entry.append(node('summary', '', `${check.passed ? 'Passed' : 'Failed'} ${check.command} · ${check.durationMs}ms`), node('pre', '', check.output || '(no output)')); $('.dr-setup').append(entry); }
+    if (!task.setupChecks?.length) $('.dr-setup').append(node('p', 'dr-hint', 'No setup results recorded for this version.'));
     $('.dr-checks').replaceChildren();
     if (!task.validation.length) $('.dr-checks').append(node('p', 'dr-hint', task.status === 'ready' ? 'No validation commands configured. Review this patch carefully.' : 'No validation results yet.'));
     for (const check of task.validation) {
       const entry = node('details', 'dr-check'); entry.append(node('summary', '', `${check.passed ? 'Passed' : 'Failed'} ${check.command} · ${check.durationMs}ms`), node('pre', '', check.output || '(no output)')); $('.dr-checks').append(entry);
     }
-    $('.dr-files').replaceChildren(...task.files.map(file => node('div', '', file))); patch($('.dr-diff'), task.diff);
+    $('.dr-files').replaceChildren(...task.files.map(file => node('div', '', file))); patch($('.dr-diff'), task.diff); $('.dr-download').hidden = !task.diff; $('.dr-diff').setAttribute('aria-label', 'Patch preview, up to 4000 lines. Download for the complete patch.');
+    const reference = $('.dr-context-snapshot'); reference.querySelector('.dr-references')?.remove(); const refs = node('div', 'dr-references');
+    if (task.references?.length) refs.append(node('h3', '', 'File references'), node('pre', '', task.references.join('\n')));
+    if (task.context.source) refs.append(node('h3', '', 'Source hint · unverified'), node('pre', '', task.context.source));
+    reference.append(refs);
     $('.dr-revisions').replaceChildren();
     for (const revision of task.revisions || []) {
       const row = node('div', 'dr-revision'), description = node('div', '', `Version ${revision.attempt} · ${taskStatusLabels[revision.status] || revision.status}`);

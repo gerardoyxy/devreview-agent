@@ -45,8 +45,12 @@ allowedOrigins = ["http://localhost:5173"]
 [workers]
 maxConcurrent = 2
 
+[setup]
+commands = ["npm ci"]
+timeout = 120000
+
 [validation]
-commands = ["npm ci", "npm test"]
+commands = ["npm test"]
 timeout = 120000
 
 [[agents]]
@@ -85,3 +89,15 @@ WAL files with those from another database state.
 A forced shutdown may leave `server.lock` behind. Verify that the previous server
 and its agents have stopped before removing it. The server does not automatically
 remove another process's lock.
+
+## Updating from 0.2 to 0.3
+
+Keep `nudgethis.toml` and local state. Existing configurations default to an empty setup
+list and enabled execution. Move dependency installation commands into `[setup]`; leave
+repeatable checks in `[validation]`. Existing `init` configurations are never overwritten.
+Use `doctor` to inspect suggestions and `start --no-execution` to review safely after upgrade.
+
+The update adds draft/task metadata, preparation results, Undo records and route coverage
+without changing the SQLite schema version. Old revisions remain readable; old applied
+patches cannot gain missing before/after Undo records. Interrupted Apply or Undo enters
+`recovery_required` for manual inspection instead of automatic replay.

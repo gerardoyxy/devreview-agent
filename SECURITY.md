@@ -10,14 +10,14 @@ you trust and under your own operating-system account.
 - `.nudgethis/` contains the token, database, logs, and worktrees. Keep it ignored.
 - Browser comments are JSON data passed to the adapter through stdin. They are
   never interpolated into a shell command.
-- Validation commands come only from trusted `nudgethis.toml`. TOML is parsed as data. Configured
-  agent executables and validation commands can execute arbitrary code as your OS user. Review repositories and configuration before starting the server.
+- Setup and validation commands come only from trusted `nudgethis.toml`. TOML is parsed as data. Configured
+  agent executables, setup and validation commands can execute arbitrary code as your OS user. Review repositories and configuration before starting the server.
 - The Codex adapter requests its workspace-write sandbox. Git worktrees isolate
   edits but are **not** an OS or network sandbox. The Rust runtime terminates process groups/jobs on cancellation, but each custom
   or ACP agent must supply filesystem/network isolation. ACP client capabilities
   are minimal and permission requests currently fail rather than grant access. Never use an unrestricted adapter on
   untrusted requests or repositories.
-- Apply is explicit, serialized, and refuses local edits to affected paths,
+- Apply is explicit, serialized, and refuses changes to affected paths since the task snapshot,
   changed branches, symlink/submodule patches, and `.env` changes. `git apply`
   performs its normal path checks. No automatic commits or pushes occur.
 - Avoid editing an affected file or running another Git command during Apply:
@@ -40,7 +40,7 @@ from text/snippet capture. This is data minimization, not a complete secret scan
 visible text, selectors, attributes and source files may still contain sensitive data.
 Screenshots are not captured in this alpha. Conversation text is rendered as text,
 not executable HTML. Only the server can append an assistant message. A new message
-cannot apply code; the current validated patch still requires explicit Apply.
+cannot apply code; the current ready patch still requires explicit Apply, including when no validation is configured.
 
 ## Reporting vulnerabilities
 
@@ -71,3 +71,21 @@ bounded font-family names and WOFF/WOFF2 payloads (1 MiB combined); it does not 
 user-supplied font URLs. Browser font parsing is still performed by the browser. Imported
 themes are data and cannot provide scripts or executable CSS. Exported themes include
 uploaded fonts; users are responsible for rights to distribute those files.
+
+## Local snapshots and browser review
+
+Private snapshot refs under `refs/nudgethis/snapshots/` can retain uncommitted source.
+They are outside branch history and ordinary branch pushes; mirror pushes would include
+such local refs. Recovery records can retain filenames, hashes and patches. Preserve local
+backups deliberately and review them before exporting or sharing.
+
+`--no-execution`, `[execution] enabled = false` and `NUDGETHIS_DISABLE_EXECUTION=1` block
+queue execution, setup, validation and agent requests. Existing Apply/Undo still perform
+explicit file changes; this mode is not a read-only filesystem sandbox. Diagnostics inspect
+metadata and executable paths without checking sign-in or invoking providers.
+
+Route review embeds a trusted localhost application in a restricted browser frame. The
+application's own JavaScript can run; no agent is launched. The origin must be configured.
+Cross-origin frames cannot reliably report page failures, redirects or authentication state.
+Coverage is a human record, not automated validation. Reports include local routes, notes,
+source hints and timestamps; inspect them before sharing.
