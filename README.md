@@ -1,0 +1,170 @@
+# DevReview Agent
+
+**Turn feedback on localhost into an isolated, reviewable coding-agent task.**
+
+DevReview is an experimental, local-first QA layer for developers. Select an
+element in your running app, describe the problem, and keep reviewing. An agent
+works in a separate Git worktree; you inspect the diff and explicitly apply it.
+
+```text
+Alt + right-click → comment → worktree → agent → validation → review → apply
+```
+
+Your main coding workflow stays where it is. DevReview focuses on the small fixes
+you discover during QA: layout, responsive behavior, copy, and broken interactions.
+
+[Español](README.es.md) · [Architecture](docs/architecture.md) · [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
+
+## Try it without an agent account
+
+Requirements: **Node.js 24.15+** and **Git** on your PATH. The application has no
+third-party runtime dependencies; it uses Node's built-in SQLite implementation.
+
+```bash
+git clone https://github.com/gerardoyxy/devreview-agent.git
+cd devreview-agent
+npm run demo
+```
+
+Open the dashboard or playground URL printed in the terminal. Hold **Alt** and
+right-click the **Add teammate** button. Ask to align it right on desktop and make
+it full width on mobile. Review the patch, then choose **Apply**.
+
+The offline demo uses an explicitly labelled adapter that makes this one
+predefined CSS change. It creates a disposable repository and calls no model.
+Stop it with Ctrl+C to clean up. Use `DEVREVIEW_DEMO_PORT=7441 npm run demo` on
+POSIX systems if port 7331 is occupied.
+
+## Use it on your own application
+
+The package is **not published to npm yet**. Run the CLI from this source checkout
+using its absolute path (or use `npm link` if you want the `devreview` command).
+
+1. Install and authenticate [Codex CLI](https://developers.openai.com/codex/cli/)
+   in the same environment as Node and Git. DevReview reuses that local login.
+2. In the **root of the application repository**, run:
+
+   ```bash
+   node /absolute/path/to/devreview-agent/packages/cli/src/index.js init
+   ```
+
+3. Edit `devreview.config.mjs`, then commit the configuration, `.gitignore`, and
+   application changes before starting QA:
+
+   ```js
+   export default {
+     server: {
+       port: 7331,
+       allowedOrigins: ['http://localhost:5173']
+     },
+     workers: { maxConcurrent: 2 },
+     agent: { command: 'codex', timeout: 600000 },
+     validation: {
+       commands: ['npm run lint', 'npm test'],
+       timeout: 120000
+     }
+   };
+   ```
+
+4. Start your app, then start DevReview in a second terminal at that same
+   application's repository root:
+
+   ```bash
+   node /absolute/path/to/devreview-agent/packages/cli/src/index.js start
+   ```
+
+5. Open the printed dashboard link. Its fragment contains a **local access token**;
+   the dashboard removes the fragment and stores it in session storage. Find the
+   token in Connection settings or the local `.devreview/token` file. Keep it out
+   of source control and production bundles.
+6. Inject the overlay **only in development**. For example, with Vite:
+
+   ```js
+   if (import.meta.env.DEV) {
+     const { DevReview } = await import(
+       /* @vite-ignore */ 'http://127.0.0.1:7331/overlay.js'
+     );
+     DevReview.init({
+       enabled: true,
+       server: 'http://127.0.0.1:7331',
+       token: import.meta.env.VITE_DEVREVIEW_TOKEN
+     });
+   }
+   ```
+
+   Put `VITE_DEVREVIEW_TOKEN` in an ignored local development environment file.
+   Add that file to your application's `.gitignore`. `localhost` and `127.0.0.1`
+   are different origins: configure the exact origin you open in the browser.
+
+Then hold Alt and right-click an element, or focus it and press **Alt + Shift + D**.
+Set `modifier: 'none'` to capture ordinary right-click. Call the returned
+`destroy()` method when unmounting the integration.
+
+## What the alpha includes
+
+- A development-only, framework-independent element picker and comment form.
+- Route, selector, text, viewport, and bounding box capture; opt-in sanitized DOM snippets.
+- A localhost API, SQLite task persistence, audit records, and authenticated SSE.
+- Configurable concurrent workers; each task has its own detached Git worktree.
+- An initial Codex CLI adapter with prompt via stdin and captured output/errors.
+- Configurable validation commands with exit codes, timings, and logs.
+- A dashboard with real status updates, diff review, Apply, Reject, Retry, and Cancel.
+- Serialized application of patches, stale-patch checks, and local-edit protection.
+- An offline demo and automated workflow, API, security-boundary, and persistence tests.
+
+## Git behavior
+
+Tasks start from **committed HEAD**. Commit or stash all local changes before
+reporting a new task. Dependencies are not copied into worktrees; configure a
+trusted setup/validation command such as `npm ci` when the target project needs it.
+
+Apply requires the original branch, no local edits to affected files, and a patch
+that passes `git apply --check`. Unrelated edits are preserved. Application changes
+working files **without committing or pushing**; your normal dev server can hot
+reload them. Commit applied changes before reporting another task.
+
+Conflicts keep the worktree for inspection. Retry discards that task's previous
+worktree and reruns against the latest committed HEAD. Reject removes its worktree.
+Tasks interrupted by a server stop become failed/cancelled; they do not silently
+rerun an agent. After an unclean process crash, verify no server is running before
+removing the stale `.devreview/server.lock` and restarting.
+
+## CLI and API
+
+```text
+devreview init                 devreview start
+devreview status               devreview tasks
+devreview task QA-1             devreview apply QA-1
+devreview reject QA-1           devreview retry QA-1
+devreview cancel QA-1
+```
+
+See [API reference](docs/api.md) and [agent adapter contract](docs/architecture.md#agent-adapters).
+
+## Current limits
+
+This is an early alpha. Screenshots, framework source mapping, console/network
+capture, automatic rebase, and visual regression are planned, not implemented.
+There is no dependency-aware scheduling. Windows and macOS are targeted, but the
+initial local verification was performed on Linux/WSL; CI defines all three.
+The Codex adapter requires a separate local Codex installation and account; the
+automated tests use deterministic adapters and do not consume model credits.
+
+Core task storage stays local and has no telemetry. The configured coding agent
+may send source code and selected context to its provider. A Git worktree is not
+an OS sandbox; read [SECURITY.md](SECURITY.md) before using agents or validation
+commands in a repository.
+
+## Development
+
+```bash
+npm run check
+npm test
+npm run demo
+```
+
+No build or dependency install is required for these commands. Open issues and
+small pull requests are welcome. APIs and the working name may change before a
+stable release.
+
+MIT © 2026 gerardoyxy and DevReview Agent contributors.
