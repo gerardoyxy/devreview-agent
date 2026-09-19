@@ -58,6 +58,16 @@ See [the design system](../../DESIGN.md).
 The font files were sourced from `@fontsource/archivo`; they are vendored with their
 license so production visitors do not contact a font service.
 
+## Social preview
+
+Open Graph and X cards use `public/assets/social-preview.png`, a 1200 × 630 image.
+Its editable source is `assets/brand/social-preview.html` at the repository root.
+After editing the artwork, run `node scripts/render-social-preview.js` with Playwright's
+Chromium installed, or set `NUDGETHIS_BROWSER_PATH` to a local Chromium executable.
+Commit the updated PNG with the artwork. Normal site builds copy it without a browser.
+Keep the absolute image URLs, dimensions and alternative text in `public/index.html`
+aligned with the asset.
+
 ## Deployment
 
 The Landing workflow builds matching pull requests and pushes to `main`.

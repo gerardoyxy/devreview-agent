@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>NudgeThis social preview artwork</title>
+    <style>
+      @font-face { font-family: Archivo; src: url('../../apps/site/public/assets/archivo-400.woff2'); font-weight: 400; }
+      @font-face { font-family: Archivo; src: url('../../apps/site/public/assets/archivo-700.woff2'); font-weight: 700; }
+      @font-face { font-family: Archivo; src: url('../../apps/site/public/assets/archivo-900.woff2'); font-weight: 900; }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: Archivo, sans-serif; }
+      .card { position: relative; width: 1200px; height: 630px; overflow: hidden; background: #2147cc; color: #fff; }
+      .brand { position: absolute; top: 40px; left: 52px; display: flex; align-items: center; gap: 10px; font-size: 37px; font-weight: 900; letter-spacing: -1.5px; }
+      .brand img { width: 60px; height: 60px; }
+      h1 { position: absolute; top: 156px; left: 60px; margin: 0; font-size: 79px; font-weight: 900; letter-spacing: -3.5px; line-height: .98; }
+      h1 span { display: block; }
+      .description { position: absolute; top: 429px; left: 62px; margin: 0; font-size: 24px; line-height: 1.4; color: #edf1ff; }
+      .domain { position: absolute; bottom: 43px; left: 62px; font-size: 21px; font-weight: 700; }
+      .browser { position: absolute; top: 126px; left: 654px; width: 486px; height: 279px; background: #f4f6ff; color: #111839; border: 1px solid #111839; border-radius: 9px; }
+      .browser-bar { height: 47px; padding: 0 22px; display: flex; align-items: center; gap: 9px; border-bottom: 1px solid #b4bfd9; font-size: 16px; }
+      .browser-bar i { width: 9px; height: 9px; border-radius: 50%; background: #b4bfd9; }
+      .browser-bar span { margin-left: 14px; }
+      .page { padding: 25px 32px; }
+      .page h2 { margin: 0; font-size: 31px; font-weight: 900; letter-spacing: -1px; }
+      .page p { margin: 8px 0 26px; font-size: 17px; color: #536184; }
+      .selected { position: relative; display: inline-block; }
+      .example-button { display: block; padding: 15px 25px; border-radius: 6px; background: #2147cc; color: #fff; font-size: 19px; font-weight: 700; }
+      .selection { position: absolute; inset: -7px; border: 2px solid #2147cc; }
+      .selection i { position: absolute; width: 10px; height: 10px; border: 1px solid #111839; background: #f0df65; }
+      .selection i:nth-child(1) { top: -6px; left: -6px; }
+      .selection i:nth-child(2) { top: -6px; right: -6px; }
+      .selection i:nth-child(3) { bottom: -6px; left: -6px; }
+      .selection i:nth-child(4) { bottom: -6px; right: -6px; }
+      .connector { position: absolute; left: 779px; top: 344px; width: 2px; height: 87px; background: #f0df65; }
+      .pointer { position: absolute; top: 302px; left: 826px; width: 108px; height: 108px; }
+      .note { position: absolute; top: 431px; left: 706px; width: 434px; padding: 21px 25px 24px; background: #fff; border: 1px solid #111839; border-radius: 8px; color: #111839; }
+      .note-label { display: flex; align-items: center; gap: 9px; margin-bottom: 11px; font-size: 15px; color: #536184; }
+      .note-label::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #2147cc; }
+      .note p { margin: 0; font-size: 29px; font-weight: 700; letter-spacing: -.7px; line-height: 1.14; }
+    </style>
+  </head>
+  <body>
+    <main class="card" aria-label="NudgeThis: point, describe, make it yours. An example button is selected beside a request for more space and softer corners.">
+      <div class="brand"><img src="nudgethis-icon.svg" alt="">NudgeThis</div>
+      <h1><span>Point.</span><span>Describe.</span><span>Make it yours.</span></h1>
+      <p class="description">Visual feedback<br>for your coding agent.</p>
+      <span class="domain">nudgethis.click</span>
+      <section class="browser" aria-label="Example application">
+        <div class="browser-bar"><i></i><i></i><i></i><span>Your local app</span></div>
+        <div class="page">
+          <h2>A little more you.</h2>
+          <p>Your next idea starts here.</p>
+          <div class="selected">
+            <span class="example-button">Get started</span>
+            <span class="selection" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+          </div>
+        </div>
+      </section>
+      <span class="connector" aria-hidden="true"></span>
+      <img class="pointer" src="nudgethis.svg" alt="Cursor with a star at its tip">
+      <div class="note"><div class="note-label">Your change</div><p>More space.<br>Softer corners.</p></div>
+    </main>
+  </body>
+</html>
