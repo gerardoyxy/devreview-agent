@@ -336,7 +336,7 @@ Application focus uses a two-pixel accent outline with a three-pixel offset in s
 
 ### Chips
 
-Status badges pair a small dot with text and a semantic foreground/background pair. Ready/applied is success, failed/conflict is danger, agent activity is info and awaiting-feedback is warning. Neutral states use muted/elevated. The badge is compact, not pill-shaped.
+Status badges pair a small dot with text and a semantic foreground/background pair. Validated ready/applied is success, failed/conflict/recovery is danger, agent activity is info and awaiting-feedback, drafts and unchecked ready changes use warning. Neutral states use muted/elevated. The badge is compact, not pill-shaped.
 
 ### Cards / Containers
 
@@ -353,6 +353,14 @@ Dashboard queue filters use selected blue ground, accent text and bold emphasis.
 ### Conversation, review and context
 
 User messages align right on selected-blue ground; agent messages align left on the reading surface. Role/time/version labels support the conversation. Changes, History and Context used remain separate tab panels. Code additions/removals use semantic state pairs. Context choices are collapsible near the composer; historical context snapshots are readable, bounded and distinct from the editable library.
+
+### Workspace and route review
+
+The task composer and setup dialog share the existing surface, border, radius, font roles
+and accent controls. Route review extends the framed workspace to a two-column checklist
+and preview. Its top progress bar counts reviewed viewports; the list pairs readable desktop
+and mobile states. On phones the checklist and preview stack. Preview scaling preserves
+its selected layout width; the surrounding interface retains the user's saved theme.
 
 ### Selected object and demonstration
 

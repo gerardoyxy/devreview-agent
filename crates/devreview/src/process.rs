@@ -4,6 +4,7 @@ use std::{path::Path, process::Stdio, time::Duration};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio_util::sync::CancellationToken;
 
+#[derive(Debug)]
 pub struct Output {
     pub code: i32,
     pub stdout: String,
@@ -17,6 +18,18 @@ pub async fn run(
     timeout: u64,
     cancel: &CancellationToken,
 ) -> Result<Output> {
+    run_env(command, args, cwd, input, timeout, cancel, &[]).await
+}
+#[allow(clippy::too_many_arguments)]
+pub async fn run_env(
+    command: &str,
+    args: &[String],
+    cwd: &Path,
+    input: &[u8],
+    timeout: u64,
+    cancel: &CancellationToken,
+    environment: &[(&str, &str)],
+) -> Result<Output> {
     ensure!(!cancel.is_cancelled(), "Cancelled");
     let mut cmd = CommandWrap::with_new(command, |cmd| {
         #[cfg(windows)]
@@ -28,7 +41,8 @@ pub async fn run(
         }
         #[cfg(not(windows))]
         cmd.args(args);
-        cmd.current_dir(cwd)
+        cmd.envs(environment.iter().copied())
+            .current_dir(cwd)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped());

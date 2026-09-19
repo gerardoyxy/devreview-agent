@@ -111,6 +111,9 @@ impl Core {
         }))
     }
     pub fn start(self: &Arc<Self>) {
+        if !self.config.execution_enabled() {
+            return;
+        }
         let core = self.clone();
         tokio::spawn(async move {
             loop {
@@ -181,6 +184,12 @@ impl Core {
     pub async fn submit(&self, mut input: Value) -> Result<Value> {
         let _lock = self.control.lock().await;
         check(!self.stop.is_cancelled(), 503, "Server is stopping")?;
+        let draft = input["draft"] == true;
+        check(
+            draft || self.config.execution_enabled(),
+            403,
+            "Execution is disabled. Save a draft instead.",
+        )?;
         let id = input["agent"]
             .as_str()
             .unwrap_or(&self.config.default_agent)
@@ -196,19 +205,49 @@ impl Core {
             input.get("contextIds"),
         )?;
         input.as_object_mut().unwrap().remove("contextIds");
-        input.as_object_mut().unwrap().extend(
-            self.repository
-                .snapshot()
-                .await?
-                .as_object()
-                .unwrap()
-                .clone(),
-        );
+        if !draft {
+            input.as_object_mut().unwrap().extend(
+                self.repository
+                    .snapshot()
+                    .await?
+                    .as_object()
+                    .unwrap()
+                    .clone(),
+            );
+        }
         let task = self.store.create(input)?;
         self.wake.notify_one();
         Ok(task)
     }
+    pub async fn edit_draft(&self, id: &str, input: Value, attempt: Option<u64>) -> Result<Value> {
+        let _lock = self.control.lock().await;
+        check(!self.stop.is_cancelled(), 503, "Server is stopping")?;
+        let task = self.store.get(id)?;
+        check_attempt(&task, attempt)?;
+        check(task["status"] == "draft", 409, "Only drafts can be edited")?;
+        let mut patch = validate_input(input)?;
+        let agent = patch["agent"]
+            .as_str()
+            .unwrap_or(&self.config.default_agent)
+            .to_owned();
+        check(
+            self.config.agents.iter().any(|a| a.id == agent),
+            400,
+            "Agent is not configured",
+        )?;
+        patch["agent"] = agent.into();
+        patch["draft"] = true.into();
+        patch["projectContext"] = crate::project_context::snapshot(
+            &self.store.project_context()?,
+            patch.get("contextIds"),
+        )?;
+        patch.as_object_mut().unwrap().remove("contextIds");
+        patch["attempt"] = (task["attempt"].as_u64().unwrap_or(1) + 1).into();
+        patch["status"] = "draft".into();
+        self.store.edit_draft(id, patch)
+    }
     async fn execute(self: &Arc<Self>, task: Value, cancel: CancellationToken) -> Result<()> {
+        ensure!(self.config.execution_enabled(), "Execution is disabled");
         let id = task["id"].as_str().unwrap().to_owned();
         self.store.update(&id, json!({"status":"analyzing"}))?;
         let cwd = if task["continueWorktree"] == true {
@@ -216,6 +255,31 @@ impl Core {
         } else {
             self.repository.prepare(&task).await?
         };
+        if task["continueWorktree"] != true && !self.config.setup.commands.is_empty() {
+            self.store.update(&id, json!({"status":"preparing"}))?;
+            let baseline = self.repository.collect(&task).await?;
+            let mut setup = vec![];
+            for command in &self.config.setup.commands {
+                let started = std::time::Instant::now();
+                let result =
+                    process::shell(command, &cwd, self.config.setup.timeout, &cancel).await;
+                let (code, output) = match result {
+                    Ok(r) => (r.code, format!("{}{}", r.stdout, r.stderr)),
+                    Err(e) => (1, format!("{e:#}")),
+                };
+                setup.push(json!({"command":command,"passed":code==0,"code":code,"durationMs":started.elapsed().as_millis() as u64,"output":output}));
+                self.store.update(&id, json!({"setupChecks":setup}))?;
+                ensure!(!cancel.is_cancelled(), "Task cancelled during setup");
+                ensure!(
+                    code == 0,
+                    "Workspace setup failed. Review setup output and commands before retrying."
+                );
+            }
+            ensure!(
+                self.repository.collect(&task).await? == baseline,
+                "Setup changed source files. Commit dependency lockfiles and ignore build output before retrying."
+            );
+        }
         ensure!(!cancel.is_cancelled(), "Task cancelled");
         self.store.update(&id, json!({"status":"working"}))?;
         let agent = self
@@ -236,7 +300,7 @@ impl Core {
             recent.push(message);
         }
         recent.reverse();
-        let envelope = json!({"id":id,"request":task["request"],"context":task["context"],"attempt":task["attempt"],"agent":task["agent"],"messages":recent,"projectContext":task["projectContext"]});
+        let envelope = json!({"id":id,"kind":task["kind"],"references":task["references"],"request":task["request"],"context":task["context"],"attempt":task["attempt"],"agent":task["agent"],"messages":recent,"projectContext":task["projectContext"]});
         let request = serde_json::from_value(
             json!({"protocolVersion":1,"transport":agent.transport,"command":agent.command,"args":agent.args,"model":agent.model,"timeoutMs":agent.timeout,"cwd":cwd,"task":envelope}),
         )?;
@@ -305,6 +369,12 @@ impl Core {
         }
         let mut update = patch.clone();
         update["status"] = "validating".into();
+        update["validationStatus"] = if self.config.validation.commands.is_empty() {
+            "not_configured"
+        } else {
+            "running"
+        }
+        .into();
         self.store.update(&id, update)?;
         let mut checks = vec![];
         for command in &self.config.validation.commands {
@@ -316,7 +386,7 @@ impl Core {
                 Err(e) => (1, format!("{e:#}")),
             };
             checks.push(json!({"command":command,"passed":code==0,"code":code,"durationMs":start.elapsed().as_millis() as u64,"output":output}));
-            self.store.update(&id, json!({"validation":checks}))?;
+            self.store.update(&id, json!({"validation":checks,"validationStatus":if code == 0 {"running"} else {"failed"}}))?;
             ensure!(!cancel.is_cancelled(), "Task cancelled");
             ensure!(
                 code == 0,
@@ -329,7 +399,7 @@ impl Core {
             "Validation changed source files. Inspect the worktree before retrying."
         );
         self.store
-            .update(&id, json!({"status":"ready","validation":checks}))?;
+            .update(&id, json!({"status":"ready","validation":checks,"validationStatus":if checks.is_empty(){"not_configured"}else{"passed"}}))?;
         Ok(())
     }
     pub async fn message(
@@ -342,6 +412,11 @@ impl Core {
         let _lock = self.control.lock().await;
         check(!self.stop.is_cancelled(), 503, "Server is stopping")?;
         check(
+            self.config.execution_enabled(),
+            403,
+            "Execution is disabled. The conversation is available for review only.",
+        )?;
+        check(
             !content.trim().is_empty() && content.chars().count() <= 8000,
             400,
             "Message must contain 1-8000 characters",
@@ -352,7 +427,13 @@ impl Core {
             !self.active.lock().unwrap().contains_key(id)
                 && matches!(
                     task["status"].as_str().unwrap_or(""),
-                    "ready" | "awaiting_feedback" | "failed" | "cancelled" | "applied" | "rejected"
+                    "ready"
+                        | "awaiting_feedback"
+                        | "failed"
+                        | "cancelled"
+                        | "applied"
+                        | "rejected"
+                        | "undone"
                 ),
             409,
             "Wait for the agent to finish, or retry a conflicting task before sending a follow-up.",
@@ -363,7 +444,7 @@ impl Core {
             .transpose()?;
         let fresh = matches!(
             task["status"].as_str().unwrap_or(""),
-            "applied" | "rejected"
+            "applied" | "rejected" | "undone"
         ) || !self.repository.worktree(id)?.exists();
         let mut patch = reset(&task);
         if fresh {
@@ -398,7 +479,10 @@ impl Core {
         let status = task["status"].as_str().unwrap_or("");
         if action == "cancel" {
             check(
-                matches!(status, "pending" | "analyzing" | "working" | "validating"),
+                matches!(
+                    status,
+                    "pending" | "analyzing" | "preparing" | "working" | "validating"
+                ),
                 409,
                 "Task cannot be cancelled in its current state",
             )?;
@@ -428,22 +512,60 @@ impl Core {
             "Wait for the running task to stop",
         )?;
         match action {
+            "start" => {
+                check(status == "draft", 409, "Only drafts can be started")?;
+                check(
+                    self.config.execution_enabled(),
+                    403,
+                    "Execution is disabled. Draft saved; no agent was started.",
+                )?;
+                let mut snapshot = self.repository.snapshot().await?;
+                snapshot["status"] = "pending".into();
+                snapshot["draft"] = false.into();
+                self.store.update(id, snapshot)?;
+                self.wake.notify_one();
+            }
             "apply" => {
                 check(status == "ready", 409, "Only ready tasks can be applied")?;
-                self.store.update(id, json!({"status":"applying"}))?;
-                if let Err(error) = self.repository.apply(&task).await {
-                    self.store
-                        .update(id, json!({"status":"conflict","error":error.to_string()}))?;
-                    return Err(error);
-                }
+                let before = self.repository.check_apply(&task).await?;
+                self.store.update(id, json!({"status":"applying","undo":{"before":before,"after":null,"at":crate::store::now()}}))?;
+                let after = match self.repository.apply(&task, &before).await {
+                    Ok(after) => after,
+                    Err(error) => {
+                        self.store.update(id, json!({"status":"recovery_required","error":format!("Apply could not finish: {error}. Inspect the affected files before continuing.")}))?;
+                        return Err(error);
+                    }
+                };
                 self.store
-                    .update(id, json!({"status":"applied","error":null}))?;
+                    .update(id, json!({"status":"applied","error":null,"undo":{"before":before,"after":after,"at":crate::store::now()}}))?;
                 if let Err(error) = self.repository.cleanup(id).await {
                     self.store
                         .update(id, json!({"cleanupWarning":error.to_string()}))?;
                 }
             }
+            "undo" => {
+                check(
+                    status == "applied",
+                    409,
+                    "Only applied changes with a complete Undo record can be undone",
+                )?;
+                self.repository.check_undo(&task).await?;
+                self.store.update(id, json!({"status":"undoing"}))?;
+                if let Err(error) = self.repository.undo(&task).await {
+                    self.store.update(id, json!({"status":"recovery_required","error":format!("Undo could not finish: {error}. Inspect the affected files before continuing.")}))?;
+                    return Err(error);
+                }
+                self.store.update(
+                    id,
+                    json!({"status":"undone","undoneAt":crate::store::now(),"error":null}),
+                )?;
+            }
             "retry" => {
+                check(
+                    self.config.execution_enabled(),
+                    403,
+                    "Execution is disabled",
+                )?;
                 check(
                     matches!(
                         status,
@@ -453,6 +575,7 @@ impl Core {
                             | "rejected"
                             | "ready"
                             | "awaiting_feedback"
+                            | "undone"
                     ),
                     409,
                     "Task cannot be retried in its current state",
@@ -472,9 +595,12 @@ impl Core {
             }
             "reject" | "delete" => {
                 check(
-                    !matches!(status, "applied" | "applying"),
+                    !matches!(
+                        status,
+                        "applied" | "applying" | "undoing" | "recovery_required"
+                    ),
                     409,
-                    "An applied task cannot be rejected or deleted",
+                    "Applied changes and recovery records cannot be rejected or deleted",
                 )?;
                 self.repository.cleanup(id).await?;
                 if action == "delete" {
@@ -489,7 +615,7 @@ impl Core {
     }
 }
 fn reset(task: &Value) -> Value {
-    json!({"attempt":task["attempt"].as_u64().unwrap_or(1)+1,"diff":"","files":[],"validation":[],"output":"","agentErrors":"","error":null,"cleanupWarning":null})
+    json!({"attempt":task["attempt"].as_u64().unwrap_or(1)+1,"diff":"","files":[],"validation":[],"validationStatus":"not_run","setupChecks":[],"undo":null,"output":"","agentErrors":"","error":null,"cleanupWarning":null})
 }
 fn check_attempt(task: &Value, attempt: Option<u64>) -> Result<()> {
     check(
@@ -499,17 +625,35 @@ fn check_attempt(task: &Value, attempt: Option<u64>) -> Result<()> {
     )
 }
 pub fn validate_input(input: Value) -> Result<Value> {
-    let request: String = input["request"]
-        .as_str()
-        .unwrap_or("")
-        .trim()
-        .chars()
-        .take(8000)
-        .collect();
+    check(input.is_object(), 400, "Use a task object")?;
+    let kind = input["kind"].as_str().unwrap_or("frontend");
+    check(
+        matches!(
+            kind,
+            "frontend" | "backend" | "tests" | "documentation" | "general"
+        ),
+        400,
+        "Unknown task kind",
+    )?;
+    check(
+        input.get("draft").is_none_or(Value::is_boolean),
+        400,
+        "draft must be a boolean",
+    )?;
+    let request: String = input["request"].as_str().unwrap_or("").trim().to_owned();
     check(!request.is_empty(), 400, "Describe the change you need")?;
+    check(
+        request.chars().count() <= 8000,
+        400,
+        "Use up to 8000 characters for the request",
+    )?;
     let source = &input["context"];
-    check(source.is_object(), 400, "Element context is required")?;
-    let mut context = json!({});
+    check(
+        source.is_null() || source.is_object(),
+        400,
+        "Invalid element context",
+    )?;
+    let mut context = json!({"sourceVerified":false});
     for (key, max) in [
         ("url", 2000),
         ("route", 1000),
@@ -529,21 +673,22 @@ pub fn validate_input(input: Value) -> Result<Value> {
             .collect::<String>()
             .into();
     }
-    check(context["tagName"] != "", 400, "Element tagName is required")?;
-    let url = url::Url::parse(context["url"].as_str().unwrap());
-    check(url.is_ok(), 400, "A valid HTTP page URL is required")?;
-    let mut url = url?;
-    check(
-        matches!(url.scheme(), "http" | "https"),
-        400,
-        "A valid HTTP page URL is required",
-    )?;
-    let _ = url.set_username("");
-    let _ = url.set_password(None);
-    url.set_query(None);
-    url.set_fragment(None);
-    context["url"] = url.as_str().into();
-    context["route"] = url.path().into();
+    if context["url"] != "" {
+        let url = url::Url::parse(context["url"].as_str().unwrap());
+        check(url.is_ok(), 400, "A valid HTTP page URL is required")?;
+        let mut url = url?;
+        check(
+            matches!(url.scheme(), "http" | "https"),
+            400,
+            "A valid HTTP page URL is required",
+        )?;
+        let _ = url.set_username("");
+        let _ = url.set_password(None);
+        url.set_query(None);
+        url.set_fragment(None);
+        context["url"] = url.as_str().into();
+        context["route"] = url.path().into();
+    }
     for (key, fields) in [
         ("viewport", vec!["width", "height"]),
         ("boundingBox", vec!["x", "y", "width", "height"]),
@@ -557,7 +702,26 @@ pub fn validate_input(input: Value) -> Result<Value> {
                 .into();
         }
     }
-    let mut result = json!({"request":request,"context":context});
+    let mut references = vec![];
+    if let Some(files) = input.get("references") {
+        check(
+            files.is_array() && files.as_array().unwrap().len() <= 32,
+            400,
+            "Use up to 32 relative file references",
+        )?;
+        for value in files.as_array().unwrap() {
+            let file = value.as_str().unwrap_or("");
+            check(
+                file.len() <= 1000 && crate::git::safe_path(file).is_ok(),
+                400,
+                "Use safe repository-relative file references",
+            )?;
+            if !references.contains(&file) {
+                references.push(file);
+            }
+        }
+    }
+    let mut result = json!({"request":request,"context":context,"kind":kind,"references":references,"draft":input["draft"]==true});
     if let Some(agent) = input.get("agent") {
         check(
             agent.as_str().is_some_and(crate::config::valid_id),
