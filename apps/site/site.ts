@@ -1,3 +1,5 @@
+import './demo.js';
+
 // Static landing only. No local agent connections or backend requests.
 const root = document.documentElement;
 const toggle = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');

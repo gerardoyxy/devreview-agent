@@ -20,24 +20,29 @@ remote fonts, analytics script, or application install is required.
 
 The source is semantic HTML, native CSS and strict TypeScript. Without JavaScript,
 navigation and FAQ disclosures work and the site follows the system color scheme.
-JavaScript adds a locally remembered light/dark choice. All asset URLs are relative
+JavaScript adds a locally remembered light/dark choice and the scripted browser demonstration. All asset URLs are relative
 to support a custom domain, a `pages.dev` address, or a GitHub project subpath.
 
 ## Design and assets
 
-Taste Skill design read: a calm product landing for people building with AI,
-using plain language and actual product screenshots. Dials: design variance 6,
-motion intensity 3, visual density 3. The existing framework-independent frontend
-is retained. Native screenshot assets are used instead of fabricated product UI.
+The existing landing identity remains while the replacement visual direction is
+being selected. The browser demonstration follows Impeccable's motion guidance.
 
-- One green accent with light/dark tokens throughout.
-- Self-hosted DM Sans, 400 and 700. See `public/assets/FONT-LICENSE.txt` (OFL).
-- `conversation.png` and `history.png`: real screenshots from the project's local
-  deterministic Rust demo. They show the current alpha and previous product name.
+- The hero contains a native HTML/CSS example page and conversation, not an iframe.
+- A TypeScript controller advances through Point, Describe, Review, and Apply.
+  The selected button changes color and corners only at Apply.
+- Autoplay runs once for 13 seconds. Pause, Play, Replay, and individual step
+  controls work with keyboard and touch. The animation clock stops offscreen or
+  when the browser tab is hidden.
+- Reduced-motion preferences and disabled JavaScript show the final static
+  illustration. With JavaScript, visitors can still inspect steps manually.
+- The demo is labeled illustrative and makes no agent, API, or localhost requests.
+- Self-hosted DM Sans, 400 and 700; see `public/assets/FONT-LICENSE.txt` (OFL).
+- `history.png` is a real screenshot of the deterministic Rust demo, showing the
+  current alpha and previous product name. The hero example is authored HTML.
 - The small `n` favicon is a geometric monogram.
-- Motion is limited to control feedback and respects reduced-motion settings.
 
 The font files were sourced from `@fontsource/dm-sans`; they are vendored with their
 license so production visitors do not contact a font service.
 
-See [publication instructions](../../docs/landing.md) for Cloudflare Pages and GitHub Pages.
+See [publication instructions](../../docs/landing.md) for GitHub Pages with the Namecheap domain.
