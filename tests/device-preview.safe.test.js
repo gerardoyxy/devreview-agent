@@ -106,7 +106,9 @@ test('Chromium device preview: touch, rotation, desktop reset, review evidence a
   assert.equal(evidence.observed.width,1440); assert.equal(evidence.observed.dpr,1);
   assert.equal(evidence.observed.touchPoints,0); assert.equal(evidence.observed.coarsePointer,false);
   assert.doesNotMatch(headers.get('/')['user-agent'],/Android/);
-  assert.notEqual(headers.get('/')['sec-ch-ua-platform'],'"Android"');
+  assert.equal(headers.get('/')['user-agent'],(await cdp('Browser.getVersion')).userAgent);
+  assert.equal(headers.get('/')['sec-ch-ua-mobile'],'?0');
+  assert.equal(headers.get('/')['sec-ch-ua-platform'],JSON.stringify({linux:'Linux',win32:'Windows',darwin:'macOS'}[process.platform]));
   const redirected=await open('phone','portrait','/redirect'); await delay(150);
   assert.equal((await review(redirected,'/redirect')).status,409);
   const loading=await open('phone','portrait','/loading');

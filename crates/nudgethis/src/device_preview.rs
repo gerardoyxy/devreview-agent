@@ -160,8 +160,6 @@ struct Session {
     target: String,
     info: Value,
     version: String,
-    desktop_ua: String,
-    desktop_platform: String,
 }
 impl Session {
     async fn stop(&mut self) -> bool {
@@ -226,10 +224,6 @@ impl Session {
             .as_str()
             .context("Missing browser version")?
             .into();
-        self.desktop_ua = version["userAgent"]
-            .as_str()
-            .context("Missing browser user agent")?
-            .into();
         let targets = self.call("Target.getTargets", json!({}), false).await?;
         self.target = targets["targetInfos"]
             .as_array()
@@ -252,14 +246,6 @@ impl Session {
                 .context("Cannot attach to review window")?
                 .into(),
         );
-        let platform = self
-            .call(
-                "Runtime.evaluate",
-                json!({"expression":"navigator.platform","returnByValue":true}),
-                true,
-            )
-            .await?;
-        self.desktop_platform = platform["result"]["value"].as_str().unwrap_or("").into();
         Ok(())
     }
     async fn configure(&mut self, url: &str, profile: Value) -> Result<Value> {
@@ -291,9 +277,10 @@ impl Session {
                 }
             )
         } else {
-            self.desktop_ua.clone()
+            // Clearing the override restores native UA *and* client hints.
+            String::new()
         };
-        let mut override_ua = json!({"userAgent":ua,"platform":if mobile {"Linux armv8l"}else{&self.desktop_platform}});
+        let mut override_ua = json!({"userAgent":ua,"platform":if mobile {"Linux armv8l"}else{""}});
         if mobile {
             override_ua["userAgentMetadata"] = json!({"brands":[{"brand":"Chromium","version":chrome_version.split('.').next().unwrap_or("0")}],"fullVersionList":[{"brand":"Chromium","version":chrome_version}],"platform":"Android","platformVersion":"13.0.0","architecture":"arm","model":"","mobile":profile["id"] != "tablet"});
         }
@@ -414,6 +401,7 @@ impl DevicePreview {
             let (executable, _) = found.unwrap();
             let directory = state.join(format!("browser-{}", random_id()));
             let mut builder = std::fs::DirBuilder::new();
+            builder.recursive(false);
             #[cfg(unix)]
             {
                 use std::os::unix::fs::DirBuilderExt;
@@ -459,8 +447,6 @@ impl DevicePreview {
                 target: String::new(),
                 info: Value::Null,
                 version: String::new(),
-                desktop_ua: String::new(),
-                desktop_platform: String::new(),
             });
         }
         let session = guard.as_mut().unwrap();
