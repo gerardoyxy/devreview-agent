@@ -24,6 +24,10 @@ Default tests create disposable repositories and run with agent execution disabl
 `npm test` selects `*.safe.test.js`; Rust application tests target the `nudgethis` binary.
 Default checks must not depend on provider credentials or live model calls.
 
+Installer tests use isolated folders and local download fixtures. They verify checksums,
+version selection and preservation of existing files without executing the downloaded
+application. The landing deployment checks both shell and PowerShell installers.
+
 ## Browser and starter checks
 
 Set `NUDGETHIS_TEST_BROWSER` to an installed Chrome/Chromium executable before running

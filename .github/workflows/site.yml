@@ -6,6 +6,14 @@ on:
       - 'apps/site/**'
       - 'assets/brand/**'
       - 'scripts/build-site.js'
+      - 'scripts/build-docs.js'
+      - 'scripts/install.sh'
+      - 'scripts/install.ps1'
+      - 'tests/installers.safe.test.js'
+      - 'docs/**'
+      - 'README.md'
+      - 'SECURITY.md'
+      - 'ROADMAP.md'
       - 'scripts/build-brand.js'
       - 'package.json'
       - 'package-lock.json'
@@ -17,6 +25,14 @@ on:
       - 'apps/site/**'
       - 'assets/brand/**'
       - 'scripts/build-site.js'
+      - 'scripts/build-docs.js'
+      - 'scripts/install.sh'
+      - 'scripts/install.ps1'
+      - 'tests/installers.safe.test.js'
+      - 'docs/**'
+      - 'README.md'
+      - 'SECURITY.md'
+      - 'ROADMAP.md'
       - 'scripts/build-brand.js'
       - 'package.json'
       - 'package-lock.json'
@@ -40,6 +56,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build:site
+      - run: node --test tests/installers.safe.test.js
       - name: Check that linked downloads are published
         id: release
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
@@ -67,9 +84,22 @@ jobs:
         uses: actions/upload-pages-artifact@v4
         with:
           path: dist/site
+  installer-platforms:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify installer behavior without running the application
+        run: node --test tests/installers.safe.test.js
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && needs.build.outputs.release-ready == 'true'
-    needs: build
+    needs: [build, installer-platforms]
     runs-on: ubuntu-latest
     permissions:
       pages: write

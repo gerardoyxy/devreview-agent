@@ -35,7 +35,7 @@ jobs:
         if: runner.os == 'Linux'
         env:
           NUDGETHIS_TEST_BROWSER: /usr/bin/google-chrome
-        run: node --test tests/device-preview.safe.test.js tests/selection-browser.safe.test.js tests/multi-selection-browser.safe.test.js tests/my-style-browser.safe.test.js tests/versions-browser.safe.test.js tests/branch-publish-browser.safe.test.js tests/starter-browser.safe.test.js tests/landing-browser.safe.test.js
+        run: node --test tests/device-preview.safe.test.js tests/selection-browser.safe.test.js tests/multi-selection-browser.safe.test.js tests/my-style-browser.safe.test.js tests/versions-browser.safe.test.js tests/branch-publish-browser.safe.test.js tests/starter-browser.safe.test.js tests/landing-browser.safe.test.js tests/documentation-browser.safe.test.js
       - name: Maintained starter builds and previews (agents disabled)
         if: runner.os == 'Linux'
         run: node scripts/check-starters.js

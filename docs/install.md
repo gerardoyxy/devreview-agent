@@ -4,6 +4,9 @@ Download the archive matching your operating system and CPU from
 [GitHub Releases](https://github.com/gerardoyxy/nudgethis/releases).
 Preview releases are alpha builds. Their notes identify the checks performed and remaining limits.
 
+Prefer a command line? Use the [terminal installer](https://nudgethis.click/docs/terminal-install/).
+For a Linux repository on Windows, follow [Windows + WSL](https://nudgethis.click/docs/wsl/).
+
 | Archive suffix | Platform |
 | --- | --- |
 | `linux-x64.tar.gz` | x86-64 Linux, built on Ubuntu 22.04 with glibc |

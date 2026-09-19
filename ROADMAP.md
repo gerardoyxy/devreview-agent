@@ -9,6 +9,7 @@ for Windows, Linux and macOS. See [installation](docs/install.md) and the
 | Area | Capabilities | Guide |
 | --- | --- | --- |
 | Getting started | Portable launcher, local project library, goal diagnosis, HTML/CSS, Astro and React starters, reviewed preview commands | [Start a project](docs/project-starter.md) |
+| Terminal setup | Checksum-verified per-user installers, selectable versions, CLI instructions and a manual WSL workflow | [Terminal installation](docs/terminal-install.md), [WSL](docs/wsl.md) |
 | Visual feedback | Single, multiple and area selection, configurable mouse/keyboard input, group review and Copy context | [Selection controls](docs/selection-controls.md) |
 | Conversations | General, frontend, backend, test and documentation requests; drafts, follow-ups, changes and persistent history | [Usage](README.md#conversations-and-review) |
 | Project context | Instructions, text skills and documents with selected, versioned snapshots | [Project context](README.md#project-context) |
@@ -28,7 +29,7 @@ These are development priorities, not release-date commitments.
 
 | Area | Next steps |
 | --- | --- |
-| Setup | Configure agents without a terminal; support more existing-project preview workflows. |
+| Setup | Configure agents without a terminal; support more existing-project preview workflows and a guided Windows-to-WSL launcher. |
 | Framework integration | Add verified DOM-to-source mapping, router AST adapters, nested/generated routes and broader React/Vue/Angular fixtures. |
 | Review | Add optional redacted screenshots, post-HMR visual checks, before/after comparisons and coverage for multiple device profiles per route. |
 | My Style | Support CSS tokens and utility classes, selector-aware evidence and more correction patterns. |

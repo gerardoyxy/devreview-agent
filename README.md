@@ -9,7 +9,7 @@ Each task has its own conversation, agent replies, diff, validation results and
 persistent version history. Agents edit isolated Git worktrees. You explicitly apply reviewed
 changes to your branch, without automatic commits or pushes.
 
-[Website](https://nudgethis.click/) · [Install](docs/install.md) · [Start a project](docs/project-starter.md) · [My Style](docs/my-style.md) · [Route review](docs/route-review.md) · [Agents](docs/agents.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Security](SECURITY.md)
+[Website](https://nudgethis.click/) · [Documentation](https://nudgethis.click/docs/) · [Install](docs/install.md) · [Terminal](docs/terminal-install.md) · [WSL](docs/wsl.md) · [Agents](docs/agents.md) · [API](docs/api.md) · [Security](SECURITY.md)
 
 ## Start without a project
 
@@ -24,6 +24,11 @@ You can begin without Git or GitHub. Agents start disabled. See [installation](d
 for operating-system approval, version history, agent setup and current alpha limitations.
 
 ## Build and try
+
+For a prebuilt CLI, use the [terminal installer](docs/terminal-install.md). It verifies
+the release checksum and installs in your user folder. Linux, macOS and Windows commands
+are available on the [website](https://nudgethis.click/#terminal); WSL uses the Linux
+installer inside its distribution. No compiler is required for a published executable.
 
 The frontend is strict TypeScript. The HTTP/SSE server, queue, SQLite, Git operations,
 validation, CLI and agent transports are Rust. Compiled browser assets are embedded in the

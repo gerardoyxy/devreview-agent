@@ -25,6 +25,7 @@
   "devDependencies": {
     "@resvg/resvg-js": "2.6.2",
     "esbuild": "0.28.2",
+    "marked": "18.0.13",
     "playwright": "1.63.0",
     "typescript": "7.0.2"
   }
