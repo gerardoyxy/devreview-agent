@@ -23,7 +23,7 @@ pub fn origin(value: &str) -> Result<String> {
     )?;
     Ok(value.into())
 }
-fn concrete_path(value: &str) -> bool {
+pub fn concrete_path(value: &str) -> bool {
     value.starts_with('/')
         && !value.starts_with("//")
         && value.len() <= 2000
@@ -233,6 +233,9 @@ pub async fn scan(repository: &Repository, input: &Value) -> Result<Value> {
     Ok(value)
 }
 pub fn change(previous: &Value, input: &Value) -> Result<Value> {
+    change_with_device(previous, input, None)
+}
+pub fn change_with_device(previous: &Value, input: &Value, device: Option<Value>) -> Result<Value> {
     let mut next = previous.clone();
     let routes = next["routes"].as_array_mut().unwrap();
     let action = input["action"].as_str().unwrap_or("");
@@ -296,9 +299,13 @@ pub fn change(previous: &Value, input: &Value) -> Result<Value> {
             400,
             "Use a note up to 2000 characters; blocked views need a reason",
         )?;
-        let width = input["width"].as_u64().unwrap_or(0);
+        let width = device
+            .as_ref()
+            .map(|value| value["profile"]["width"].as_u64().unwrap_or(0))
+            .unwrap_or_else(|| input["width"].as_u64().unwrap_or(0));
         check(
             status != "reviewed"
+                || device.is_some()
                 || if viewport == "mobile" {
                     (320..=480).contains(&width)
                 } else {
@@ -308,6 +315,10 @@ pub fn change(previous: &Value, input: &Value) -> Result<Value> {
             "Review at a mobile width of 320–480 px or desktop width of 1024–2560 px",
         )?;
         route[viewport] = json!({"status":status,"note":note,"width":width,"at":crate::store::now(),"method":"manual-browser-review"});
+        if let Some(device) = device {
+            route[viewport]["method"] = "manual-device-emulation".into();
+            route[viewport]["device"] = device;
+        }
     }
     Ok(next)
 }

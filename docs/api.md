@@ -8,6 +8,8 @@ Browser calls must also use an explicitly allowed loopback Origin.
 | --- | --- | --- |
 | GET | `/api/status` | Branch, HEAD, configured agents, executionEnabled, setup/validation commands |
 | GET | `/api/diagnostics` | Read-only framework, package-manager and executable availability report |
+| GET | `/api/device-preview` | Browser availability, fixed profiles and the last opened device session |
+| POST | `/api/device-preview` | Explicitly open/configure or close the owned Chromium browser |
 | GET | `/api/tasks` | Task summaries, newest first |
 | POST | `/api/tasks` | Create a draft or enqueue; returns 202 |
 | GET | `/api/tasks/QA-1` | Context, patch, validation, messages, activity, revision summaries |
@@ -177,3 +179,40 @@ records require a concrete path and a width of 320â€“480 px for mobile or 1024â€
 desktop. The server records time and `method: manual-browser-review`. It validates record
 shape and width, not the truth of a human review. Stale revisions return 409. The selected
 origin is never fetched by Rust; the browser loads the preview. [Coverage semantics](route-review.md).
+
+To confirm an emulated device view, send `method: "device"` and the current `sessionId`
+with the review request. The server verifies the live browser session, matching URL and
+Desktop/Mobile category, and completed document load. It obtains width/settings from its
+owned session, allowing landscape and tablet widths. It records `method: "manual-device-emulation"`
+and a `device` evidence object. Client-supplied evidence is ignored. This verifies the
+browser context; the user still judges page correctness. Old sessions and redirected or
+closed tabs return 409. Requests with no method or `method: "embedded"` retain layout-only
+manual review behavior for existing clients.
+
+## Device preview
+
+GET reports `available`, `browser`, `profiles` and nullable `session`. It never starts a
+browser. `doctor`/diagnostics also include metadata-only `deviceBrowser` availability.
+
+POST accepts either `{ "action": "close" }` or:
+
+```json
+{
+  "action": "open",
+  "origin": "http://localhost:3000",
+  "path": "/settings",
+  "profile": "phone",
+  "orientation": "portrait"
+}
+```
+
+Profiles are `phone-small`, `phone`, `phone-large`, `tablet` and `desktop`. Orientation is
+`portrait` or `landscape`; desktop is always landscape. The origin must be an explicitly
+allowed loopback origin and the path must be concrete without query/fragment. The body
+limit is 4 KiB. Only one owned browser session exists per repository server; opening again
+updates its tab and generates a fresh session ID. The API accepts no executable, arbitrary
+browser arguments, script, CDP command, external debugging endpoint or user profile.
+
+These endpoints remain available with agent execution disabled. Opening explicitly launches
+a browser, never an agent or project command. Close and graceful server shutdown stop the
+owned process and clean its temporary profile. See [device browser](route-review.md#device-browser).

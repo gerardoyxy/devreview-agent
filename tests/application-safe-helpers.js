@@ -11,7 +11,8 @@ export const environment = { ...process.env, NUDGETHIS_DISABLE_EXECUTION: '1' };
 export function cli(root, ...args) {
   return spawnSync(binary, ['--root', root, ...args], { encoding: 'utf8', env: environment, timeout: 15000 });
 }
-export async function application({ origins = [] } = {}) {
+export async function application({ origins = [], environment: overrides = {} } = {}) {
+  const fixtureEnvironment = { ...environment, ...overrides, NUDGETHIS_DISABLE_EXECUTION: '1' };
   const root = await mkdtemp(path.join(tmpdir(), 'nudgethis-application-'));
   const git = (...args) => {
     const result = spawnSync('git', ['-c', 'core.hooksPath=/dev/null', ...args], { cwd: root, env: environment, encoding: 'utf8', timeout: 15000 });
@@ -36,7 +37,7 @@ export async function application({ origins = [] } = {}) {
     return { status: response.status, data: await response.json() };
   };
   const start = async () => {
-    child = spawn(binary, ['--root', root, 'start', '--port', '0', '--no-execution'], { env: environment, stdio: ['ignore', 'pipe', 'pipe'] });
+    child = spawn(binary, ['--root', root, 'start', '--port', '0', '--no-execution'], { env: fixtureEnvironment, stdio: ['ignore', 'pipe', 'pipe'] });
     let output = '', startupError;
     child.on('error', error => { startupError = error; });
     child.stdout.on('data', chunk => { output += chunk; });

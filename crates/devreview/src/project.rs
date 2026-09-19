@@ -209,9 +209,10 @@ pub fn suggested_config(root: &Path) -> Result<Config> {
     Ok(config)
 }
 pub fn doctor(root: &Path, config: &Config) -> Result<Value> {
+    let device_browser = crate::device_preview::availability();
     let project = inspect(root)?;
     let providers: Vec<_> = config.agents.iter().map(|a| json!({"id":a.id,"executableAvailable":executable(&a.command),"authentication":"not checked"})).collect();
     Ok(
-        json!({"project":project,"gitAvailable":executable("git"),"configurationExists":file(root,"devreview.toml"),"executionEnabled":config.execution_enabled(),"agents":providers,"setupCommands":config.setup.commands,"validationCommands":config.validation.commands,"validationConfigured":!config.validation.commands.is_empty(),"allowedOrigins":config.server.allowed_origins,"note":"Diagnostics inspect files and executable paths only. They do not run commands, contact providers or verify authentication."}),
+        json!({"project":project,"gitAvailable":executable("git"),"configurationExists":file(root,"devreview.toml"),"executionEnabled":config.execution_enabled(),"agents":providers,"deviceBrowser":device_browser,"setupCommands":config.setup.commands,"validationCommands":config.validation.commands,"validationConfigured":!config.validation.commands.is_empty(),"allowedOrigins":config.server.allowed_origins,"note":"Diagnostics inspect files and executable paths only. They do not run commands, contact providers or verify authentication."}),
     )
 }
