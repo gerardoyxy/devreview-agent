@@ -1,5 +1,17 @@
 # Contributing
 
+Browser emulation checks use a real installed Chromium browser, without agents or models:
+
+```bash
+NUDGETHIS_TEST_BROWSER=/absolute/path/to/chrome node --test tests/device-preview.safe.test.js
+```
+
+The helper selects a temporary profile and headless mode. The test is explicitly skipped
+when that environment variable is absent; the Linux CI job runs it with installed Chrome.
+Do not interpret a skipped browser check as successful browser validation. Never point the
+test at an existing user profile or debugging session. Default application tests still use
+`--no-execution` and `NUDGETHIS_DISABLE_EXECUTION=1`.
+
 Thanks for helping improve the feedback-to-fix loop.
 
 Use Node.js 24.15+, Git and stable Rust. Build the TypeScript frontend and native

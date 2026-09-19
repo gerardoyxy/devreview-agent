@@ -65,6 +65,7 @@ export function createDiagnostics(mount: HTMLElement | ShadowRoot, api: Api) {
       row('Package manager', report.project.packageManager ? `${report.project.packageManager} · ${report.project.packageManagerAvailable ? 'available' : 'not found in server PATH'}` : 'Not detected');
       row('Configuration', report.configurationExists ? 'nudgethis.toml found' : 'Run nudgethis init');
       row('Execution', report.executionEnabled ? 'Enabled' : 'Disabled');
+      row('Device browser', report.deviceBrowser.available ? `${report.deviceBrowser.browser} found · launch not checked` : 'Not found · embedded layout available');
       for (const agent of report.agents) row(agent.id, `${agent.executableAvailable ? 'Executable found' : 'Executable not found'} · sign-in not checked`);
       for (const warning of report.project.warnings) { const p = element('p', warning); p.className = 'nt-workspace-note'; content.append(p); }
       if (!report.validationConfigured) { const p = element('p', 'No automated validation is configured. A ready patch will be clearly marked as unchecked.'); p.className = 'nt-workspace-note'; content.append(p); }

@@ -223,6 +223,9 @@ This remains an alpha. Screenshots, framework-verified source mapping, multi-sel
 automatic rebase, post-HMR visual verification and native provider resume remain future work.
 Element reidentification is conservative: changed or ambiguous targets require selection again.
 The [roadmap](ROADMAP.md) distinguishes implemented behavior from remaining work.
+The [foundation evidence map](docs/foundations.md) separates basic capabilities, checks
+and remaining gaps. [Device browser](docs/route-review.md#device-browser) adds Chromium
+touch, rotation, density and mobile user-agent emulation to route review.
 Default tests exercise application code with execution disabled. Agent fixtures require a
 separate explicit opt-in and do not certify real providers. No agent/model integrations were
 exercised for the 0.3 preview. Worktrees are not OS sandboxes. See [security](SECURITY.md).

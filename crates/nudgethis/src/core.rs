@@ -19,6 +19,7 @@ pub struct Core {
     pub repository: Repository,
     pub store: Store,
     pub token: String,
+    pub device_preview: crate::device_preview::DevicePreview,
     control: tokio::sync::Mutex<()>,
     active: Mutex<HashMap<String, Active>>,
     wake: Notify,
@@ -103,6 +104,7 @@ impl Core {
             repository,
             store,
             token,
+            device_preview: crate::device_preview::DevicePreview::default(),
             control: tokio::sync::Mutex::new(()),
             active: Mutex::new(HashMap::new()),
             wake: Notify::new(),
@@ -165,6 +167,9 @@ impl Core {
     }
     pub async fn close(&self) {
         self.stop.cancel();
+        if let Err(error) = self.device_preview.close().await {
+            eprintln!("Device preview shutdown: {error}");
+        }
         let _lock = self.control.lock().await;
         let receivers: Vec<_> = self
             .active
