@@ -1,7 +1,10 @@
+import { createContextPicker, contextStyles, renderContextSnapshot } from './project-context.js';
 import type { Api, Task, Revision } from '../../contracts/src/index.js';
 import { errorMessage, query } from '../../contracts/src/index.js';
 
 const styles = `
+${contextStyles}
+.dr-context-used{padding:20px 25px}.dr-tabs{flex-wrap:wrap}.dr-context-used h3{margin-top:0}
 .dr-review{font:calc(var(--dr-size) * 0.929)/1.6 var(--dr-font-body);color:var(--dr-text);background:var(--dr-surface);display:flex;flex-direction:column;height:100%;min-height:0;min-width:0;text-align:left}
 .dr-review *{box-sizing:border-box}.dr-review button,.dr-review textarea{font:inherit}.dr-review button{cursor:pointer}.dr-review button:disabled{opacity:.5;cursor:default}.dr-review button:focus-visible,.dr-review textarea:focus-visible{outline:2px solid var(--dr-border);outline-offset:3px}.dr-review [hidden]{display:none!important}
 .dr-heading{padding:22px 25px 16px}.dr-eyebrow{font-size:calc(var(--dr-size) * 0.857);letter-spacing:1.4px;color:var(--dr-muted);text-transform:uppercase}.dr-title{font-size:calc(var(--dr-size) * 1.286);line-height:1.45;font-weight:600;margin:9px 0;overflow-wrap:anywhere}.dr-meta{color:var(--dr-muted);font:calc(var(--dr-size) * 0.857)/1.7 var(--dr-font-mono);overflow-wrap:anywhere}.dr-tabs{display:flex;gap:22px;border-bottom:1px solid var(--dr-border);padding:0 25px}.dr-tab{padding:11px 0;background:none;border:0;border-bottom:2px solid transparent;color:var(--dr-muted);font-size:calc(var(--dr-size) * .86)!important}.dr-tab[aria-selected=true]{border-bottom-color:var(--dr-border);color:var(--dr-text);font-weight:650}
@@ -20,14 +23,15 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
   const style = node('style'); style.textContent = styles; root.append(style);
   const view = node('section', 'dr-review');
   view.innerHTML = `<div class="dr-heading"><div class="dr-eyebrow"></div><h2 class="dr-title"></h2><div class="dr-meta"></div></div>
-    <div class="dr-tabs" role="tablist" aria-label="Task details"><button class="dr-tab" role="tab" data-tab="conversation" aria-selected="true">Conversation</button><button class="dr-tab" role="tab" data-tab="changes" aria-selected="false">Changes</button><button class="dr-tab" role="tab" data-tab="history" aria-selected="false">History</button></div>
+    <div class="dr-tabs" role="tablist" aria-label="Task details"><button class="dr-tab" role="tab" data-tab="conversation" aria-selected="true">Conversation</button><button class="dr-tab" role="tab" data-tab="changes" aria-selected="false">Changes</button><button class="dr-tab" role="tab" data-tab="history" aria-selected="false">History</button><button class="dr-tab" role="tab" data-tab="context" aria-selected="false">Context used</button></div>
     <div class="dr-error" role="alert" hidden></div><div class="dr-content">
     <section class="dr-chat" data-panel="conversation" role="tabpanel" aria-label="Conversation"><div class="dr-messages" role="log" aria-label="Task conversation" aria-live="polite" aria-relevant="additions"></div><p class="dr-wait" role="status"></p>
-    <form class="dr-composer"><label>Message to the agent<textarea aria-label="Message to the agent" maxlength="8000" required placeholder="Ask a question or describe the next adjustment…"></textarea></label><div class="dr-composer-bottom"><p class="dr-hint"></p><button class="dr-primary dr-send" type="submit">Send follow-up ↗</button></div></form></section>
+    <form class="dr-composer"><div class="dr-context-picker"></div><label>Message to the agent<textarea aria-label="Message to the agent" maxlength="8000" required placeholder="Ask a question or describe the next adjustment…"></textarea></label><div class="dr-composer-bottom"><p class="dr-hint"></p><button class="dr-primary dr-send" type="submit">Send follow-up ↗</button></div></form></section>
     <section class="dr-changes" data-panel="changes" role="tabpanel" aria-label="Changes" hidden><h3>Validation</h3><div class="dr-checks"></div><h3>Changed files</h3><div class="dr-files"></div><h3>Current patch</h3><pre class="dr-diff" tabindex="0"></pre></section>
-    <section class="dr-history" data-panel="history" role="tabpanel" aria-label="History" hidden><h3>Change versions</h3><p class="dr-hint">Earlier versions are kept for reference. Apply always uses the current validated version.</p><div class="dr-revisions"></div><div class="dr-past" hidden></div><h3>Activity</h3><div class="dr-timeline"></div></section></div><div class="dr-actions"></div>`;
+    <section class="dr-context-used" data-panel="context" role="tabpanel" aria-label="Context used" hidden><h3>Sent with this version</h3><div class="dr-context-snapshot"></div></section><section class="dr-history" data-panel="history" role="tabpanel" aria-label="History" hidden><h3>Change versions</h3><p class="dr-hint">Earlier versions are kept for reference. Apply always uses the current validated version.</p><div class="dr-revisions"></div><div class="dr-past" hidden></div><h3>Activity</h3><div class="dr-timeline"></div></section></div><div class="dr-actions"></div>`;
   root.append(view);
   const $ = <E extends HTMLElement = HTMLElement>(selector: string) => query<E>(view, selector);
+  const contextPicker = createContextPicker($('.dr-context-picker'), api);
   let task: Task, busy = false, tab = 'conversation', selectedRevision: number | undefined, renderedMessages = new Set<number>();
   const drafts = new Map<string, string>();
   const error = (text?: string | null) => { $('.dr-error').textContent = text || ''; $('.dr-error').hidden = !text; };
@@ -41,7 +45,7 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
     button.onkeydown = event => {
       if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
       event.preventDefault(); const tabs = [...view.querySelectorAll<HTMLButtonElement>('[data-tab]')];
-      const next = tabs[(tabs.indexOf(button) + (event.key === 'ArrowRight' ? 1 : 2)) % 3]; selectTab(next.dataset.tab || 'conversation'); next.focus();
+      const next = tabs[(tabs.indexOf(button) + (event.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length]; selectTab(next.dataset.tab || 'conversation'); next.focus();
     };
   }
   const patch = (container: HTMLElement, value: string) => container.replaceChildren(...(value || 'No file changes in this version.').split('\n').map(line => node('span', `dr-diff-line ${line.startsWith('+') ? 'dr-add' : line.startsWith('-') ? 'dr-remove' : line.startsWith('@@') ? 'dr-context' : ''}`, line)));
@@ -83,6 +87,10 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
       renderedMessages = new Set(); $('.dr-messages').replaceChildren();
       selectedRevision = undefined; $('.dr-past').hidden = true; selectTab('conversation');
     }
+    if (task?.id !== next.id || task?.attempt !== next.attempt) {
+      void contextPicker.load(next.projectContext ?? null);
+      renderContextSnapshot($('.dr-context-snapshot'), next.projectContext);
+    }
     task = next;
     $('.dr-eyebrow').textContent = `${task.id} · ${labels[task.status] || task.status} · version ${task.attempt}`;
     $('.dr-title').textContent = task.request;
@@ -116,6 +124,7 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
           const files = node('div', 'dr-files'); files.textContent = old.files.join(' · '); past.append(files);
           for (const check of old.validation) past.append(node('div', 'dr-check', `${check.passed ? '✓' : '×'} ${check.command}`));
           const code = node('pre'); patch(code, old.diff); past.append(code);
+          const context = node('div'); renderContextSnapshot(context, old.projectContext); past.append(node('h3', '', 'Context used'), context);
         } catch (err) { if (task?.id === id) error(errorMessage(err)); }
         finally { button.disabled = false; }
       };
@@ -131,7 +140,7 @@ export function createTaskReview(root: HTMLElement | ShadowRoot, { api, onMutati
     const id = task.id, content = $<HTMLTextAreaElement>('textarea').value, attempt = task.attempt;
     busy = true; controls(); error('');
     try {
-      const updated = await api<Task>(`/api/tasks/${id}/messages`, { method: 'POST', body: JSON.stringify({ content, attempt }) });
+      const updated = await api<Task>(`/api/tasks/${id}/messages`, { method: 'POST', body: JSON.stringify({ content, attempt, contextIds: contextPicker.value() }) });
       if (drafts.get(id) === content) drafts.delete(id);
       if (task?.id === id) { if ($<HTMLTextAreaElement>('textarea').value === content) $<HTMLTextAreaElement>('textarea').value = ''; setTask(updated); }
       onMutation(id);

@@ -106,7 +106,8 @@ to paste the minimized request into any agent that accepts text.
 
 ## Conversations and review
 
-The in-page modal and dashboard show the same **Conversation**, **Changes** and **History**.
+The in-page modal and dashboard show the same **Conversation**, **Changes**, **History**
+and **Context used**.
 Follow-ups retain previous worktree edits and pass recent conversation context to the agent.
 A question-only reply waits for feedback. Every resulting patch is validated again.
 History keeps prior patches; Apply always targets the current ready version. Stale UI actions
@@ -115,6 +116,28 @@ first. Conflicting tasks require Retry from HEAD.
 
 This is a new conversation with the selected agent, not a connection to an existing chat in
 another application. ACP native resume, interactive permissions and images remain unsupported.
+
+## Project context
+
+Open **Project context** in the dashboard or review modal to save project instructions,
+reusable skills and reference documentation. Paste text or import UTF-8 Markdown/text files,
+including `SKILL.md`. Choose defaults for new conversations, then adjust **Context for this
+change** before sending a request or follow-up.
+
+Rust stores the library per repository and records the full selected text and versions for
+each change. **Context used** shows that snapshot; **History** keeps earlier snapshots.
+Editing or deleting a library item does not rewrite past context. Follow-ups keep the
+recorded context unless you change the selection or reload the library; Retry also keeps it.
+
+Instructions and skills are explicitly selected guidance. Documentation is reference
+material; the shared prompt tells agents not to treat embedded instructions as commands.
+Text skills do not install scripts, tools or supporting assets. PDF/image imports, URL
+fetching and automatic discovery of repository skills are not included. Agent compatibility
+still depends on the selected adapter.
+
+The library supports 32 items, 16 KiB of text per item and 128 KiB total. Each selected
+snapshot is limited to 48 KiB, including JSON metadata. Content stays in local SQLite until
+you send it to your agent or use **Copy context**. See the [context API](docs/api.md#project-context).
 
 ## Your colors and typography
 

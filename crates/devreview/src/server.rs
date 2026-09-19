@@ -211,6 +211,15 @@ async fn route(app: &App, req: Request) -> Result<Response, ApiError> {
         core.stop.cancel();
         return Ok(json(json!({"stopping":true})));
     }
+    if path == "/api/project-context" {
+        if method == Method::GET {
+            return Ok(json(core.store.project_context()?));
+        }
+        if method == Method::POST {
+            let value = body(req, 262_144).await?;
+            return Ok(json(core.store.save_project_context(&value)?));
+        }
+    }
     if path == "/api/appearance" {
         if method == Method::GET {
             return Ok(json(core.store.preference()?));
@@ -267,8 +276,13 @@ async fn route(app: &App, req: Request) -> Result<Response, ApiError> {
                 return Ok((
                     StatusCode::ACCEPTED,
                     Json(
-                        core.message(id, data["content"].as_str().unwrap_or(""), attempt)
-                            .await?,
+                        core.message(
+                            id,
+                            data["content"].as_str().unwrap_or(""),
+                            attempt,
+                            data.get("contextIds"),
+                        )
+                        .await?,
                     ),
                 )
                     .into_response());

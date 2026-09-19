@@ -121,10 +121,19 @@ This is a tested protocol subset, not certification for every ACP agent. See the
 [session](https://agentclientprotocol.com/protocol/v1/session-setup) and
 [prompt](https://agentclientprotocol.com/protocol/v1/prompt-turn) specifications.
 
+## Project context
+
+All three transports receive the same optional `task.projectContext` snapshot. The common
+prompt includes its selected instructions, skills and documents, with explicit guidance to
+treat documents as reference material and skills as text instructions. Agents should not
+execute code or fetch links merely because an attached document contains them. This does
+not provision agent tools, install skill packages or change agent sandbox capabilities.
+The snapshot is bounded and versioned by the Rust server; see the [API](api.md#project-context).
+
 ## Manual fallback
 
 **Copy context** exports the selected element's minimized context and request as
-text. You can paste it into any agent that accepts text. It does not create a task,
+text, including the currently selected project context when the library is loaded. You can paste it into any agent that accepts text. It does not create a task,
 run an agent, read a remote conversation or import its reply. It works in the mounted
 overlay even without a token/server session, subject to the browser's clipboard permission.
 Source hints are marked unverified; no file or component is invented.

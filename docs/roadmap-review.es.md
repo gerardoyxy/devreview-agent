@@ -98,10 +98,10 @@ después, para no confundir implementación previa y nueva.
 | 48 | Open Source File | Pendiente | No existe enlace verificable archivo/línea/editor. |
 | 49 | Element Metadata | Parcial | Selector, tag, texto, viewport, rect y pista source; no componente. |
 | 50 | Selection Persistence & Element Identity | Parcial | `querySelector` al actualizar/scroll; sin reconciliación de identidad. |
-| 51 | Context Budget | Parcial | Límites de caracteres y 32 KB HTTP; sin presupuesto semántico/tokenizado. |
+| 51 | Context Budget | Parcial | Límites de caracteres y 32 KB por tarea; Project context añade 16 KiB por elemento, 128 KiB de biblioteca y 48 KiB por selección. Sin presupuesto semántico/tokenizado. |
 | 52 | Agent Routing | Pendiente | Sin elección por complejidad. Esta etapa añade elección manual por tarea. |
 | 53 | Parallel Fixes | Parcial | Workers concurrentes y Apply serializado; sin merge seguro automático. |
-| 54 | Project Memory | Pendiente | No almacena decisiones explícitas reutilizables. |
+| 54 | Project Memory | Implementado (explícito) | Project context guarda instrucciones, skills de texto y documentación por proyecto; selección por conversación y snapshot por versión. Sin memoria inferida ni descubrimiento automático. |
 | 55 | Design Comparison | Pendiente | Sin referencia visual/Figma. |
 | 56 | Make This Look Like That | Pendiente | Requiere selección múltiple y estilos estructurados. |
 | 57 | QA Agent | Pendiente | No hay exploración automática. |
@@ -245,3 +245,19 @@ Chromium comprobó selector de agente, copia de contexto con y sin sesión, conv
 versiones, Apply, persistencia al recargar, dashboard y diseño móvil. Los agentes
 fueron simulados; no se ejecutó un modelo real. La matriz CI repite compilación,
 análisis y pruebas en Linux, Windows y macOS.
+
+
+## Project context: extensión implementada
+
+La biblioteca local permite añadir reglas explícitas, skills y documentación pegando texto
+o importando `.md`, `.markdown` y `.txt` UTF-8. TypeScript gestiona el editor y la selección;
+Rust valida, persiste en SQLite y prepara el mismo snapshot para Codex, ACP y stdio.
+Las preferencias definen el contexto inicial; cada mensaje permite cambiar la selección.
+**Context used** y el historial muestran el texto y las versiones que se enviaron.
+Las modificaciones o eliminaciones de la biblioteca no alteran snapshots existentes.
+
+Los documentos son referencias, no instrucciones implícitas. Las skills son texto
+seleccionado por el usuario; no se instalan scripts, assets ni herramientas. Quedan fuera
+PDF, imágenes, importación por URL y descubrimiento automático de archivos del proyecto.
+Los guardados concurrentes rechazan revisiones antiguas, y las selecciones inválidas o
+que exceden el límite se rechazan antes de crear o avanzar una tarea.

@@ -8,6 +8,7 @@ export interface ElementContext {
 }
 export interface Validation { command: string; passed: boolean; code: number; durationMs: number; output?: string }
 export interface Revision {
+  projectContext?: ContextSnapshot | null;
   attempt: number; status: TaskStatus; diff: string; files: string[];
   validation: Validation[]; updatedAt: string; baseCommit: string; baseBranch: string; error?: string | null;
 }
@@ -15,9 +16,9 @@ export interface Task extends Revision {
   id: string; agent: string; request: string; context: ElementContext; createdAt: string; cleanupWarning?: string;
   messages?: Array<{ id: number; role: 'user' | 'assistant'; content: string; attempt: number; at: string }>;
   history?: Array<{ id: number; action: string; at: string }>;
-  revisions?: Array<Omit<Revision, 'diff' | 'validation'> & { checks: number; passed: boolean }>;
+  revisions?: Array<Omit<Revision, 'diff' | 'validation' | 'projectContext'> & { checks: number; passed: boolean }>;
 }
-export type TaskSummary = Omit<Task, 'diff' | 'messages' | 'history' | 'revisions'>;
+export type TaskSummary = Omit<Task, 'diff' | 'messages' | 'history' | 'revisions' | 'projectContext'>;
 export type TaskEvent = TaskSummary | { id: string; deleted: true };
 export interface AgentDescriptor {
   id: string; label: string; transport: string;
@@ -33,3 +34,10 @@ export function query<E extends HTMLElement = HTMLElement>(root: ParentNode, sel
   if (!result) throw new Error(`Missing UI element: ${selector}`);
   return result;
 }
+
+export interface ContextItem {
+  id: string; kind: 'instruction' | 'skill' | 'document'; title: string; content: string;
+  source: string; default: boolean; revision: number; updatedAt: string;
+}
+export interface ProjectContext { version: 1; revision: number; items: ContextItem[] }
+export interface ContextSnapshot { version: 1; libraryRevision: number; capturedAt: string; items: ContextItem[] }
