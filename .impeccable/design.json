@@ -1,0 +1,1031 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-19T06:35:07.326878+00:00",
+  "title": "Design System: NudgeThis",
+  "extensions": {
+    "colorMeta": {
+      "app-light-page": {
+        "role": "neutral",
+        "displayName": "App Light Page",
+        "tonalRamp": [
+          "oklch(15% 0.01217 276.10)",
+          "oklch(26.43% 0.01217 276.10)",
+          "oklch(37.86% 0.01217 276.10)",
+          "oklch(49.29% 0.01217 276.10)",
+          "oklch(60.71% 0.01217 276.10)",
+          "oklch(72.14% 0.01217 276.10)",
+          "oklch(83.57% 0.01217 276.10)",
+          "oklch(95% 0.01217 276.10)"
+        ]
+      },
+      "app-light-surface": {
+        "role": "neutral",
+        "displayName": "App Light Surface",
+        "tonalRamp": [
+          "oklch(15% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95% 0.00000 0.00)"
+        ]
+      },
+      "app-light-elevated": {
+        "role": "neutral",
+        "displayName": "App Light Elevated",
+        "tonalRamp": [
+          "oklch(15% 0.01925 273.24)",
+          "oklch(26.43% 0.01925 273.24)",
+          "oklch(37.86% 0.01925 273.24)",
+          "oklch(49.29% 0.01925 273.24)",
+          "oklch(60.71% 0.01925 273.24)",
+          "oklch(72.14% 0.01925 273.24)",
+          "oklch(83.57% 0.01925 273.24)",
+          "oklch(95% 0.01925 273.24)"
+        ]
+      },
+      "app-light-text": {
+        "role": "neutral",
+        "displayName": "App Light Text",
+        "tonalRamp": [
+          "oklch(15% 0.06528 269.14)",
+          "oklch(26.43% 0.06528 269.14)",
+          "oklch(37.86% 0.06528 269.14)",
+          "oklch(49.29% 0.06528 269.14)",
+          "oklch(60.71% 0.06528 269.14)",
+          "oklch(72.14% 0.06528 269.14)",
+          "oklch(83.57% 0.06528 269.14)",
+          "oklch(95% 0.06528 269.14)"
+        ]
+      },
+      "app-light-muted": {
+        "role": "neutral",
+        "displayName": "App Light Muted",
+        "tonalRamp": [
+          "oklch(15% 0.04807 264.00)",
+          "oklch(26.43% 0.04807 264.00)",
+          "oklch(37.86% 0.04807 264.00)",
+          "oklch(49.29% 0.04807 264.00)",
+          "oklch(60.71% 0.04807 264.00)",
+          "oklch(72.14% 0.04807 264.00)",
+          "oklch(83.57% 0.04807 264.00)",
+          "oklch(95% 0.04807 264.00)"
+        ]
+      },
+      "app-light-border": {
+        "role": "neutral",
+        "displayName": "App Light Border",
+        "tonalRamp": [
+          "oklch(15% 0.03311 264.38)",
+          "oklch(26.43% 0.03311 264.38)",
+          "oklch(37.86% 0.03311 264.38)",
+          "oklch(49.29% 0.03311 264.38)",
+          "oklch(60.71% 0.03311 264.38)",
+          "oklch(72.14% 0.03311 264.38)",
+          "oklch(83.57% 0.03311 264.38)",
+          "oklch(95% 0.03311 264.38)"
+        ]
+      },
+      "app-light-accent": {
+        "role": "primary",
+        "displayName": "App Light Accent",
+        "tonalRamp": [
+          "oklch(15% 0.20929 265.72)",
+          "oklch(26.43% 0.20929 265.72)",
+          "oklch(37.86% 0.20929 265.72)",
+          "oklch(49.29% 0.20929 265.72)",
+          "oklch(60.71% 0.20929 265.72)",
+          "oklch(72.14% 0.20929 265.72)",
+          "oklch(83.57% 0.20929 265.72)",
+          "oklch(95% 0.20929 265.72)"
+        ]
+      },
+      "app-light-on-accent": {
+        "role": "primary",
+        "displayName": "App Light On Accent",
+        "tonalRamp": [
+          "oklch(15% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95% 0.00000 0.00)"
+        ]
+      },
+      "app-light-accent-soft": {
+        "role": "primary",
+        "displayName": "App Light Accent Soft",
+        "tonalRamp": [
+          "oklch(15% 0.02511 271.14)",
+          "oklch(26.43% 0.02511 271.14)",
+          "oklch(37.86% 0.02511 271.14)",
+          "oklch(49.29% 0.02511 271.14)",
+          "oklch(60.71% 0.02511 271.14)",
+          "oklch(72.14% 0.02511 271.14)",
+          "oklch(83.57% 0.02511 271.14)",
+          "oklch(95% 0.02511 271.14)"
+        ]
+      },
+      "app-light-success": {
+        "role": "neutral",
+        "displayName": "App Light Success",
+        "tonalRamp": [
+          "oklch(15% 0.09146 154.63)",
+          "oklch(26.43% 0.09146 154.63)",
+          "oklch(37.86% 0.09146 154.63)",
+          "oklch(49.29% 0.09146 154.63)",
+          "oklch(60.71% 0.09146 154.63)",
+          "oklch(72.14% 0.09146 154.63)",
+          "oklch(83.57% 0.09146 154.63)",
+          "oklch(95% 0.09146 154.63)"
+        ]
+      },
+      "app-light-success-soft": {
+        "role": "neutral",
+        "displayName": "App Light Success Soft",
+        "tonalRamp": [
+          "oklch(15% 0.01818 155.81)",
+          "oklch(26.43% 0.01818 155.81)",
+          "oklch(37.86% 0.01818 155.81)",
+          "oklch(49.29% 0.01818 155.81)",
+          "oklch(60.71% 0.01818 155.81)",
+          "oklch(72.14% 0.01818 155.81)",
+          "oklch(83.57% 0.01818 155.81)",
+          "oklch(95% 0.01818 155.81)"
+        ]
+      },
+      "app-light-danger": {
+        "role": "neutral",
+        "displayName": "App Light Danger",
+        "tonalRamp": [
+          "oklch(15% 0.14903 15.59)",
+          "oklch(26.43% 0.14903 15.59)",
+          "oklch(37.86% 0.14903 15.59)",
+          "oklch(49.29% 0.14903 15.59)",
+          "oklch(60.71% 0.14903 15.59)",
+          "oklch(72.14% 0.14903 15.59)",
+          "oklch(83.57% 0.14903 15.59)",
+          "oklch(95% 0.14903 15.59)"
+        ]
+      },
+      "app-light-danger-soft": {
+        "role": "neutral",
+        "displayName": "App Light Danger Soft",
+        "tonalRamp": [
+          "oklch(15% 0.02023 2.28)",
+          "oklch(26.43% 0.02023 2.28)",
+          "oklch(37.86% 0.02023 2.28)",
+          "oklch(49.29% 0.02023 2.28)",
+          "oklch(60.71% 0.02023 2.28)",
+          "oklch(72.14% 0.02023 2.28)",
+          "oklch(83.57% 0.02023 2.28)",
+          "oklch(95% 0.02023 2.28)"
+        ]
+      },
+      "app-light-warning": {
+        "role": "neutral",
+        "displayName": "App Light Warning",
+        "tonalRamp": [
+          "oklch(15% 0.09186 76.31)",
+          "oklch(26.43% 0.09186 76.31)",
+          "oklch(37.86% 0.09186 76.31)",
+          "oklch(49.29% 0.09186 76.31)",
+          "oklch(60.71% 0.09186 76.31)",
+          "oklch(72.14% 0.09186 76.31)",
+          "oklch(83.57% 0.09186 76.31)",
+          "oklch(95% 0.09186 76.31)"
+        ]
+      },
+      "app-light-warning-soft": {
+        "role": "neutral",
+        "displayName": "App Light Warning Soft",
+        "tonalRamp": [
+          "oklch(15% 0.03880 87.56)",
+          "oklch(26.43% 0.03880 87.56)",
+          "oklch(37.86% 0.03880 87.56)",
+          "oklch(49.29% 0.03880 87.56)",
+          "oklch(60.71% 0.03880 87.56)",
+          "oklch(72.14% 0.03880 87.56)",
+          "oklch(83.57% 0.03880 87.56)",
+          "oklch(95% 0.03880 87.56)"
+        ]
+      },
+      "app-light-info": {
+        "role": "neutral",
+        "displayName": "App Light Info",
+        "tonalRamp": [
+          "oklch(15% 0.15770 263.80)",
+          "oklch(26.43% 0.15770 263.80)",
+          "oklch(37.86% 0.15770 263.80)",
+          "oklch(49.29% 0.15770 263.80)",
+          "oklch(60.71% 0.15770 263.80)",
+          "oklch(72.14% 0.15770 263.80)",
+          "oklch(83.57% 0.15770 263.80)",
+          "oklch(95% 0.15770 263.80)"
+        ]
+      },
+      "app-light-info-soft": {
+        "role": "neutral",
+        "displayName": "App Light Info Soft",
+        "tonalRamp": [
+          "oklch(15% 0.02511 271.14)",
+          "oklch(26.43% 0.02511 271.14)",
+          "oklch(37.86% 0.02511 271.14)",
+          "oklch(49.29% 0.02511 271.14)",
+          "oklch(60.71% 0.02511 271.14)",
+          "oklch(72.14% 0.02511 271.14)",
+          "oklch(83.57% 0.02511 271.14)",
+          "oklch(95% 0.02511 271.14)"
+        ]
+      },
+      "app-light-backdrop": {
+        "role": "neutral",
+        "displayName": "App Light Backdrop",
+        "tonalRamp": [
+          "oklch(15% 0.06251 268.24)",
+          "oklch(26.43% 0.06251 268.24)",
+          "oklch(37.86% 0.06251 268.24)",
+          "oklch(49.29% 0.06251 268.24)",
+          "oklch(60.71% 0.06251 268.24)",
+          "oklch(72.14% 0.06251 268.24)",
+          "oklch(83.57% 0.06251 268.24)",
+          "oklch(95% 0.06251 268.24)"
+        ]
+      },
+      "app-dark-page": {
+        "role": "neutral",
+        "displayName": "App Dark Page",
+        "tonalRamp": [
+          "oklch(15% 0.03910 269.47)",
+          "oklch(26.43% 0.03910 269.47)",
+          "oklch(37.86% 0.03910 269.47)",
+          "oklch(49.29% 0.03910 269.47)",
+          "oklch(60.71% 0.03910 269.47)",
+          "oklch(72.14% 0.03910 269.47)",
+          "oklch(83.57% 0.03910 269.47)",
+          "oklch(95% 0.03910 269.47)"
+        ]
+      },
+      "app-dark-surface": {
+        "role": "neutral",
+        "displayName": "App Dark Surface",
+        "tonalRamp": [
+          "oklch(15% 0.04729 267.44)",
+          "oklch(26.43% 0.04729 267.44)",
+          "oklch(37.86% 0.04729 267.44)",
+          "oklch(49.29% 0.04729 267.44)",
+          "oklch(60.71% 0.04729 267.44)",
+          "oklch(72.14% 0.04729 267.44)",
+          "oklch(83.57% 0.04729 267.44)",
+          "oklch(95% 0.04729 267.44)"
+        ]
+      },
+      "app-dark-elevated": {
+        "role": "neutral",
+        "displayName": "App Dark Elevated",
+        "tonalRamp": [
+          "oklch(15% 0.05845 265.91)",
+          "oklch(26.43% 0.05845 265.91)",
+          "oklch(37.86% 0.05845 265.91)",
+          "oklch(49.29% 0.05845 265.91)",
+          "oklch(60.71% 0.05845 265.91)",
+          "oklch(72.14% 0.05845 265.91)",
+          "oklch(83.57% 0.05845 265.91)",
+          "oklch(95% 0.05845 265.91)"
+        ]
+      },
+      "app-dark-text": {
+        "role": "neutral",
+        "displayName": "App Dark Text",
+        "tonalRamp": [
+          "oklch(15% 0.01662 271.24)",
+          "oklch(26.43% 0.01662 271.24)",
+          "oklch(37.86% 0.01662 271.24)",
+          "oklch(49.29% 0.01662 271.24)",
+          "oklch(60.71% 0.01662 271.24)",
+          "oklch(72.14% 0.01662 271.24)",
+          "oklch(83.57% 0.01662 271.24)",
+          "oklch(95% 0.01662 271.24)"
+        ]
+      },
+      "app-dark-muted": {
+        "role": "neutral",
+        "displayName": "App Dark Muted",
+        "tonalRamp": [
+          "oklch(15% 0.04214 265.66)",
+          "oklch(26.43% 0.04214 265.66)",
+          "oklch(37.86% 0.04214 265.66)",
+          "oklch(49.29% 0.04214 265.66)",
+          "oklch(60.71% 0.04214 265.66)",
+          "oklch(72.14% 0.04214 265.66)",
+          "oklch(83.57% 0.04214 265.66)",
+          "oklch(95% 0.04214 265.66)"
+        ]
+      },
+      "app-dark-border": {
+        "role": "neutral",
+        "displayName": "App Dark Border",
+        "tonalRamp": [
+          "oklch(15% 0.06171 263.79)",
+          "oklch(26.43% 0.06171 263.79)",
+          "oklch(37.86% 0.06171 263.79)",
+          "oklch(49.29% 0.06171 263.79)",
+          "oklch(60.71% 0.06171 263.79)",
+          "oklch(72.14% 0.06171 263.79)",
+          "oklch(83.57% 0.06171 263.79)",
+          "oklch(95% 0.06171 263.79)"
+        ]
+      },
+      "app-dark-accent": {
+        "role": "primary",
+        "displayName": "App Dark Accent",
+        "tonalRamp": [
+          "oklch(15% 0.09552 269.76)",
+          "oklch(26.43% 0.09552 269.76)",
+          "oklch(37.86% 0.09552 269.76)",
+          "oklch(49.29% 0.09552 269.76)",
+          "oklch(60.71% 0.09552 269.76)",
+          "oklch(72.14% 0.09552 269.76)",
+          "oklch(83.57% 0.09552 269.76)",
+          "oklch(95% 0.09552 269.76)"
+        ]
+      },
+      "app-dark-on-accent": {
+        "role": "primary",
+        "displayName": "App Dark On Accent",
+        "tonalRamp": [
+          "oklch(15% 0.08213 268.04)",
+          "oklch(26.43% 0.08213 268.04)",
+          "oklch(37.86% 0.08213 268.04)",
+          "oklch(49.29% 0.08213 268.04)",
+          "oklch(60.71% 0.08213 268.04)",
+          "oklch(72.14% 0.08213 268.04)",
+          "oklch(83.57% 0.08213 268.04)",
+          "oklch(95% 0.08213 268.04)"
+        ]
+      },
+      "app-dark-accent-soft": {
+        "role": "primary",
+        "displayName": "App Dark Accent Soft",
+        "tonalRamp": [
+          "oklch(15% 0.09765 266.13)",
+          "oklch(26.43% 0.09765 266.13)",
+          "oklch(37.86% 0.09765 266.13)",
+          "oklch(49.29% 0.09765 266.13)",
+          "oklch(60.71% 0.09765 266.13)",
+          "oklch(72.14% 0.09765 266.13)",
+          "oklch(83.57% 0.09765 266.13)",
+          "oklch(95% 0.09765 266.13)"
+        ]
+      },
+      "app-dark-success": {
+        "role": "neutral",
+        "displayName": "App Dark Success",
+        "tonalRamp": [
+          "oklch(15% 0.07976 154.51)",
+          "oklch(26.43% 0.07976 154.51)",
+          "oklch(37.86% 0.07976 154.51)",
+          "oklch(49.29% 0.07976 154.51)",
+          "oklch(60.71% 0.07976 154.51)",
+          "oklch(72.14% 0.07976 154.51)",
+          "oklch(83.57% 0.07976 154.51)",
+          "oklch(95% 0.07976 154.51)"
+        ]
+      },
+      "app-dark-success-soft": {
+        "role": "neutral",
+        "displayName": "App Dark Success Soft",
+        "tonalRamp": [
+          "oklch(15% 0.04056 162.30)",
+          "oklch(26.43% 0.04056 162.30)",
+          "oklch(37.86% 0.04056 162.30)",
+          "oklch(49.29% 0.04056 162.30)",
+          "oklch(60.71% 0.04056 162.30)",
+          "oklch(72.14% 0.04056 162.30)",
+          "oklch(83.57% 0.04056 162.30)",
+          "oklch(95% 0.04056 162.30)"
+        ]
+      },
+      "app-dark-danger": {
+        "role": "neutral",
+        "displayName": "App Dark Danger",
+        "tonalRamp": [
+          "oklch(15% 0.08902 5.97)",
+          "oklch(26.43% 0.08902 5.97)",
+          "oklch(37.86% 0.08902 5.97)",
+          "oklch(49.29% 0.08902 5.97)",
+          "oklch(60.71% 0.08902 5.97)",
+          "oklch(72.14% 0.08902 5.97)",
+          "oklch(83.57% 0.08902 5.97)",
+          "oklch(95% 0.08902 5.97)"
+        ]
+      },
+      "app-dark-danger-soft": {
+        "role": "neutral",
+        "displayName": "App Dark Danger Soft",
+        "tonalRamp": [
+          "oklch(15% 0.05377 351.73)",
+          "oklch(26.43% 0.05377 351.73)",
+          "oklch(37.86% 0.05377 351.73)",
+          "oklch(49.29% 0.05377 351.73)",
+          "oklch(60.71% 0.05377 351.73)",
+          "oklch(72.14% 0.05377 351.73)",
+          "oklch(83.57% 0.05377 351.73)",
+          "oklch(95% 0.05377 351.73)"
+        ]
+      },
+      "app-dark-warning": {
+        "role": "neutral",
+        "displayName": "App Dark Warning",
+        "tonalRamp": [
+          "oklch(15% 0.10217 88.32)",
+          "oklch(26.43% 0.10217 88.32)",
+          "oklch(37.86% 0.10217 88.32)",
+          "oklch(49.29% 0.10217 88.32)",
+          "oklch(60.71% 0.10217 88.32)",
+          "oklch(72.14% 0.10217 88.32)",
+          "oklch(83.57% 0.10217 88.32)",
+          "oklch(95% 0.10217 88.32)"
+        ]
+      },
+      "app-dark-warning-soft": {
+        "role": "neutral",
+        "displayName": "App Dark Warning Soft",
+        "tonalRamp": [
+          "oklch(15% 0.03441 86.41)",
+          "oklch(26.43% 0.03441 86.41)",
+          "oklch(37.86% 0.03441 86.41)",
+          "oklch(49.29% 0.03441 86.41)",
+          "oklch(60.71% 0.03441 86.41)",
+          "oklch(72.14% 0.03441 86.41)",
+          "oklch(83.57% 0.03441 86.41)",
+          "oklch(95% 0.03441 86.41)"
+        ]
+      },
+      "app-dark-info": {
+        "role": "neutral",
+        "displayName": "App Dark Info",
+        "tonalRamp": [
+          "oklch(15% 0.08688 265.78)",
+          "oklch(26.43% 0.08688 265.78)",
+          "oklch(37.86% 0.08688 265.78)",
+          "oklch(49.29% 0.08688 265.78)",
+          "oklch(60.71% 0.08688 265.78)",
+          "oklch(72.14% 0.08688 265.78)",
+          "oklch(83.57% 0.08688 265.78)",
+          "oklch(95% 0.08688 265.78)"
+        ]
+      },
+      "app-dark-info-soft": {
+        "role": "neutral",
+        "displayName": "App Dark Info Soft",
+        "tonalRamp": [
+          "oklch(15% 0.07538 264.18)",
+          "oklch(26.43% 0.07538 264.18)",
+          "oklch(37.86% 0.07538 264.18)",
+          "oklch(49.29% 0.07538 264.18)",
+          "oklch(60.71% 0.07538 264.18)",
+          "oklch(72.14% 0.07538 264.18)",
+          "oklch(83.57% 0.07538 264.18)",
+          "oklch(95% 0.07538 264.18)"
+        ]
+      },
+      "app-dark-backdrop": {
+        "role": "neutral",
+        "displayName": "App Dark Backdrop",
+        "tonalRamp": [
+          "oklch(15% 0.03614 264.64)",
+          "oklch(26.43% 0.03614 264.64)",
+          "oklch(37.86% 0.03614 264.64)",
+          "oklch(49.29% 0.03614 264.64)",
+          "oklch(60.71% 0.03614 264.64)",
+          "oklch(72.14% 0.03614 264.64)",
+          "oklch(83.57% 0.03614 264.64)",
+          "oklch(95% 0.03614 264.64)"
+        ]
+      },
+      "landing-light-page": {
+        "role": "neutral",
+        "displayName": "Landing Light Page",
+        "tonalRamp": [
+          "oklch(15% 0.01217 276.10)",
+          "oklch(26.43% 0.01217 276.10)",
+          "oklch(37.86% 0.01217 276.10)",
+          "oklch(49.29% 0.01217 276.10)",
+          "oklch(60.71% 0.01217 276.10)",
+          "oklch(72.14% 0.01217 276.10)",
+          "oklch(83.57% 0.01217 276.10)",
+          "oklch(95% 0.01217 276.10)"
+        ]
+      },
+      "landing-light-surface": {
+        "role": "neutral",
+        "displayName": "Landing Light Surface",
+        "tonalRamp": [
+          "oklch(15% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95% 0.00000 0.00)"
+        ]
+      },
+      "landing-light-elevated": {
+        "role": "neutral",
+        "displayName": "Landing Light Elevated",
+        "tonalRamp": [
+          "oklch(15% 0.01925 273.24)",
+          "oklch(26.43% 0.01925 273.24)",
+          "oklch(37.86% 0.01925 273.24)",
+          "oklch(49.29% 0.01925 273.24)",
+          "oklch(60.71% 0.01925 273.24)",
+          "oklch(72.14% 0.01925 273.24)",
+          "oklch(83.57% 0.01925 273.24)",
+          "oklch(95% 0.01925 273.24)"
+        ]
+      },
+      "landing-light-text": {
+        "role": "neutral",
+        "displayName": "Landing Light Text",
+        "tonalRamp": [
+          "oklch(15% 0.06436 271.31)",
+          "oklch(26.43% 0.06436 271.31)",
+          "oklch(37.86% 0.06436 271.31)",
+          "oklch(49.29% 0.06436 271.31)",
+          "oklch(60.71% 0.06436 271.31)",
+          "oklch(72.14% 0.06436 271.31)",
+          "oklch(83.57% 0.06436 271.31)",
+          "oklch(95% 0.06436 271.31)"
+        ]
+      },
+      "landing-light-muted": {
+        "role": "neutral",
+        "displayName": "Landing Light Muted",
+        "tonalRamp": [
+          "oklch(15% 0.05892 267.41)",
+          "oklch(26.43% 0.05892 267.41)",
+          "oklch(37.86% 0.05892 267.41)",
+          "oklch(49.29% 0.05892 267.41)",
+          "oklch(60.71% 0.05892 267.41)",
+          "oklch(72.14% 0.05892 267.41)",
+          "oklch(83.57% 0.05892 267.41)",
+          "oklch(95% 0.05892 267.41)"
+        ]
+      },
+      "landing-light-line": {
+        "role": "neutral",
+        "displayName": "Landing Light Line",
+        "tonalRamp": [
+          "oklch(15% 0.03873 267.29)",
+          "oklch(26.43% 0.03873 267.29)",
+          "oklch(37.86% 0.03873 267.29)",
+          "oklch(49.29% 0.03873 267.29)",
+          "oklch(60.71% 0.03873 267.29)",
+          "oklch(72.14% 0.03873 267.29)",
+          "oklch(83.57% 0.03873 267.29)",
+          "oklch(95% 0.03873 267.29)"
+        ]
+      },
+      "landing-light-accent": {
+        "role": "primary",
+        "displayName": "Landing Light Accent",
+        "tonalRamp": [
+          "oklch(15% 0.20929 265.72)",
+          "oklch(26.43% 0.20929 265.72)",
+          "oklch(37.86% 0.20929 265.72)",
+          "oklch(49.29% 0.20929 265.72)",
+          "oklch(60.71% 0.20929 265.72)",
+          "oklch(72.14% 0.20929 265.72)",
+          "oklch(83.57% 0.20929 265.72)",
+          "oklch(95% 0.20929 265.72)"
+        ]
+      },
+      "landing-light-on-accent": {
+        "role": "primary",
+        "displayName": "Landing Light On Accent",
+        "tonalRamp": [
+          "oklch(15% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95% 0.00000 0.00)"
+        ]
+      },
+      "landing-light-hero": {
+        "role": "primary",
+        "displayName": "Landing Light Hero",
+        "tonalRamp": [
+          "oklch(15% 0.20929 265.72)",
+          "oklch(26.43% 0.20929 265.72)",
+          "oklch(37.86% 0.20929 265.72)",
+          "oklch(49.29% 0.20929 265.72)",
+          "oklch(60.71% 0.20929 265.72)",
+          "oklch(72.14% 0.20929 265.72)",
+          "oklch(83.57% 0.20929 265.72)",
+          "oklch(95% 0.20929 265.72)"
+        ]
+      },
+      "landing-light-hero-text": {
+        "role": "primary",
+        "displayName": "Landing Light Hero Text",
+        "tonalRamp": [
+          "oklch(15% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95% 0.00000 0.00)"
+        ]
+      },
+      "landing-light-selection": {
+        "role": "primary",
+        "displayName": "Landing Light Selection",
+        "tonalRamp": [
+          "oklch(15% 0.14295 101.44)",
+          "oklch(26.43% 0.14295 101.44)",
+          "oklch(37.86% 0.14295 101.44)",
+          "oklch(49.29% 0.14295 101.44)",
+          "oklch(60.71% 0.14295 101.44)",
+          "oklch(72.14% 0.14295 101.44)",
+          "oklch(83.57% 0.14295 101.44)",
+          "oklch(95% 0.14295 101.44)"
+        ]
+      },
+      "landing-dark-page": {
+        "role": "neutral",
+        "displayName": "Landing Dark Page",
+        "tonalRamp": [
+          "oklch(15% 0.03910 269.47)",
+          "oklch(26.43% 0.03910 269.47)",
+          "oklch(37.86% 0.03910 269.47)",
+          "oklch(49.29% 0.03910 269.47)",
+          "oklch(60.71% 0.03910 269.47)",
+          "oklch(72.14% 0.03910 269.47)",
+          "oklch(83.57% 0.03910 269.47)",
+          "oklch(95% 0.03910 269.47)"
+        ]
+      },
+      "landing-dark-surface": {
+        "role": "neutral",
+        "displayName": "Landing Dark Surface",
+        "tonalRamp": [
+          "oklch(15% 0.04729 267.44)",
+          "oklch(26.43% 0.04729 267.44)",
+          "oklch(37.86% 0.04729 267.44)",
+          "oklch(49.29% 0.04729 267.44)",
+          "oklch(60.71% 0.04729 267.44)",
+          "oklch(72.14% 0.04729 267.44)",
+          "oklch(83.57% 0.04729 267.44)",
+          "oklch(95% 0.04729 267.44)"
+        ]
+      },
+      "landing-dark-elevated": {
+        "role": "neutral",
+        "displayName": "Landing Dark Elevated",
+        "tonalRamp": [
+          "oklch(15% 0.05517 266.14)",
+          "oklch(26.43% 0.05517 266.14)",
+          "oklch(37.86% 0.05517 266.14)",
+          "oklch(49.29% 0.05517 266.14)",
+          "oklch(60.71% 0.05517 266.14)",
+          "oklch(72.14% 0.05517 266.14)",
+          "oklch(83.57% 0.05517 266.14)",
+          "oklch(95% 0.05517 266.14)"
+        ]
+      },
+      "landing-dark-text": {
+        "role": "neutral",
+        "displayName": "Landing Dark Text",
+        "tonalRamp": [
+          "oklch(15% 0.01662 271.24)",
+          "oklch(26.43% 0.01662 271.24)",
+          "oklch(37.86% 0.01662 271.24)",
+          "oklch(49.29% 0.01662 271.24)",
+          "oklch(60.71% 0.01662 271.24)",
+          "oklch(72.14% 0.01662 271.24)",
+          "oklch(83.57% 0.01662 271.24)",
+          "oklch(95% 0.01662 271.24)"
+        ]
+      },
+      "landing-dark-muted": {
+        "role": "neutral",
+        "displayName": "Landing Dark Muted",
+        "tonalRamp": [
+          "oklch(15% 0.04214 265.66)",
+          "oklch(26.43% 0.04214 265.66)",
+          "oklch(37.86% 0.04214 265.66)",
+          "oklch(49.29% 0.04214 265.66)",
+          "oklch(60.71% 0.04214 265.66)",
+          "oklch(72.14% 0.04214 265.66)",
+          "oklch(83.57% 0.04214 265.66)",
+          "oklch(95% 0.04214 265.66)"
+        ]
+      },
+      "landing-dark-line": {
+        "role": "neutral",
+        "displayName": "Landing Dark Line",
+        "tonalRamp": [
+          "oklch(15% 0.06341 264.21)",
+          "oklch(26.43% 0.06341 264.21)",
+          "oklch(37.86% 0.06341 264.21)",
+          "oklch(49.29% 0.06341 264.21)",
+          "oklch(60.71% 0.06341 264.21)",
+          "oklch(72.14% 0.06341 264.21)",
+          "oklch(83.57% 0.06341 264.21)",
+          "oklch(95% 0.06341 264.21)"
+        ]
+      },
+      "landing-dark-accent": {
+        "role": "primary",
+        "displayName": "Landing Dark Accent",
+        "tonalRamp": [
+          "oklch(15% 0.09552 269.76)",
+          "oklch(26.43% 0.09552 269.76)",
+          "oklch(37.86% 0.09552 269.76)",
+          "oklch(49.29% 0.09552 269.76)",
+          "oklch(60.71% 0.09552 269.76)",
+          "oklch(72.14% 0.09552 269.76)",
+          "oklch(83.57% 0.09552 269.76)",
+          "oklch(95% 0.09552 269.76)"
+        ]
+      },
+      "landing-dark-on-accent": {
+        "role": "primary",
+        "displayName": "Landing Dark On Accent",
+        "tonalRamp": [
+          "oklch(15% 0.08213 268.04)",
+          "oklch(26.43% 0.08213 268.04)",
+          "oklch(37.86% 0.08213 268.04)",
+          "oklch(49.29% 0.08213 268.04)",
+          "oklch(60.71% 0.08213 268.04)",
+          "oklch(72.14% 0.08213 268.04)",
+          "oklch(83.57% 0.08213 268.04)",
+          "oklch(95% 0.08213 268.04)"
+        ]
+      },
+      "landing-dark-hero": {
+        "role": "primary",
+        "displayName": "Landing Dark Hero",
+        "tonalRamp": [
+          "oklch(15% 0.19301 265.56)",
+          "oklch(26.43% 0.19301 265.56)",
+          "oklch(37.86% 0.19301 265.56)",
+          "oklch(49.29% 0.19301 265.56)",
+          "oklch(60.71% 0.19301 265.56)",
+          "oklch(72.14% 0.19301 265.56)",
+          "oklch(83.57% 0.19301 265.56)",
+          "oklch(95% 0.19301 265.56)"
+        ]
+      },
+      "landing-dark-hero-text": {
+        "role": "primary",
+        "displayName": "Landing Dark Hero Text",
+        "tonalRamp": [
+          "oklch(15% 0.00000 0.00)",
+          "oklch(26.43% 0.00000 0.00)",
+          "oklch(37.86% 0.00000 0.00)",
+          "oklch(49.29% 0.00000 0.00)",
+          "oklch(60.71% 0.00000 0.00)",
+          "oklch(72.14% 0.00000 0.00)",
+          "oklch(83.57% 0.00000 0.00)",
+          "oklch(95% 0.00000 0.00)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "landing-display": {
+        "displayName": "Landing Display",
+        "purpose": "Public landing only."
+      },
+      "landing-headline": {
+        "displayName": "Landing Headline",
+        "purpose": "Public landing only."
+      },
+      "landing-process-title": {
+        "displayName": "Landing Process Title",
+        "purpose": "Public landing only."
+      },
+      "landing-body": {
+        "displayName": "Landing Body",
+        "purpose": "Public landing only."
+      },
+      "landing-hero-body": {
+        "displayName": "Landing Hero Body",
+        "purpose": "Public landing only."
+      },
+      "app-headline": {
+        "displayName": "App Headline",
+        "purpose": "Local application; saved appearance overrides defaults."
+      },
+      "app-review-title": {
+        "displayName": "App Review Title",
+        "purpose": "Local application; saved appearance overrides defaults."
+      },
+      "app-section-title": {
+        "displayName": "App Section Title",
+        "purpose": "Local application; saved appearance overrides defaults."
+      },
+      "app-editor-title": {
+        "displayName": "App Editor Title",
+        "purpose": "Local application; saved appearance overrides defaults."
+      },
+      "app-body": {
+        "displayName": "App Body",
+        "purpose": "Local application; saved appearance overrides defaults."
+      },
+      "app-label": {
+        "displayName": "App Label",
+        "purpose": "Local application; saved appearance overrides defaults."
+      },
+      "app-metadata": {
+        "displayName": "App Metadata",
+        "purpose": "Local application; saved appearance overrides defaults."
+      },
+      "app-code": {
+        "displayName": "App Code",
+        "purpose": "Local application; saved appearance overrides defaults."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "landing-padding-change",
+        "value": "padding .45s cubic-bezier(.16,1,.3,1)",
+        "purpose": "The demonstrated edit changes the selected button after Apply."
+      },
+      {
+        "name": "landing-reply-reveal",
+        "value": "opacity .2s",
+        "purpose": "Reveal the example agent reply."
+      },
+      {
+        "name": "landing-walkthrough",
+        "value": "13000ms",
+        "purpose": "One bounded point/tell/review/apply sequence; pauses hidden/offscreen. Reduced motion starts at the static final state and removes transitions."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "appearance-single-column",
+        "value": "540px"
+      },
+      {
+        "name": "landing-phone-and-review-compact",
+        "value": "600px"
+      },
+      {
+        "name": "context-library-stack",
+        "value": "640px"
+      },
+      {
+        "name": "application-navigation-stack",
+        "value": "700px"
+      },
+      {
+        "name": "landing-hero-stack",
+        "value": "1023px"
+      },
+      {
+        "name": "dashboard-toolbar-stack",
+        "value": "1080px"
+      },
+      {
+        "name": "landing-desktop-type-compact-upper-bound",
+        "value": "1400px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Landing source button",
+      "kind": "button",
+      "refersTo": "landing-source-button",
+      "description": "White source action for the blue landing field.",
+      "html": "<a class=\"ds-source\" href=\"#source\">View on GitHub <svg viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path d=\"M5 12h14m-6-6 6 6-6 6\"/></svg></a>",
+      "css": ".ds-source{display:inline-flex;align-items:center;justify-content:center;gap:21px;min-height:65px;padding:14px 33px;border:1px solid transparent;border-radius:6px;background:#fff;color:#111839;font:700 23px/1.5 Archivo,system-ui,sans-serif;text-decoration:none}.ds-source svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.ds-source:hover{background:#edf1ff}.ds-source:focus-visible{outline:3px solid #fff;outline-offset:5px}"
+    },
+    {
+      "name": "Landing accent button",
+      "kind": "button",
+      "refersTo": "landing-primary-button",
+      "description": "Closing source action on the normal landing page surface.",
+      "html": "<a class=\"ds-site-primary\" href=\"#source\">View on GitHub</a>",
+      "css": ".ds-site-primary{display:inline-flex;align-items:center;justify-content:center;min-height:58px;padding:14px 24px;border:1px solid transparent;border-radius:6px;background:var(--accent,#2147cc);color:var(--on-accent,#fff);font:700 16px/1.5 Archivo,system-ui,sans-serif;text-decoration:none}.ds-site-primary:hover{filter:brightness(.94)}.ds-site-primary:focus-visible{outline:3px solid var(--accent,#2147cc);outline-offset:5px}"
+    },
+    {
+      "name": "Application primary action",
+      "kind": "button",
+      "refersTo": "app-primary-button",
+      "description": "Dashboard action; inherits the saved palette and radius.",
+      "html": "<button class=\"ds-primary\">Inspect playground</button>",
+      "css": ".ds-primary{font-family:var(--dr-font-body, \"NudgeThis Archivo\", system-ui, sans-serif);font-size:var(--dr-size, 14px);line-height:1.6;border-radius:var(--dr-radius, 6px);cursor:pointer;background:var(--dr-accent,#2147cc);color:var(--dr-onAccent,#fff);border:1px solid var(--dr-accent,#2147cc);padding:11px 16px;font-size:calc(var(--dr-size,14px)*.9286);font-weight:700}.ds-primary:hover{filter:brightness(.94)}.ds-primary:focus-visible{outline:2px solid var(--dr-accent, #2147cc);outline-offset:3px;outline-offset:4px}.ds-primary:disabled{opacity:.5;cursor:wait}"
+    },
+    {
+      "name": "Application secondary action",
+      "kind": "button",
+      "refersTo": "app-secondary-button",
+      "description": "Shared review secondary action.",
+      "html": "<button class=\"ds-secondary\">Retry from HEAD</button>",
+      "css": ".ds-secondary{font-family:var(--dr-font-body, \"NudgeThis Archivo\", system-ui, sans-serif);font-size:var(--dr-size, 14px);line-height:1.6;border-radius:var(--dr-radius, 6px);cursor:pointer;background:var(--dr-surface,#fff);color:var(--dr-text,#172143);border:1px solid var(--dr-border,#bdc8de);padding:8px 11px;font-size:calc(var(--dr-size,14px)*.8571)}.ds-secondary:hover{background:var(--dr-elevated,#edf1ff);border-color:var(--dr-accent,#2147cc)}.ds-secondary:focus-visible{outline:2px solid var(--dr-accent, #2147cc);outline-offset:3px;}.ds-secondary:disabled{opacity:.5;cursor:default}"
+    },
+    {
+      "name": "Follow-up composer field",
+      "kind": "input",
+      "refersTo": "app-composer-field",
+      "description": "Resizable text field for a continuing conversation.",
+      "html": "<label class=\"ds-field-label\" for=\"ds-message\">Message to the agent</label><textarea id=\"ds-message\" class=\"ds-field\" placeholder=\"Ask a question or describe the next adjustment…\"></textarea>",
+      "css": ".ds-field-label{font-family:var(--dr-font-body, \"NudgeThis Archivo\", system-ui, sans-serif);font-size:var(--dr-size, 14px);line-height:1.6;display:block;margin-bottom:6px;color:var(--dr-muted,#566480);font-size:calc(var(--dr-size,14px)*.8571)}.ds-field{font-family:var(--dr-font-body, \"NudgeThis Archivo\", system-ui, sans-serif);font-size:var(--dr-size, 14px);line-height:1.6;display:block;width:100%;min-height:78px;max-height:160px;resize:vertical;padding:10px 12px;border:1px solid var(--dr-border,#bdc8de);border-radius:var(--dr-radius,6px);background:var(--dr-surface,#fff);color:var(--dr-text,#172143);caret-color:var(--dr-accent,#2147cc)}.ds-field::placeholder{color:var(--dr-muted,#566480)}.ds-field:focus-visible{outline:2px solid var(--dr-accent, #2147cc);outline-offset:3px;}"
+    },
+    {
+      "name": "Queue navigation",
+      "kind": "nav",
+      "refersTo": "app-navigation-selected",
+      "description": "Selected queue filter, with an actual count and a selected state.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Queue filters\"><button class=\"ds-nav-item\" aria-current=\"page\"><span>Review queue</span><b>3</b></button><button class=\"ds-nav-item\"><span>Ready to apply</span><b>2</b></button></nav>",
+      "css": ".ds-nav{display:grid;gap:3px}.ds-nav-item{font-family:var(--dr-font-body, \"NudgeThis Archivo\", system-ui, sans-serif);font-size:var(--dr-size, 14px);line-height:1.6;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;border:1px solid transparent;border-radius:var(--dr-radius,6px);padding:10px;background:transparent;color:var(--dr-muted,#566480);cursor:pointer}.ds-nav-item:hover{background:var(--dr-page,#f4f6ff)}.ds-nav-item[aria-current]{background:var(--dr-accentSoft,#e7edff);color:var(--dr-accent,#2147cc);font-weight:700}.ds-nav-item b{font-size:calc(var(--dr-size,14px)*.8571);font-weight:400;font-variant-numeric:tabular-nums}.ds-nav-item:focus-visible{outline:2px solid var(--dr-accent, #2147cc);outline-offset:3px;outline-offset:4px}"
+    },
+    {
+      "name": "Ready status",
+      "kind": "chip",
+      "refersTo": "app-ready-badge",
+      "description": "Success badge keeps the status readable alongside color.",
+      "html": "<span class=\"ds-ready\">Ready for review</span>",
+      "css": ".ds-ready{font-family:var(--dr-font-body, \"NudgeThis Archivo\", system-ui, sans-serif);font-size:var(--dr-size, 14px);line-height:1.6;display:inline-flex;align-items:center;gap:6px;border-radius:calc(var(--dr-radius,6px)*.65);font-size:calc(var(--dr-size,14px)*.7857);padding:4px 7px;background:var(--dr-successSoft,#e7f4eb);color:var(--dr-success,#21633d)}.ds-ready::before{content:\"\";height:5px;width:5px;border-radius:50%;background:currentColor}"
+    },
+    {
+      "name": "Queue container",
+      "kind": "card",
+      "refersTo": "app-queue-container",
+      "description": "One framed queue with a ruled heading and rows.",
+      "html": "<section class=\"ds-queue\"><header class=\"ds-queue-heading\"><h2>Review queue</h2><p>Read the conversation. Review the change.</p></header><div class=\"ds-queue-row\">Give the button more space</div></section>",
+      "css": ".ds-queue{font-family:var(--dr-font-body, \"NudgeThis Archivo\", system-ui, sans-serif);font-size:var(--dr-size, 14px);line-height:1.6;border:1px solid var(--dr-border,#bdc8de);border-radius:var(--dr-radius,6px);background:var(--dr-surface,#fff);color:var(--dr-text,#172143)}.ds-queue-heading{padding:23px 24px;border-bottom:1px solid var(--dr-border,#bdc8de)}.ds-queue-heading h2{margin:0 0 6px;font:700 calc(var(--dr-size,14px)*1.2857)/1.3 var(--dr-font-heading,\"NudgeThis Archivo\",system-ui,sans-serif);letter-spacing:-.02em}.ds-queue-heading p{margin:0;color:var(--dr-muted,#566480);font-size:calc(var(--dr-size,14px)*.8571)}.ds-queue-row{padding:19px 24px;font-weight:700}.ds-queue-row:hover{background:var(--dr-page,#f4f6ff)}"
+    },
+    {
+      "name": "Review tabs",
+      "kind": "nav",
+      "refersTo": "app-review-tab",
+      "description": "Separate conversation, patch, version history and captured context.",
+      "html": "<div class=\"ds-tabs\" role=\"tablist\" aria-label=\"Task details\"><button class=\"ds-tab\" role=\"tab\" aria-selected=\"true\">Conversation</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\">Changes</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\">History</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\">Context used</button></div>",
+      "css": ".ds-tabs{display:flex;flex-wrap:wrap;gap:24px;padding:0 26px;border-bottom:1px solid var(--dr-border,#bdc8de)}.ds-tab{font-family:var(--dr-font-body, \"NudgeThis Archivo\", system-ui, sans-serif);font-size:var(--dr-size, 14px);line-height:1.6;padding:11px 0;border:0;border-bottom:2px solid transparent;background:none;color:var(--dr-muted,#566480);font-size:calc(var(--dr-size,14px)*.8571);cursor:pointer}.ds-tab[aria-selected=true]{border-bottom-color:var(--dr-accent,#2147cc);color:var(--dr-accent,#2147cc);font-weight:700}.ds-tab:focus-visible{outline:2px solid var(--dr-accent, #2147cc);outline-offset:3px;}"
+    },
+    {
+      "name": "Live selection outline",
+      "kind": "custom",
+      "refersTo": "app-selection-outline",
+      "description": "Themeable inspection outline; landing lemon handles are a separate illustration treatment.",
+      "html": "<div class=\"ds-selection\" aria-label=\"Selected page element\"></div>",
+      "css": ".ds-selection{position:relative;width:180px;height:50px;border:2px solid var(--dr-accent,#2147cc);border-radius:3px;background:color-mix(in srgb,var(--dr-accent,#2147cc) 7%,transparent)}.ds-selection::before,.ds-selection::after{content:\"\";position:absolute;width:7px;height:7px;background:var(--dr-warningSoft,#fff3d7);border:1px solid var(--dr-warning,#76510d)}.ds-selection::before{left:-4px;top:-4px}.ds-selection::after{right:-4px;bottom:-4px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Reference desk",
+    "overview": "NudgeThis uses the user-approved blue Reference desk world: broad Archivo lettering, ultramarine emphasis, cool pale ground, navy ink and precise rules. The shared language is direct and legible, with modest rectangular controls and a visible relationship between a selected object and its conversation.\n\nPersuade applies to the public landing only: expansive blue, heavy display type and a large illustrative local browser. Operate applies to the local application only: compact typography, a ruled queue, restrained accent coverage, readable conversations and explicit review actions. These are two expressions of one identity; neither mode nor the landing composition is a global application template.\n\nThe documented application palette, font and radius are defaults. Saved repository appearance remains authoritative across dashboard and isolated overlay roots, including custom light/dark palettes and body, heading or code fonts. NudgeThis is the public name and product copy is English; existing DevReview CLI, API and integration identifiers remain compatible.",
+    "keyCharacteristics": [
+      "Ultramarine actions and selection against cool surfaces.",
+      "Archivo at expressive landing scale and compact application scale.",
+      "Fine borders and tonal separation, with no decorative shadow vocabulary.",
+      "User-controlled application appearance, including independent light and dark palettes."
+    ],
+    "rules": [
+      {
+        "name": "The Semantic Appearance Rule",
+        "body": "Application surfaces consume all 18 semantic appearance roles through --dr-* variables; saved values take precedence over these defaults. Keep success, danger, warning and activity meanings distinct from brand emphasis.",
+        "section": "colors"
+      },
+      {
+        "name": "The Surface Scale Rule",
+        "body": "Share the type family and compact lettering character, not the landing display size. Keep Persuade on the landing and Operate in the application.",
+        "section": "typography"
+      },
+      {
+        "name": "The Ruled Surface Rule",
+        "body": "Separate regions with fine borders and surface tones. Modal depth comes from the backdrop, not an invented shadow.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do inherit application colors, fonts, text size and corner radius through the saved appearance variables.",
+      "Do keep selected objects, their conversation and the current review decision visually connected.",
+      "Do pair state color with readable status text and preserve visible keyboard focus.",
+      "Do retain deliberate landing headline phrase breaks and test the selected-button connector when the demonstration resizes.",
+      "Do use NudgeThis and English product copy while preserving compatible DevReview technical identifiers."
+    ],
+    "donts": [
+      "Don't apply the landing’s display scale or large blue field to application conversations.",
+      "Don't replace saved themes or uploaded fonts with hard-coded brand defaults.",
+      "Don't introduce decorative eyebrows, text glyph icons or hard offset shadows as house style.",
+      "Don't merge current changes, historical versions and captured context into one undifferentiated panel."
+    ]
+  }
+}
