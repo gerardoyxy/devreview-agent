@@ -7,7 +7,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 let count = 0;
 async function check(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
-    if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
+    if (entry.name.startsWith('.') || ['node_modules', 'dist', 'target'].includes(entry.name)) continue;
     const file = path.join(directory, entry.name);
     if (entry.isDirectory()) await check(file);
     else if (/\.(mjs|js)$/.test(file)) {
