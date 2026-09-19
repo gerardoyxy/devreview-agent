@@ -1,3 +1,4 @@
+import { createSelectionControls } from '../../overlay/src/selection-controls.js';
 import { createRouteReview } from '../../overlay/src/route-review.js';
 import { createTaskComposer, createDiagnostics } from '../../overlay/src/workspace.js';
 import { icon } from '../../overlay/src/icons.js';
@@ -25,6 +26,8 @@ async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 const defaults = document.createElement('style'); defaults.textContent = themeDefaults; document.head.append(defaults);
 const appearance = createAppearance({ api, target: document.documentElement, mount: document.body });
+const selectionEditor = createSelectionControls(document.body, api);
+$('#selection-button').onclick = () => { void selectionEditor.open(); };
 const projectContext = createProjectContext({ api, mount: document.body });
 $('#context-button').onclick = () => { void projectContext.open(); };
 $('#appearance-button').onclick = () => { void appearance.open(); };
@@ -91,6 +94,7 @@ async function connect() {
     executionEnabled = status.executionEnabled !== false;
     $('#execution-note').hidden = executionEnabled; $('#execution-note').textContent = 'Execution is disabled. Save drafts and review changes without running agents or setup commands.';
     await appearance.load();
+    await selectionEditor.load();
     $('#branch').textContent = `branch / ${status.repository.branch}`;
     const playground = status.playgroundUrl || '/playground';
     for (const id of ['#playground-link', '#inspect-link']) $<HTMLAnchorElement>(id).href = `${playground}#token=${encodeURIComponent(token)}`;
@@ -98,8 +102,8 @@ async function connect() {
     connection = new AbortController();
     void watchTasks(location.origin, token, () => void refresh(), connection.signal, online => {
       $('#connection').textContent = online ? 'Connected to localhost' : 'Reconnecting…';
-      $('.status-dot').style.background = online ? 'var(--dr-success)' : 'var(--dr-warning)'; if (online) { void refresh(); void appearance.load().catch(() => {}); }
-    }, value => appearance.receive(value));
+      $('.status-dot').style.background = online ? 'var(--dr-success)' : 'var(--dr-warning)'; if (online) { void refresh(); void appearance.load().catch(() => {}); void selectionEditor.load().catch(() => {}); }
+    }, value => appearance.receive(value), value => selectionEditor.receive(value));
   } catch (error) { showError(errorMessage(error)); $('#connection').textContent = 'Disconnected'; $<HTMLDialogElement>('#connect-dialog').showModal(); }
 }
 const resetFilter = () => { visibleLimit = 40; render(); };
