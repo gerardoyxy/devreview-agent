@@ -219,6 +219,7 @@ impl Store {
             let validations = v["validation"].as_array().cloned().unwrap_or_default();
             v["checks"] = validations.len().into();
             v["passed"] = validations.iter().all(|c| c["passed"] == true).into();
+            v.as_object_mut().unwrap().remove("projectContext");
             v.as_object_mut().unwrap().remove("diff");
             v.as_object_mut().unwrap().remove("validation");
             revisions.push(v);
@@ -240,6 +241,23 @@ impl Store {
         tx.commit()?;
         self.emit("task", json!({"id":id,"deleted":true}));
         Ok(())
+    }
+    pub fn project_context(&self) -> Result<Value> {
+        let db = self.db.lock().unwrap();
+        read_project_context(&db)
+    }
+    pub fn save_project_context(&self, input: &Value) -> Result<Value> {
+        let value = {
+            let mut db = self.db.lock().unwrap();
+            let tx = db.transaction()?;
+            let previous = read_project_context(&tx)?;
+            let value = crate::project_context::save(input, &previous)?;
+            tx.execute("INSERT INTO preferences(key,data) VALUES('project-context',?) ON CONFLICT(key) DO UPDATE SET data=excluded.data", [value.to_string()])?;
+            tx.commit()?;
+            value
+        };
+        self.emit("project-context", json!({"revision":value["revision"]}));
+        Ok(value)
     }
     pub fn preference(&self) -> Result<Value> {
         let data: Option<String> = self
@@ -263,6 +281,19 @@ impl Store {
         Ok(())
     }
 }
+fn read_project_context(db: &Connection) -> Result<Value> {
+    let data: Option<String> = db
+        .query_row(
+            "SELECT data FROM preferences WHERE key='project-context'",
+            [],
+            |r| r.get(0),
+        )
+        .optional()?;
+    Ok(data
+        .map(|s| serde_json::from_str(&s))
+        .transpose()?
+        .unwrap_or_else(crate::project_context::empty))
+}
 fn archive_in(db: &Connection, task: &Value) -> Result<()> {
     let mut revision = json!({});
     for key in [
@@ -271,6 +302,7 @@ fn archive_in(db: &Connection, task: &Value) -> Result<()> {
         "diff",
         "files",
         "validation",
+        "projectContext",
         "baseCommit",
         "baseBranch",
         "updatedAt",
@@ -282,7 +314,7 @@ fn archive_in(db: &Connection, task: &Value) -> Result<()> {
     Ok(())
 }
 pub fn summary(mut task: Value) -> Value {
-    for key in ["diff", "output", "agentErrors"] {
+    for key in ["diff", "output", "agentErrors", "projectContext"] {
         task.as_object_mut().unwrap().remove(key);
     }
     if let Some(checks) = task["validation"].as_array_mut() {

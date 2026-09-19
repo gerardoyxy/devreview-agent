@@ -15,6 +15,7 @@ if (mode === 'acp') {
     } else if (frame.method === 'session/new') {
       await writeFile('acp-cwd.txt', frame.params.cwd); reply({ sessionId: 'test-session' });
     } else if (frame.method === 'session/prompt') {
+      await writeFile('acp-prompt.txt', frame.params.prompt[0].text);
       if (flavor === 'permission') {
         emit({ jsonrpc: '2.0', id: 17, method: 'session/request_permission', params: { sessionId: 'test-session', toolCall: { toolCallId: 'write' }, options: [{ optionId: 'allow', kind: 'allow_once' }] } });
         continue;
@@ -34,7 +35,8 @@ if (mode === 'acp') {
   let input = ''; for await (const chunk of process.stdin) input += chunk;
   if (mode !== 'workflow') await writeFile('captured.json', JSON.stringify({ input, args: process.argv.slice(3) }));
   if (mode === 'workflow') {
-    const task = JSON.parse(input).task;
+    const envelope = JSON.parse(input), task = envelope.task;
+    if (flavor === 'context') emit({type:'message',text:JSON.stringify({context:task.projectContext,prompt:envelope.prompt})});
     if (flavor === 'question' && task.attempt === 1) { emit({type:'message',text:'Which color?'}); }
     else if (flavor === 'wait') { emit({type:'message',text:'Working on it.'}); spawn(process.execPath,['-e',"setTimeout(()=>require('fs').writeFileSync('escaped-child.txt','bad'),1500)"],{stdio:'inherit'}); setInterval(()=>{},1000); }
     else if (flavor === 'secret') await writeFile('.env','SECRET=fixture');

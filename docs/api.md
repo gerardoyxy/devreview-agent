@@ -11,13 +11,15 @@ Browser calls must also use an explicitly allowed loopback Origin.
 | POST | `/api/tasks` | Create and enqueue; returns 202 |
 | GET | `/api/tasks/QA-1` | Context, patch, validation, messages, activity, revision summaries |
 | POST | `/api/tasks/QA-1/messages` | Send a follow-up; returns 202 |
-| GET | `/api/tasks/QA-1/revisions/1` | Historical patch and validation for version 1 |
+| GET | `/api/tasks/QA-1/revisions/1` | Historical patch, validation and context snapshot for version 1 |
 | POST | `/api/tasks/QA-1/apply` | Apply a ready patch to the active working tree |
 | POST | `/api/tasks/QA-1/reject` | Reject and remove the worktree |
 | POST | `/api/tasks/QA-1/retry` | Discard old worktree and retry from HEAD |
 | POST | `/api/tasks/QA-1/cancel` | Cancel pending or active work |
 | DELETE | `/api/tasks/QA-1` | Delete an inactive, unapplied task and worktree |
-| GET | `/api/events` | SSE events named `connected`, `task` and `appearance` |
+| GET | `/api/project-context` | Project instructions, skills and reference documents |
+| POST | `/api/project-context` | Validate and replace the project context library |
+| GET | `/api/events` | SSE events named `connected`, `task`, `appearance` and `project-context` |
 
 Use `Content-Type: application/json` for POST, and `{}` for actions. A task body (optional `agent` selects a configured ID):
 
@@ -65,6 +67,52 @@ earlier replies that were never stored cannot be reconstructed.
 Each historical revision includes its attempt number, status, diff, files,
 validation results, base commit/branch and timestamp. Historical revisions are
 read-only. There is no endpoint that applies an obsolete revision.
+
+## Project context
+
+`GET /api/project-context` returns `{ "version": 1, "revision": 0, "items": [] }`
+for a new repository. Save the complete library with its last-read `revision`:
+
+```json
+{
+  "version": 1,
+  "revision": 0,
+  "items": [{
+    "id": "project-rules",
+    "kind": "instruction",
+    "title": "Project rules",
+    "content": "Keep product copy in English.",
+    "source": "",
+    "default": true
+  }]
+}
+```
+
+Kinds are `instruction`, `skill` and `document`. IDs are unique lowercase identifiers,
+starting with a letter, using letters/digits/underscores/hyphens, up to 64 characters.
+The server assigns item `revision` and `updatedAt`; unchanged items retain them.
+A stale library revision returns 409 without overwriting another window's save.
+Saving publishes a `project-context` SSE event containing only the library revision.
+
+Limits: 32 items, 16 KiB of UTF-8 text per item, title 120 characters, source label 180
+characters, serialized library 128 KiB, serialized task snapshot 48 KiB. The save route
+accepts HTTP bodies up to 256 KiB before normalization. Defaults must fit the snapshot
+budget. `source` is only a label, never a filesystem path to read or a URL to fetch.
+
+Creation accepts optional `contextIds: ["project-rules"]`; omission selects defaults,
+while `[]` selects nothing. On follow-up, omitted IDs retain the exact previous
+snapshot; explicit IDs resolve the latest saved library. Missing IDs return 400 and an
+oversized selection returns 413 before storing a task or advancing its conversation.
+Retry retains the previous snapshot even if library items have since been deleted.
+
+Full tasks and historical revisions contain `projectContext` with `version`,
+`libraryRevision`, `capturedAt` and complete selected `items`. Legacy revisions may
+have no snapshot. List/SSE task summaries and revision summaries omit attachment text;
+fetch the individual task or revision to inspect it. Client-supplied snapshots are ignored.
+
+The common agent prompt distinguishes user-selected instructions/skills from reference
+material. This is a prompt boundary, not an execution sandbox or a guarantee of provider
+compliance. Importing a skill's text does not install tools, scripts or referenced assets.
 
 ## Agent registry
 

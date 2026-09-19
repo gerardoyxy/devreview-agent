@@ -191,6 +191,11 @@ impl Core {
             "Agent is not configured",
         )?;
         input["agent"] = id.into();
+        input["projectContext"] = crate::project_context::snapshot(
+            &self.store.project_context()?,
+            input.get("contextIds"),
+        )?;
+        input.as_object_mut().unwrap().remove("contextIds");
         input.as_object_mut().unwrap().extend(
             self.repository
                 .snapshot()
@@ -231,7 +236,7 @@ impl Core {
             recent.push(message);
         }
         recent.reverse();
-        let envelope = json!({"id":id,"request":task["request"],"context":task["context"],"attempt":task["attempt"],"agent":task["agent"],"messages":recent});
+        let envelope = json!({"id":id,"request":task["request"],"context":task["context"],"attempt":task["attempt"],"agent":task["agent"],"messages":recent,"projectContext":task["projectContext"]});
         let request = serde_json::from_value(
             json!({"protocolVersion":1,"transport":agent.transport,"command":agent.command,"args":agent.args,"model":agent.model,"timeoutMs":agent.timeout,"cwd":cwd,"task":envelope}),
         )?;
@@ -327,7 +332,13 @@ impl Core {
             .update(&id, json!({"status":"ready","validation":checks}))?;
         Ok(())
     }
-    pub async fn message(&self, id: &str, content: &str, attempt: Option<u64>) -> Result<Value> {
+    pub async fn message(
+        &self,
+        id: &str,
+        content: &str,
+        attempt: Option<u64>,
+        context_ids: Option<&Value>,
+    ) -> Result<Value> {
         let _lock = self.control.lock().await;
         check(!self.stop.is_cancelled(), 503, "Server is stopping")?;
         check(
@@ -346,6 +357,10 @@ impl Core {
             409,
             "Wait for the agent to finish, or retry a conflicting task before sending a follow-up.",
         )?;
+        // Freeze explicit new selections before mutating the conversation. Omission keeps its previous snapshot.
+        let project_context = context_ids
+            .map(|ids| crate::project_context::snapshot(&self.store.project_context()?, Some(ids)))
+            .transpose()?;
         let fresh = matches!(
             task["status"].as_str().unwrap_or(""),
             "applied" | "rejected"
@@ -365,6 +380,9 @@ impl Core {
             self.repository.continued(&task).await?;
         }
         patch["continueWorktree"] = (!fresh).into();
+        if let Some(value) = project_context {
+            patch["projectContext"] = value;
+        }
         self.store.archive(&task)?;
         self.store.update(id, patch)?;
         self.store.message(id, "user", content.trim())?;
@@ -547,6 +565,10 @@ pub fn validate_input(input: Value) -> Result<Value> {
             "Invalid agent ID",
         )?;
         result["agent"] = agent.clone();
+    }
+    if let Some(ids) = input.get("contextIds") {
+        crate::project_context::validate_ids(ids)?;
+        result["contextIds"] = ids.clone();
     }
     Ok(result)
 }

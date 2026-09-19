@@ -1,3 +1,4 @@
+import { createProjectContext, createContextPicker, contextStyles } from './project-context.js';
 import { createAppearance, themeDefaults } from './appearance.js';
 import { portableContext } from './context.js';
 import type { Api, ElementContext, Task, TaskSummary, TaskEvent, ServerStatus } from '../../contracts/src/index.js';
@@ -83,19 +84,19 @@ export const NudgeThis = {
     const host = document.createElement('div'); host.dataset.nudgethisOverlay = '';
     host.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:2147483647;';
     const shadow = host.attachShadow({ mode: 'open' });
-    shadow.innerHTML = `<style>${themeDefaults}
+    shadow.innerHTML = `<style>${themeDefaults}${contextStyles}
       :host{all:initial;font:calc(var(--dr-size) * 0.929)/1.5 var(--dr-font-body);color:var(--dr-muted)}
       *{box-sizing:border-box}button,a,textarea,select{font:inherit}button,a{cursor:pointer}
       .launcher{position:fixed;bottom:20px;right:20px;display:flex;align-items:center;gap:10px;background:var(--dr-surface);color:var(--dr-muted);border:1px solid var(--dr-border);border-radius:999px;padding:11px 18px;text-decoration:none;pointer-events:auto;box-shadow:0 4px 20px color-mix(in srgb,var(--dr-backdrop) 18%,transparent)}
       .dot{width:7px;height:7px;border-radius:50%;background:var(--dr-elevated)}.outline{position:fixed;pointer-events:none;border:2px solid var(--dr-border);background:var(--dr-elevated);border-radius:var(--dr-radius)}
-      .agent-select{display:block;width:100%;background:var(--dr-surface);color:var(--dr-muted);border:1px solid var(--dr-border);border-radius:var(--dr-radius);padding:8px;margin:8px 0}.prompt-actions{display:flex;gap:8px;align-items:center}.copy-context{background:transparent;color:var(--dr-muted);border:1px solid var(--dr-border);border-radius:var(--dr-radius);padding:10px;white-space:nowrap}.save:disabled{opacity:.5}.copy-status{color:var(--dr-muted);font-size:calc(var(--dr-size) * 0.857);margin-bottom:0}.panel{position:fixed;width:min(360px,calc(100vw - 24px));padding:20px;background:var(--dr-surface);border:1px solid var(--dr-border);border-radius:var(--dr-radius);pointer-events:auto;box-shadow:0 16px 60px color-mix(in srgb,var(--dr-backdrop) 18%,transparent)}
+      .agent-select{display:block;width:100%;background:var(--dr-surface);color:var(--dr-muted);border:1px solid var(--dr-border);border-radius:var(--dr-radius);padding:8px;margin:8px 0}.prompt-actions{display:flex;gap:8px;align-items:center}.copy-context{background:transparent;color:var(--dr-muted);border:1px solid var(--dr-border);border-radius:var(--dr-radius);padding:10px;white-space:nowrap}.save:disabled{opacity:.5}.copy-status{color:var(--dr-muted);font-size:calc(var(--dr-size) * 0.857);margin-bottom:0}.panel{overflow:auto;max-height:calc(100dvh - 24px);position:fixed;width:min(360px,calc(100vw - 24px));padding:20px;background:var(--dr-surface);border:1px solid var(--dr-border);border-radius:var(--dr-radius);pointer-events:auto;box-shadow:0 16px 60px color-mix(in srgb,var(--dr-backdrop) 18%,transparent)}
       .head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.head strong{font-size:calc(var(--dr-size) * 1.071)}.close{border:0;background:none;color:var(--dr-muted);font-size:calc(var(--dr-size) * 1.429);padding:0 4px}
       .target{font:calc(var(--dr-size) * 0.857) var(--dr-font-mono);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dr-muted);margin-bottom:12px}
       label{display:block;color:var(--dr-muted);margin-bottom:7px}textarea{width:100%;height:105px;resize:vertical;border:1px solid var(--dr-border);border-radius:var(--dr-radius);background:var(--dr-surface);color:var(--dr-muted);padding:10px;outline-offset:3px}
       .hint{font-size:calc(var(--dr-size) * 0.857);color:var(--dr-muted);margin:8px 0 16px}.save{width:100%;border:0;border-radius:var(--dr-radius);padding:10px;background:var(--dr-elevated);color:var(--dr-text);font-weight:650}.save:disabled{opacity:.5}
       .error{color:var(--dr-muted);font-size:calc(var(--dr-size) * 0.857);margin:8px 0;white-space:pre-wrap}.marker{position:fixed;background:var(--dr-surface);color:var(--dr-muted);border:1px solid var(--dr-border);border-radius:var(--dr-radius);padding:2px 6px;font:calc(var(--dr-size) * 0.857) var(--dr-font-mono);pointer-events:auto}
       .review-dialog{width:min(1100px,calc(100vw - 36px));height:min(800px,calc(100dvh - 48px));padding:0;border:1px solid var(--dr-border);border-radius:var(--dr-radius);background:var(--dr-surface);color:var(--dr-text);pointer-events:auto;box-shadow:0 28px 100px color-mix(in srgb,var(--dr-backdrop) 18%,transparent);max-width:none;max-height:none;overflow:hidden}
-      .review-dialog::backdrop{background:var(--dr-surface);backdrop-filter:blur(3px)}.review-shell{height:100%;display:flex;flex-direction:column}.review-header{padding:15px 20px;background:var(--dr-surface);border-bottom:1px solid var(--dr-border);display:flex;justify-content:space-between;align-items:center;gap:15px}.review-brand{display:flex;align-items:center;gap:10px;font-size:calc(var(--dr-size) * 1.071);letter-spacing:-.3px}.review-logo{background:var(--dr-surface);color:var(--dr-muted);width:28px;height:28px;border-radius:var(--dr-radius);display:grid;place-items:center;font:calc(var(--dr-size) * 1.714) Georgia,serif}.review-header-actions{display:flex;align-items:center;gap:20px}.dashboard-link{color:var(--dr-muted);font-size:calc(var(--dr-size) * 0.857);text-decoration:none}.review-close{border:0;background:none;color:var(--dr-muted);font-size:calc(var(--dr-size) * 1.714);line-height:1;padding:4px}.review-body{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:0;flex:1}.review-sidebar{background:var(--dr-surface);border-right:1px solid var(--dr-border);overflow:auto;padding:20px 13px}.review-caption{margin:0 7px 14px;display:block;font-size:calc(var(--dr-size) * 0.857);letter-spacing:1.3px;text-transform:uppercase;color:var(--dr-muted)}.review-filter{width:100%;background:var(--dr-surface);border:1px solid var(--dr-border);color:var(--dr-muted);border-radius:var(--dr-radius);padding:8px;margin-bottom:14px;font:calc(var(--dr-size) * 0.857) var(--dr-font-body)}.review-task{display:block;width:100%;text-align:left;border:1px solid transparent;background:none;padding:12px 11px;border-radius:var(--dr-radius);color:var(--dr-muted);margin:4px 0}.review-task[aria-current=true]{background:var(--dr-surface);border-color:var(--dr-border);box-shadow:0 2px 7px color-mix(in srgb,var(--dr-backdrop) 18%,transparent)}.review-task small{font-size:calc(var(--dr-size) * 0.857);display:flex;justify-content:space-between;gap:8px;color:var(--dr-muted)}.review-task strong{display:block;font-size:calc(var(--dr-size) * 0.857);font-weight:550;line-height:1.65;margin:6px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.review-task .route{font:calc(var(--dr-size) * 0.857) var(--dr-font-mono);color:var(--dr-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.review-detail{min-height:0;min-width:0}.review-empty{padding:55px 30px;color:var(--dr-muted);text-align:center;font-size:calc(var(--dr-size) * 0.857);line-height:1.9}.review-error{padding:15px;color:var(--dr-muted);white-space:pre-wrap}
+      .review-dialog::backdrop{background:var(--dr-surface);backdrop-filter:blur(3px)}.review-shell{height:100%;display:flex;flex-direction:column}.review-header{padding:15px 20px;background:var(--dr-surface);border-bottom:1px solid var(--dr-border);display:flex;justify-content:space-between;align-items:center;gap:15px}.review-brand{display:flex;align-items:center;gap:10px;font-size:calc(var(--dr-size) * 1.071);letter-spacing:-.3px}.review-logo{background:var(--dr-surface);color:var(--dr-muted);width:28px;height:28px;border-radius:var(--dr-radius);display:grid;place-items:center;font:calc(var(--dr-size) * 1.714) Georgia,serif}.review-header-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}.dashboard-link{color:var(--dr-muted);font-size:calc(var(--dr-size) * 0.857);text-decoration:none}.review-close{border:0;background:none;color:var(--dr-muted);font-size:calc(var(--dr-size) * 1.714);line-height:1;padding:4px}.review-body{display:grid;grid-template-columns:260px minmax(0,1fr);min-height:0;flex:1}.review-sidebar{background:var(--dr-surface);border-right:1px solid var(--dr-border);overflow:auto;padding:20px 13px}.review-caption{margin:0 7px 14px;display:block;font-size:calc(var(--dr-size) * 0.857);letter-spacing:1.3px;text-transform:uppercase;color:var(--dr-muted)}.review-filter{width:100%;background:var(--dr-surface);border:1px solid var(--dr-border);color:var(--dr-muted);border-radius:var(--dr-radius);padding:8px;margin-bottom:14px;font:calc(var(--dr-size) * 0.857) var(--dr-font-body)}.review-task{display:block;width:100%;text-align:left;border:1px solid transparent;background:none;padding:12px 11px;border-radius:var(--dr-radius);color:var(--dr-muted);margin:4px 0}.review-task[aria-current=true]{background:var(--dr-surface);border-color:var(--dr-border);box-shadow:0 2px 7px color-mix(in srgb,var(--dr-backdrop) 18%,transparent)}.review-task small{font-size:calc(var(--dr-size) * 0.857);display:flex;justify-content:space-between;gap:8px;color:var(--dr-muted)}.review-task strong{display:block;font-size:calc(var(--dr-size) * 0.857);font-weight:550;line-height:1.65;margin:6px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.review-task .route{font:calc(var(--dr-size) * 0.857) var(--dr-font-mono);color:var(--dr-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.review-detail{min-height:0;min-width:0}.review-empty{padding:55px 30px;color:var(--dr-muted);text-align:center;font-size:calc(var(--dr-size) * 0.857);line-height:1.9}.review-error{padding:15px;color:var(--dr-muted);white-space:pre-wrap}
       @media(max-width:700px){.review-dialog{width:calc(100vw - 16px);height:calc(100dvh - 24px);border-radius:var(--dr-radius)}.review-body{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr)}.review-sidebar{max-height:130px;border-right:0;border-bottom:1px solid var(--dr-border);padding:9px 12px}.review-caption,.review-filter{display:none}.review-task-list{display:flex;gap:7px;overflow-x:auto}.review-task{min-width:190px;max-width:220px;padding:8px;margin:0}.review-header{padding:12px 15px}.review-header-actions{gap:12px}.dashboard-link{font-size:calc(var(--dr-size) * 0.857)}}
       @media(max-width:420px){.review-brand strong{display:none}.review-header-actions{gap:8px}.dashboard-link{white-space:nowrap}}
       [hidden]{display:none!important}
@@ -108,11 +109,11 @@ export const NudgeThis = {
       <div class="target"></div><label for="request">QA request</label>
       <textarea id="request" maxlength="8000" required placeholder="Describe the problem and expected result…"></textarea>
       <label for="agent">Coding agent</label><select id="agent" class="agent-select" aria-label="Coding agent"><option value="">Connect to load agents</option></select>
-      <p class="hint">The agent works in a separate worktree. You review before applying.</p><p class="error" role="alert" hidden></p>
+      <div class="capture-context"></div><p class="hint">The agent works in a separate worktree. You review before applying.</p><p class="error" role="alert" hidden></p>
       <div class="prompt-actions"><button class="copy-context" type="button">Copy context</button><button class="save" type="submit" disabled>Start conversation ↗</button></div><p class="copy-status" role="status" hidden></p>
     </form>
     <button class="launcher" type="button" aria-label="Open NudgeThis conversations"><span class="dot"></span><span class="label">NudgeThis · connecting</span></button>
-    <dialog class="review-dialog" aria-label="NudgeThis conversations"><div class="review-shell"><header class="review-header"><div class="review-brand"><span class="review-logo">d</span><strong>nudgethis</strong></div><div class="review-header-actions"><button type="button" class="appearance-button">Appearance</button><a class="dashboard-link" target="_blank" rel="noopener">Dashboard ↗</a><button type="button" class="review-close" aria-label="Close conversations">×</button></div></header><div class="review-body"><aside class="review-sidebar"><span class="review-caption">Your changes</span><select class="review-filter" aria-label="Filter conversations"><option value="all">All changes</option><option value="page">This page</option><option value="applied">Applied changes</option></select><div class="review-task-list"></div></aside><div class="review-detail"><p class="review-empty">Your changes and their conversations live here.<br>Hold Alt and right-click an element to start.</p></div></div></div></dialog>`;
+    <dialog class="review-dialog" aria-label="NudgeThis conversations"><div class="review-shell"><header class="review-header"><div class="review-brand"><span class="review-logo">d</span><strong>nudgethis</strong></div><div class="review-header-actions"><button type="button" class="appearance-button project-context-button">Project context</button><button type="button" class="appearance-button appearance-open">Appearance</button><a class="dashboard-link" target="_blank" rel="noopener">Dashboard ↗</a><button type="button" class="review-close" aria-label="Close conversations">×</button></div></header><div class="review-body"><aside class="review-sidebar"><span class="review-caption">Your changes</span><select class="review-filter" aria-label="Filter conversations"><option value="all">All changes</option><option value="page">This page</option><option value="applied">Applied changes</option></select><div class="review-task-list"></div></aside><div class="review-detail"><p class="review-empty">Your changes and their conversations live here.<br>Hold Alt and right-click an element to start.</p></div></div></div></dialog>`;
     document.documentElement.append(host);
     const $ = <E extends HTMLElement = HTMLElement>(selector: string) => query<E>(shadow, selector);
     $<HTMLAnchorElement>('.dashboard-link').href = `${server}/#token=${encodeURIComponent(token)}`;
@@ -128,7 +129,10 @@ export const NudgeThis = {
       const data = await response.json(); if (!response.ok) throw new Error(data.error || `Request failed (${response.status})`); return data;
     };
     const appearance = createAppearance({ api, target: host, mount: shadow });
-    $('.appearance-button').onclick = () => { void appearance.open(); };
+    const projectContext = createProjectContext({ api, mount: shadow });
+    const contextPicker = createContextPicker($('.capture-context'), api);
+    $('.project-context-button').onclick = () => { void projectContext.open(); };
+    $('.appearance-open').onclick = () => { void appearance.open(); };
     void appearance.load().catch(() => {});
     const loadAgents = async () => {
       try {
@@ -147,7 +151,7 @@ export const NudgeThis = {
     $('.copy-context').onclick = async () => {
       if (!context) return;
       try {
-        await navigator.clipboard.writeText(portableContext(context, textarea.value));
+        await navigator.clipboard.writeText(portableContext(context, textarea.value) + contextPicker.portable());
         $('.copy-status').textContent = 'Context copied. Paste it into your coding agent.'; $('.copy-status').hidden = false;
       } catch { error.textContent = 'Clipboard access was blocked by the browser.'; error.hidden = false; }
     };
@@ -216,6 +220,8 @@ export const NudgeThis = {
       const rect = target.getBoundingClientRect();
       panel.style.left = `${Math.max(12, Math.min(rect.left, innerWidth - 372))}px`;
       panel.style.top = `${Math.max(12, Math.min(rect.bottom + 10, innerHeight - 440))}px`;
+      panel.style.maxHeight = `${innerHeight - parseFloat(panel.style.top) - 12}px`;
+      void contextPicker.load();
       position(); textarea.focus();
     };
     const contextMenu = (event: MouseEvent) => {
@@ -225,7 +231,7 @@ export const NudgeThis = {
     const keydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') close();
       if (event.key === 'Tab' && !panel.hidden && !dialog.open) {
-        const focusable = [...panel.querySelectorAll<HTMLElement>('button:not(:disabled),textarea,select:not(:disabled)')];
+        const focusable = [...panel.querySelectorAll<HTMLElement>('button:not(:disabled),textarea,select:not(:disabled),input:not(:disabled),summary')].filter(element => element.getClientRects().length > 0);
         const first = focusable[0], last = focusable.at(-1);
         if (event.shiftKey && shadow.activeElement === first) { event.preventDefault(); last?.focus(); }
         else if (!event.shiftKey && shadow.activeElement === last) { event.preventDefault(); first.focus(); }
@@ -251,7 +257,7 @@ export const NudgeThis = {
       saving = true; $<HTMLButtonElement>('.save').disabled = true; error.hidden = true;
       try {
         const response = await fetch(`${server}/api/tasks`, { method: 'POST', signal: controller.signal,
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ request: textarea.value, context, agent: $<HTMLSelectElement>('.agent-select').value }) });
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ request: textarea.value, context, contextIds: contextPicker.value(), agent: $<HTMLSelectElement>('.agent-select').value }) });
         const data = await response.json(); if (!response.ok) throw new Error(data.error);
         update(data); saving = false; close(); await openReview(data.id);
       } catch (err) { error.textContent = errorMessage(err); error.hidden = false; }
@@ -272,6 +278,6 @@ export const NudgeThis = {
       online = connected; renderList();
       $('.dot').style.background = connected ? 'var(--dr-success)' : 'var(--dr-warning)'; if (connected) { void load(); void loadAgents(); void appearance.load().catch(() => {}); }
     }, value => appearance.receive(value));
-    return { destroy() { clearTimeout(refreshTimer); controller.abort(); appearance.destroy(); dialog.close(); review?.destroy(); document.removeEventListener('contextmenu', contextMenu, true); document.removeEventListener('keydown', keydown, true); window.removeEventListener('scroll', position, true); window.removeEventListener('resize', position); host.remove(); } };
+    return { destroy() { clearTimeout(refreshTimer); controller.abort(); appearance.destroy(); projectContext.destroy(); dialog.close(); review?.destroy(); document.removeEventListener('contextmenu', contextMenu, true); document.removeEventListener('keydown', keydown, true); window.removeEventListener('scroll', position, true); window.removeEventListener('resize', position); host.remove(); } };
   }
 };

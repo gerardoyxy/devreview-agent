@@ -1,3 +1,4 @@
+import { createProjectContext } from '../../overlay/src/project-context.js';
 import { createAppearance, themeDefaults } from '../../overlay/src/appearance.js';
 import type { Task, TaskSummary, ServerStatus, TaskStatus } from '../../contracts/src/index.js';
 import { errorMessage, query } from '../../contracts/src/index.js';
@@ -17,6 +18,8 @@ async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
 }
 const defaults = document.createElement('style'); defaults.textContent = themeDefaults; document.head.append(defaults);
 const appearance = createAppearance({ api, target: document.documentElement, mount: document.body });
+const projectContext = createProjectContext({ api, mount: document.body });
+$('#context-button').onclick = () => { void projectContext.open(); };
 $('#appearance-button').onclick = () => { void appearance.open(); };
 const review = createTaskReview($('#task-review').attachShadow({ mode: 'open' }), { api, onMutation: () => void refresh() });
 function render() {

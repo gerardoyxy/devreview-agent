@@ -4,6 +4,7 @@ mod core;
 mod error;
 mod git;
 mod process;
+mod project_context;
 mod server;
 mod store;
 
