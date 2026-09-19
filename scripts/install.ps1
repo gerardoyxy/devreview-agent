@@ -31,7 +31,11 @@ try {
     $checksum = [IO.File]::ReadAllText($sumPath).Trim()
     if ($checksum -cnotmatch ('^([a-f0-9]{64})\s+' + [regex]::Escape($archive) + '$')) { throw 'Invalid release checksum.' }
     $expected = $Matches[1]
-    if ((Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $expected) { throw 'Checksum mismatch. Nothing was installed.' }
+    $hasher = [Security.Cryptography.SHA256]::Create()
+    $stream = [IO.File]::OpenRead($zipPath)
+    try { $actual = [BitConverter]::ToString($hasher.ComputeHash($stream)).Replace('-', '').ToLowerInvariant() }
+    finally { $stream.Dispose(); $hasher.Dispose() }
+    if ($actual -ne $expected) { throw 'Checksum mismatch. Nothing was installed.' }
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $zip = [IO.Compression.ZipFile]::OpenRead($zipPath)
@@ -45,7 +49,7 @@ try {
         }
     } finally { $zip.Dispose() }
     $unpacked = Join-Path $stage 'unpacked'
-    Expand-Archive -LiteralPath $zipPath -DestinationPath $unpacked
+    [IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $unpacked)
     $source = Join-Path $unpacked $name
     if (-not (Test-Path -LiteralPath (Join-Path $source 'nudgethis.exe') -PathType Leaf) -or -not (Test-Path -LiteralPath (Join-Path $source 'LICENSE') -PathType Leaf)) { throw 'Archive is missing the executable or license.' }
     $versions = Join-Path $InstallDir 'versions'
