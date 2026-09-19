@@ -108,7 +108,7 @@ impl Config {
         } else {
             ensure!(
                 !root.join("nudgethis.config.mjs").exists(),
-                "Legacy nudgethis.config.mjs found. Migrate its values to nudgethis.toml (see docs/migration.es.md); executable JavaScript configuration is no longer loaded."
+                "Legacy nudgethis.config.mjs found. Migrate its values to nudgethis.toml (see docs/migration.md); executable JavaScript configuration is no longer loaded."
             );
             Self::default()
         };

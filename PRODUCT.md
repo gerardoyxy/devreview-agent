@@ -28,7 +28,7 @@ The public landing introduces the project. The application runs locally alongsid
 
 ## Brand Commitments
 
-NudgeThis is the public name. All product interface and marketing copy is English. Existing `nudgethis` CLI commands and technical integration names remain compatible. The landing and application share ultramarine accents, pale surfaces, Archivo typography and precise borders. User color and font customization takes precedence over those defaults. See [the design system](DESIGN.md).
+NudgeThis is the public name. Public documentation, product interface and marketing copy use English. Existing `nudgethis` CLI commands and technical integration names remain compatible. The landing and application share ultramarine accents, pale surfaces, Archivo typography and precise borders. User color and font customization takes precedence over those defaults. See [the design system](DESIGN.md).
 
 ## Product status
 
