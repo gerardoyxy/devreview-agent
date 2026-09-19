@@ -1,17 +1,20 @@
 # Apariencia y criterio visual
 
-Lectura del diseño: herramienta de revisión para desarrolladores, sobria, legible y configurable.
-Diales adaptados: `DESIGN_VARIANCE=3`, `MOTION_INTENSITY=2`, `VISUAL_DENSITY=6`.
+La dirección azul «Reference desk» fue elegida para la landing y la aplicación.
+Se aplicó [Impeccable](https://github.com/pbakaus/impeccable): azul ultramarino,
+superficies claras frías, tinta azul oscuro, tipografía Archivo y bordes finos.
+El sistema completo está en [DESIGN.md](../DESIGN.md).
 
-Se aplicó [Taste Skill](https://github.com/Leonxlnx/taste-skill/tree/main/skills/taste-skill),
-incorporada en `.agents/skills/taste-skill/SKILL.md` con su licencia MIT. Su alcance original
-excluye dashboards y flujos de producto; por eso se adaptaron principios de contraste,
-tipografía, consistencia, estados reales y revisión responsive, sin adoptar una estructura
-de landing page ni cambiar TypeScript/Shadow DOM por un framework.
+La landing demuestra el flujo con un navegador y una conversación conectados. En la
+aplicación, la misma identidad se adapta a una cola compacta, diálogos de revisión y
+editores de contexto/apariencia. El dashboard y el overlay comparten Conversation,
+Changes, History y Context used. La marca visible es NudgeThis; los comandos, contratos
+e integración DevReview conservan su compatibilidad.
 
-Se conservaron la identidad verde, la navegación por cola, las métricas reales, el selector
-de agente y las pestañas Conversation/Changes/History. La revisión mejora legibilidad,
-contraste y consistencia de superficies. El acento verde es un valor inicial editable.
+Archivo se sirve localmente: 400/700 en los módulos de aplicación y 400/700/900 en la
+landing, con licencia OFL. Las fuentes de la aplicación están incluidas como bytes en
+el bundle y se registran con FontFace; no requieren solicitudes externas. La aplicación
+usa azul como valor inicial editable y respeta los temas que ya se habían guardado.
 
 ## Contrato de apariencia v1
 

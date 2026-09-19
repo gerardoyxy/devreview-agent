@@ -16,17 +16,20 @@ if (demo) {
     'Read the reply and review the proposed change.',
     'The same button, with your change applied.'
   ];
-  const request = 'Make this button green and round the corners.';
+  const request = 'Give this more space.';
   const controls = select('[data-demo-controls]');
   const play = select<HTMLButtonElement>('[data-demo-play]');
   const replay = select<HTMLButtonElement>('[data-demo-replay]');
   const typed = select('[data-demo-request]');
   const caption = select('[data-demo-caption]');
   const announcement = select('[data-demo-announcement]');
+  const applyLabel = select('.demo-apply-label');
   const buttons = [...demo.querySelectorAll<HTMLButtonElement>('[data-demo-step]')];
   const pointer = select<SVGElement & HTMLElement>('.demo-pointer');
   const stage = select('.demo-stage');
   const target = select('[data-demo-target]');
+  const targetWrap = select('.demo-target-wrap');
+  const conversation = select('.demo-conversation');
   const apply = select('[data-demo-apply]');
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   let elapsed = reduced.matches ? total : 0;
@@ -38,6 +41,8 @@ if (demo) {
   let pointerTarget = { x: 0, y: 0 };
 
   function positionPointer(): void {
+    const gap = conversation.getBoundingClientRect().top - targetWrap.getBoundingClientRect().bottom;
+    targetWrap.style.setProperty('--connector-length', `${Math.max(0, gap - 16)}px`);
     const base = stage.getBoundingClientRect();
     const rect = (renderedStep < 2 ? target : apply).getBoundingClientRect();
     pointerTarget = { x: rect.left - base.left + rect.width * .75, y: rect.top - base.top + rect.height * .65 };
@@ -49,6 +54,8 @@ if (demo) {
       renderedStep = index;
       demo!.dataset.stage = steps[index];
       caption.textContent = captions[index];
+      applyLabel.textContent = 'Review change';
+      apply.setAttribute('aria-label', index === 3 ? 'Replay this example change' : 'Review the example change');
       for (const [i, button] of buttons.entries()) {
         if (i === index) button.setAttribute('aria-current', 'step');
         else button.removeAttribute('aria-current');
@@ -96,14 +103,29 @@ if (demo) {
     elapsed = starts[index] + durations[index] * .8; playing = false;
     render(); sync(); announcement.textContent = captions[index];
   };
+  target.onclick = () => { elapsed = starts[1]; playing = true; render(); sync(); };
+  apply.onclick = () => {
+    if (renderedStep === 3) { startOver(); return; }
+    if (applyLabel.textContent === 'Review change') {
+      elapsed = starts[2]; playing = false; render(); sync();
+      applyLabel.textContent = 'Apply change';
+      apply.setAttribute('aria-label', 'Apply the example change');
+      announcement.textContent = 'Proposed change: increase button padding. Choose Apply change to preview it.';
+    } else {
+      elapsed = total; playing = false; render(); sync();
+      announcement.textContent = captions[3];
+    }
+  };
   reduced.addEventListener('change', () => {
     if (reduced.matches) { playing = false; elapsed = total; render(); sync(); }
   });
   document.addEventListener('visibilitychange', sync);
-  new ResizeObserver(() => { positionPointer(); render(); }).observe(stage);
+  const geometry = new ResizeObserver(() => { positionPointer(); render(); });
+  geometry.observe(stage); geometry.observe(target);
   new IntersectionObserver(entries => {
     visible = entries[0]?.isIntersecting ?? false; sync();
   }, { threshold: 0.15 }).observe(demo);
   controls.hidden = false;
+  select('.demo-steps').hidden = false;
   render(); sync();
 }

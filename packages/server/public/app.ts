@@ -1,9 +1,10 @@
+import { icon } from '../../overlay/src/icons.js';
 import { createProjectContext } from '../../overlay/src/project-context.js';
 import { createAppearance, themeDefaults } from '../../overlay/src/appearance.js';
 import type { Task, TaskSummary, ServerStatus, TaskStatus } from '../../contracts/src/index.js';
 import { errorMessage, query } from '../../contracts/src/index.js';
 import { watchTasks } from '../../overlay/src/index.js';
-import { createTaskReview } from '../../overlay/src/review.js';
+import { createTaskReview, taskStatusLabels } from '../../overlay/src/review.js';
 
 const $ = <E extends HTMLElement = HTMLElement>(selector: string) => query<E>(document, selector);
 const params = new URLSearchParams(location.hash.slice(1));
@@ -32,7 +33,8 @@ function render() {
   $('#visible-count').textContent = String(visible.length); $('#tasks').replaceChildren();
   if (!visible.length) {
     const empty = element('div', 'empty');
-    empty.append(element('div', 'empty-symbol', '+'), element('h3', '', tasks.length ? 'Nothing here just yet.' : 'Your next fix starts with a right-click.'), element('p', '', tasks.length ? 'Try another filter or report a new issue.' : 'Open the playground, hold Alt, and right-click an element. Leave a note. We’ll take it from there.'));
+    const symbol = element('div', 'empty-symbol'); symbol.innerHTML = icon('pointer');
+    empty.append(symbol, element('h3', '', tasks.length ? 'Nothing here just yet.' : 'Your next change starts here.'), element('p', '', tasks.length ? 'Try another filter or report a new issue.' : 'Open the playground. Hold Alt and right-click an element, then describe what you want to change.'));
     $('#tasks').append(empty); return;
   }
   for (const task of visible) {
@@ -42,8 +44,9 @@ function render() {
     const subtitle = element('div', 'task-subtitle');
     subtitle.append(element('span', '', task.id), element('span', '', '·'), element('code', '', task.context.route), element('span', '', `${task.files.length} file${task.files.length === 1 ? '' : 's'}`));
     info.append(title, subtitle);
-    const review = element('button', 'review-button', 'Review ↗'); review.onclick = () => openTask(task.id);
-    row.append(element('span', 'task-icon', task.status === 'applied' ? '✓' : '+'), info, element('span', `badge ${task.status}`, task.status), review);
+    const review = element('button', 'review-button', 'Review'); review.onclick = () => openTask(task.id);
+    const mark = element('span', 'task-icon'); mark.innerHTML = icon(task.status === 'applied' ? 'check' : 'pointer');
+    row.append(mark, info, element('span', `badge ${task.status}`, taskStatusLabels[task.status] || task.status), review);
     $('#tasks').append(row);
   }
 }

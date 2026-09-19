@@ -1,4 +1,4 @@
-# DevReview Agent
+# NudgeThis
 
 **Señala tu interfaz. Dile a tu agente qué quieres cambiar.**
 
@@ -46,8 +46,10 @@ Los estilos del overlay se limitan a su Shadow DOM; no cambian tu aplicación. L
 se cargan localmente, sin servicios externos. Hasta tres fuentes, máximo conjunto de 1 MiB.
 Una fuente escrita por nombre debe estar instalada; si no, se usa su alternativa.
 
-La revisión visual usa las pautas aplicables de [Taste Skill](https://github.com/Leonxlnx/taste-skill/tree/main/skills/taste-skill),
-conservando el flujo de una herramienta de desarrollo. [Decisiones visuales](docs/design.es.md).
+La landing, el dashboard y el overlay comparten la dirección azul elegida, con fuentes
+Archivo incluidas localmente y pautas de [Impeccable](https://github.com/pbakaus/impeccable).
+Los temas guardados conservan sus colores y fuentes. [Sistema visual](DESIGN.md) ·
+[Decisiones visuales](docs/design.es.md).
 
 ## Conectar una aplicación
 

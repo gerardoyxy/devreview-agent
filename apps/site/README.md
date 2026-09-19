@@ -1,7 +1,7 @@
 # NudgeThis landing
 
-An English static landing for the NudgeThis brand. The application and repository
-still use the DevReview name. This site does not rename CLI commands, connect to a
+An English static landing for the NudgeThis brand. The application UI shares the NudgeThis name; CLI and repository
+identifiers remain DevReview. This site does not rename CLI commands, connect to a
 local application, or invoke agents. It introduces the current alpha honestly and
 links to the branch containing the Rust implementation.
 
@@ -25,24 +25,26 @@ to support a custom domain, a `pages.dev` address, or a GitHub project subpath.
 
 ## Design and assets
 
-The existing landing identity remains while the replacement visual direction is
-being selected. The browser demonstration follows Impeccable's motion guidance.
+The approved blue Reference desk direction is shared with the application. The landing
+uses a 45/55 split hero, large Archivo lettering, fine borders, and a connected browser
+and conversation example. The application adapts the same identity to compact working UI.
+See [the design system](../../DESIGN.md).
 
 - The hero contains a native HTML/CSS example page and conversation, not an iframe.
 - A TypeScript controller advances through Point, Describe, Review, and Apply.
-  The selected button changes color and corners only at Apply.
+  The selected button gains padding only at Apply; Review lets the visitor inspect first.
 - Autoplay runs once for 13 seconds. Pause, Play, Replay, and individual step
   controls work with keyboard and touch. The animation clock stops offscreen or
   when the browser tab is hidden.
 - Reduced-motion preferences and disabled JavaScript show the final static
   illustration. With JavaScript, visitors can still inspect steps manually.
 - The demo is labeled illustrative and makes no agent, API, or localhost requests.
-- Self-hosted DM Sans, 400 and 700; see `public/assets/FONT-LICENSE.txt` (OFL).
+- Self-hosted Archivo, 400, 700 and 900; see `public/assets/FONT-LICENSE.txt` (OFL).
 - `history.png` is a real screenshot of the deterministic Rust demo, showing the
-  current alpha and previous product name. The hero example is authored HTML.
-- The small `n` favicon is a geometric monogram.
+  current blue NudgeThis interface and its archived patch/context. The hero example is authored HTML.
+- The favicon is a geometric pointer with a selection corner.
 
-The font files were sourced from `@fontsource/dm-sans`; they are vendored with their
+The font files were sourced from `@fontsource/archivo`; they are vendored with their
 license so production visitors do not contact a font service.
 
 See [publication instructions](../../docs/landing.md) for GitHub Pages with the Namecheap domain.
