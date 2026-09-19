@@ -9,6 +9,10 @@ changes to your branch, without automatic commits or pushes.
 
 [Español](README.es.md) · [Agents](docs/agents.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Migration](docs/migration.es.md) · [Security](SECURITY.md)
 
+The upcoming public brand is **NudgeThis**. Its English [static landing](apps/site/README.md)
+builds with `npm run build:site` and can be hosted on Cloudflare Pages or GitHub Pages.
+[Publication setup](docs/landing.md). The CLI and repository currently keep the NudgeThis name.
+
 ## Build and try
 
 The frontend is strict TypeScript. The HTTP/SSE server, queue, SQLite, Git operations,
