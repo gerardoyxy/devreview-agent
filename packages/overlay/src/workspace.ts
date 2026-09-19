@@ -36,7 +36,7 @@ export function createTaskComposer(mount: HTMLElement | ShadowRoot, api: Api, on
     finally { busy = false; controls(); }
   };
   ui.dialog.addEventListener('cancel', event => { if (busy) event.preventDefault(); });
-  return { async open(task?: Task, seed?: { request: string; context?: ElementContext }) {
+  return { async open(task?: Task, seed?: { request: string; context?: ElementContext; contextIds?: string[] }) {
     if (seed || (!task && editing)) form.reset(); seedContext = seed?.context;
     if (seed) { $<HTMLTextAreaElement>('#nt-request').value = seed.request; $<HTMLSelectElement>('#nt-kind').value = 'frontend'; }
     editing = task; ui.heading.textContent = task ? 'Edit draft' : 'New change'; showError('');
@@ -47,7 +47,7 @@ export function createTaskComposer(mount: HTMLElement | ShadowRoot, api: Api, on
       const status = await api<ServerStatus>('/api/status'); enabled = status.executionEnabled !== false;
       const select = $<HTMLSelectElement>('#nt-provider'); select.replaceChildren(...(status.agents || []).map(a => { const option = element('option', a.label); option.value = a.id; return option; })); select.value = task?.agent || status.agent;
       $('.nt-mode').textContent = enabled ? 'Save a draft without running anything, or start a change with the selected agent. You review files before applying.' : 'Execution is disabled. Drafts, project context and review remain available. No agent or setup command will run.';
-      await picker.load(task?.projectContext ?? null); $<HTMLTextAreaElement>('#nt-request').focus();
+      await picker.load(task ? task.projectContext ?? null : undefined, seed?.contextIds); $<HTMLTextAreaElement>('#nt-request').focus();
     } catch (error) { enabled = false; showError(errorMessage(error)); }
     finally { busy = false; controls(); }
   }, destroy: ui.destroy };

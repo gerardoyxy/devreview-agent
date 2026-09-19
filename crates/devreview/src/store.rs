@@ -373,6 +373,32 @@ impl Store {
             .transpose()?
             .unwrap_or(Value::Null))
     }
+    pub fn my_style(&self) -> Result<Value> {
+        let db = self.db.lock().unwrap();
+        style_response(read_style(&db)?, &style_tasks(&db)?)
+    }
+    pub fn save_my_style(&self, input: &Value) -> Result<Value> {
+        let (value, context, context_changed) = {
+            let mut db = self.db.lock().unwrap();
+            let tx = db.transaction()?;
+            let previous = read_style(&tx)?;
+            let old_context = read_project_context(&tx)?;
+            let tasks = style_tasks(&tx)?;
+            let (value, context) = crate::my_style::mutate(input, &previous, &tasks, &old_context)?;
+            tx.execute("INSERT INTO preferences(key,data) VALUES('my-style',?) ON CONFLICT(key) DO UPDATE SET data=excluded.data", [value.to_string()])?;
+            let changed = context != old_context;
+            if changed {
+                tx.execute("INSERT INTO preferences(key,data) VALUES('project-context',?) ON CONFLICT(key) DO UPDATE SET data=excluded.data", [context.to_string()])?;
+            }
+            tx.commit()?;
+            (style_response(value, &tasks)?, context, changed)
+        };
+        self.emit("my-style", json!({"revision":value["revision"]}));
+        if context_changed {
+            self.emit("project-context", json!({"revision":context["revision"]}));
+        }
+        Ok(value)
+    }
     pub fn save_selection_controls(&self, mut value: Value) -> Result<Value> {
         crate::selection::validate(&value)?;
         let mut db = self.db.lock().unwrap();
@@ -405,6 +431,63 @@ impl Store {
         self.emit("appearance", value.clone());
         Ok(())
     }
+}
+fn read_style(db: &Connection) -> Result<Value> {
+    let data: Option<String> = db
+        .query_row(
+            "SELECT data FROM preferences WHERE key='my-style'",
+            [],
+            |r| r.get(0),
+        )
+        .optional()?;
+    Ok(data
+        .map(|s| serde_json::from_str(&s))
+        .transpose()?
+        .unwrap_or_else(crate::my_style::empty))
+}
+fn style_tasks(db: &Connection) -> Result<Vec<Value>> {
+    // Read only evidence fields, excluding logs, snapshots and oversized patches.
+    let mut stmt = db.prepare("SELECT json_object('id','QA-' || id,'status','applied',
+        'diff',CASE WHEN length(CAST(json_extract(data,'$.diff') AS BLOB)) <= 262144 THEN json_extract(data,'$.diff') ELSE '' END,
+        'context',json_object('route',json_extract(data,'$.context.route'),'tagName',json_extract(data,'$.context.tagName')))
+        FROM tasks WHERE json_extract(data,'$.status')='applied' ORDER BY id DESC LIMIT 200")?;
+    let mut tasks = vec![];
+    for row in stmt.query_map([], |r| r.get::<_, String>(0))? {
+        tasks.push(serde_json::from_str(&row?)?);
+    }
+    Ok(tasks)
+}
+fn style_response(mut value: Value, tasks: &[Value]) -> Result<Value> {
+    value["suggestions"] = crate::my_style::suggestions(tasks, &value["dismissed"]).into();
+    let mut guides = json!({});
+    for profile in value["profiles"].as_array().unwrap() {
+        guides[profile["id"].as_str().unwrap()] = crate::my_style::guide(profile).into();
+    }
+    value["guides"] = guides;
+    Ok(value)
+}
+
+#[cfg(test)]
+#[test]
+fn style_evidence_reads_bounded_fields_with_canonical_task_ids() {
+    let db = Connection::open_in_memory().unwrap();
+    db.execute_batch("CREATE TABLE tasks (id INTEGER PRIMARY KEY, data TEXT NOT NULL)")
+        .unwrap();
+    for id in 1..=202 {
+        let data = json!({"id":"untrusted","status":if id == 202 {"ready"} else {"applied"},"diff":if id == 201 {"x".repeat(262145)} else {"patch".into()},"output":"must not be returned","context":{"route":"/settings","tagName":"button","outerHTML":"must not be returned"}});
+        db.execute(
+            "INSERT INTO tasks(id,data) VALUES(?,?)",
+            params![id, data.to_string()],
+        )
+        .unwrap();
+    }
+    let tasks = style_tasks(&db).unwrap();
+    assert_eq!(tasks.len(), 200);
+    assert_eq!(
+        tasks[0],
+        json!({"id":"QA-201","status":"applied","diff":"","context":{"route":"/settings","tagName":"button"}})
+    );
+    assert_eq!(tasks.last().unwrap()["id"], "QA-2");
 }
 fn read_project_context(db: &Connection) -> Result<Value> {
     let data: Option<String> = db

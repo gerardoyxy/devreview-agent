@@ -1,3 +1,4 @@
+import { createMyStyle } from '../../overlay/src/my-style.js';
 import { createSelectionControls } from '../../overlay/src/selection-controls.js';
 import { createRouteReview } from '../../overlay/src/route-review.js';
 import { createTaskComposer, createDiagnostics } from '../../overlay/src/workspace.js';
@@ -33,6 +34,8 @@ $('#context-button').onclick = () => { void projectContext.open(); };
 $('#appearance-button').onclick = () => { void appearance.open(); };
 const composer = createTaskComposer(document.body, api, task => { void refresh(); void openTask(task.id); });
 const diagnostics = createDiagnostics(document.body, api);
+const myStyle = createMyStyle(document.body, api, seed => { void composer.open(undefined, seed); }, id => { void openTask(id); });
+$('#style-button').onclick = () => { void myStyle.open(); };
 const routes = createRouteReview(document.body, api, seed => { void composer.open(undefined, seed); });
 $('#routes-button').onclick = () => { void routes.open(); };
 $('#new-task').onclick = () => { void composer.open(); };

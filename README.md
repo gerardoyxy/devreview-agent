@@ -9,7 +9,7 @@ Each task has its own conversation, live public agent replies, diff, validation 
 persistent version history. Agents edit isolated Git worktrees. You explicitly apply reviewed
 changes to your branch, without automatic commits or pushes.
 
-[Install](docs/install.md) · [Route review](docs/route-review.md) · [Agents](docs/agents.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Migration](docs/migration.md) · [Security](SECURITY.md)
+[Install](docs/install.md) · [My Style](docs/my-style.md) · [Route review](docs/route-review.md) · [Agents](docs/agents.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Migration](docs/migration.md) · [Security](SECURITY.md)
 
 The project and repository are **NudgeThis**. Its English [static landing](apps/site/README.md)
 builds with `npm run build:site` and is published at [nudgethis.click](https://nudgethis.click/).
@@ -168,6 +168,18 @@ still depends on the selected adapter.
 The library supports 32 items, 16 KiB of text per item and 128 KiB total. Each selected
 snapshot is limited to 48 KiB, including JSON metadata. Content stays in local SQLite until
 you send it to your agent or use **Copy context**. See the [context API](docs/api.md#project-context).
+
+## Build and reuse your style
+
+**My Style** offers a branching visual builder, live example components, named profiles,
+scoped rules and portable JSON/Markdown exports. **Suggestions** finds repeated supported
+CSS values in at least three applied corrections; inspect the source changes and accept
+the scope before adding a rule. This is local pattern detection, without model training
+or analysis of chat wording and utility classes.
+
+**Apply my style** prepares a reviewed change for an element, page or project. A default
+profile can accompany new requests through Project context; existing conversations keep
+their captured style version. See [My Style](docs/my-style.md) for supported values and limits.
 
 ## Your colors and typography
 
