@@ -1,3 +1,4 @@
+import { loadDefaultFonts } from './fonts.js';
 import type { Api } from '../../contracts/src/index.js';
 import { errorMessage } from '../../contracts/src/index.js';
 
@@ -12,9 +13,9 @@ export interface Appearance {
   fonts: { body: string; heading: string; mono: string }; fontSize: number; radius: number;
   customFonts: Array<{ name: string; data: string }>;
 }
-const light: Palette = { page:'#f4f5f1',surface:'#ffffff',elevated:'#edf0e8',text:'#243026',muted:'#59665b',border:'#c4cec0',accent:'#38633e',onAccent:'#ffffff',accentSoft:'#e0eddc',success:'#35683b',successSoft:'#e2f0df',danger:'#a33232',dangerSoft:'#fbe5e2',warning:'#775515',warningSoft:'#faf0d6',info:'#385c91',infoSoft:'#e8edf8',backdrop:'#152319' };
-const dark: Palette = { page:'#151a17',surface:'#1e2621',elevated:'#28322b',text:'#edf3eb',muted:'#b2c0b1',border:'#536052',accent:'#b9d8a7',onAccent:'#1c321c',accentSoft:'#32452d',success:'#b4dda7',successSoft:'#2e4229',danger:'#ffb9b2',dangerSoft:'#4b2b2a',warning:'#ead08d',warningSoft:'#473d25',info:'#b4cdf9',infoSoft:'#2c3b50',backdrop:'#050906' };
-export const defaultAppearance = (): Appearance => ({ version:1,mode:'system',palettes:{light:{...light},dark:{...dark}},fonts:{body:'system-ui, sans-serif',heading:'system-ui, sans-serif',mono:'ui-monospace, monospace'},fontSize:14,radius:10,customFonts:[] });
+const light: Palette = { page:'#f4f6ff',surface:'#ffffff',elevated:'#edf1ff',text:'#172143',muted:'#566480',border:'#bdc8de',accent:'#2147cc',onAccent:'#ffffff',accentSoft:'#e7edff',success:'#21633d',successSoft:'#e7f4eb',danger:'#a33143',dangerSoft:'#fbe9ed',warning:'#76510d',warningSoft:'#fff3d7',info:'#254dab',infoSoft:'#e7edff',backdrop:'#0b1433' };
+const dark: Palette = { page:'#101629',surface:'#19223a',elevated:'#243150',text:'#eff3ff',muted:'#b3c0dc',border:'#536589',accent:'#a8beff',onAccent:'#101c47',accentSoft:'#293e75',success:'#a5deb7',successSoft:'#233e31',danger:'#ffb4c3',dangerSoft:'#4a2938',warning:'#f0d184',warningSoft:'#443b27',info:'#abc5ff',infoSoft:'#293c65',backdrop:'#050b1b' };
+export const defaultAppearance = (): Appearance => ({ version:1,mode:'system',palettes:{light:{...light},dark:{...dark}},fonts:{body:'NudgeThis Archivo, system-ui, sans-serif',heading:'NudgeThis Archivo, system-ui, sans-serif',mono:'ui-monospace, monospace'},fontSize:14,radius:6,customFonts:[] });
 const loadedFonts = new Map<string, {data:string;face:FontFace}>();
 const escapeFamily = (family: string) => family.split(',').map(s => s.trim()).map(s => /^(serif|sans-serif|monospace|system-ui|ui-monospace|ui-serif|ui-sans-serif)$/.test(s) ? s : `"${s.replace(/["\\]/g,'')}"`).join(', ');
 export function validAppearance(value: unknown): value is Appearance {
@@ -26,6 +27,7 @@ export function validAppearance(value: unknown): value is Appearance {
     && Array.isArray(v.customFonts) && v.customFonts.length<=3 && v.customFonts.every(f=>/^NudgeThisFont[a-z0-9]{1,48}$/i.test(f.name) && typeof f.data==='string' && f.data.length<=1_400_000 && /^(d09GMg|d09GRg)/.test(f.data));
 }
 export async function applyAppearance(target: HTMLElement, value: Appearance): Promise<void> {
+  await loadDefaultFonts().catch(() => {});
   for (const font of value.customFonts) {
     const existing=loadedFonts.get(font.name); if (existing?.data===font.data) continue;
     const bytes=Uint8Array.from(atob(font.data),c=>c.charCodeAt(0));
@@ -40,7 +42,7 @@ export async function applyAppearance(target: HTMLElement, value: Appearance): P
   target.style.setProperty('--dr-size',`${value.fontSize}px`); target.style.setProperty('--dr-radius',`${value.radius}px`);
 }
 export const themeDefaults = `
-:host,:root{${Object.entries(light).map(([k,v])=>`--dr-${k}:${v}`).join(';')};--dr-font-body:system-ui,sans-serif;--dr-font-heading:system-ui,sans-serif;--dr-font-mono:ui-monospace,monospace;--dr-size:14px;--dr-radius:10px}
+:host,:root{${Object.entries(light).map(([k,v])=>`--dr-${k}:${v}`).join(';')};--dr-font-body:"NudgeThis Archivo",system-ui,sans-serif;--dr-font-heading:"NudgeThis Archivo",system-ui,sans-serif;--dr-font-mono:ui-monospace,monospace;--dr-size:14px;--dr-radius:6px}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 `;
 const editorStyles = `
@@ -108,7 +110,7 @@ export function createAppearance({api,target,mount}: {api:Api;target:HTMLElement
   $('[data-save]').onclick=async()=>{ if(busy)return; if(!validAppearance(draft)){status('Review your theme values before saving.',true);return;}busy=true;$<HTMLButtonElement>('[data-save]').disabled=true;status('Saving…');try{saved=await api<Appearance>('/api/appearance',{method:'POST',body:JSON.stringify(draft)});dirty=false;$('[data-state]').textContent='Saved for this repository';status('Saved. Dashboard and overlay will use this appearance.');}catch(e){status(errorMessage(e),true);}finally{busy=false;$<HTMLButtonElement>('[data-save]').disabled=false;} };
   $('[data-export]').onclick=()=>{const url=URL.createObjectURL(new Blob([JSON.stringify(draft,null,2)],{type:'application/json'}));const link=document.createElement('a');link.href=url;link.download='nudgethis-theme.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};
   $('[data-import]').onclick=()=>$<HTMLInputElement>('[data-import-file]').click();
-  $<HTMLInputElement>('[data-import-file]').onchange=async()=>{try{const file=$<HTMLInputElement>('[data-import-file]').files?.[0];if(!file)return;if(file.size>2_097_152)throw new Error('Theme file is too large.');const value:unknown=JSON.parse(await file.text());if(!validAppearance(value))throw new Error('Invalid NudgeThis theme file.');await renderTheme(value);draft=value;form();preview();status('Imported. Save to keep these preferences.');}catch(e){status(errorMessage(e),true);}};
+  $<HTMLInputElement>('[data-import-file]').onchange=async()=>{try{const file=$<HTMLInputElement>('[data-import-file]').files?.[0];if(!file)return;if(file.size>2_097_152)throw new Error('Theme file is too large.');const value:unknown=JSON.parse(await file.text());if(!validAppearance(value))throw new Error('Invalid theme file.');await renderTheme(value);draft=value;form();preview();status('Imported. Save to keep these preferences.');}catch(e){status(errorMessage(e),true);}};
   const media=matchMedia('(prefers-color-scheme: dark)');const system=()=>void renderTheme(dialog.open?draft:saved).catch(()=>{});media.addEventListener('change',system);
   async function receive(value:unknown) { if(value!==null&&!validAppearance(value))throw new Error('The server returned an invalid appearance.');saved=value===null?defaultAppearance():value as Appearance;if(!dialog.open||!dirty){draft=structuredClone(saved);await renderTheme(saved);if(dialog.open)form();} }
   void renderTheme(saved);

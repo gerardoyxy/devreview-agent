@@ -8,3 +8,10 @@ coverage/
 .DS_Store
 dist/
 target/
+
+# Impeccable working files; keep only durable product/design records.
+.impeccable/*
+!.impeccable/config.json
+!.impeccable/design.json
+!.impeccable/surfaces/
+!.impeccable/critique/

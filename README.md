@@ -1,4 +1,4 @@
-# NudgeThis Agent
+# NudgeThis
 
 **Point at your UI. Tell your coding agent what to change.**
 
@@ -9,8 +9,8 @@ changes to your branch, without automatic commits or pushes.
 
 [Español](README.es.md) · [Agents](docs/agents.md) · [Architecture](docs/architecture.md) · [API](docs/api.md) · [Migration](docs/migration.es.md) · [Security](SECURITY.md)
 
-The upcoming public brand is **NudgeThis**. Its English [static landing](apps/site/README.md)
-builds with `npm run build:site` and can be hosted on Cloudflare Pages or GitHub Pages.
+The public interface is **NudgeThis**. Its English [static landing](apps/site/README.md)
+builds with `npm run build:site` and is prepared for GitHub Pages.
 [Publication setup](docs/landing.md). The CLI and repository currently keep the NudgeThis name.
 
 ## Build and try
@@ -151,9 +151,10 @@ Appearance persists per repository in SQLite and synchronizes through authentica
 Contrast notices flag low-contrast combinations without overriding your choices. Overlay
 styles stay inside NudgeThis's Shadow DOM and do not restyle the inspected application.
 
-Visual guidance is adapted from [Taste Skill](https://github.com/Leonxlnx/taste-skill/tree/main/skills/taste-skill);
-its upstream scope is marketing pages, so this redesign preserves the product's existing
-navigation, review flows and framework-independent overlay. [Design decisions](docs/design.es.md).
+The default blue identity is shared by the landing, dashboard and overlay: self-hosted
+Archivo, fine borders and compact controls. Saved custom themes keep their own colors and fonts.
+The redesign follows [Impeccable](https://github.com/pbakaus/impeccable) and the approved blue
+reference. [Design system](DESIGN.md) · [Design decisions](docs/design.es.md).
 
 ## Git and persistence
 
