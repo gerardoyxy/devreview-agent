@@ -263,12 +263,11 @@ This remains an alpha. Screenshots, framework-verified source mapping,
 automatic rebase, post-HMR visual verification and native provider resume remain future work.
 Element reidentification is conservative: changed or ambiguous targets require selection again.
 The [roadmap](ROADMAP.md) distinguishes implemented behavior from remaining work.
-The [foundation evidence map](docs/foundations.md) separates basic capabilities, checks
-and remaining gaps. [Device browser](docs/route-review.md#device-browser) adds Chromium
+[Device browser](docs/route-review.md#device-browser) adds Chromium
 touch, rotation, density and mobile user-agent emulation to route review.
 Worktrees are not OS sandboxes. See [security](SECURITY.md) for the local trust model.
 
 See [Contributing](CONTRIBUTING.md) for development setup and checks, and
 [migration](docs/migration.md) when updating an older installation.
 
-MIT © 2026 gerardoyxy and NudgeThis Agent contributors.
+MIT © 2026 gerardoyxy and NudgeThis contributors.

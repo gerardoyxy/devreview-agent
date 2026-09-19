@@ -1,52 +1,59 @@
 # Contributing
 
-Browser emulation checks use a real installed Chromium browser, without agents or models:
+For a small fix, open a pull request describing the problem, resulting behavior and
+validation. Discuss larger changes in an issue first. Report security issues privately
+through the process in [Security](SECURITY.md).
 
-```bash
-NUDGETHIS_TEST_BROWSER=/absolute/path/to/chrome node --test tests/device-preview.safe.test.js
-```
+## Development setup
 
-The helper selects a temporary profile and headless mode. The test is explicitly skipped
-when that environment variable is absent; the Linux CI job runs it with installed Chrome.
-Do not interpret a skipped browser check as successful browser validation. Never point the
-test at an existing user profile or debugging session. Default application tests still use
-`--no-execution` and `NUDGETHIS_DISABLE_EXECUTION=1`.
-
-Thanks for helping improve the feedback-to-fix loop.
-
-Use Node.js 24.15+, Git and stable Rust. Build the TypeScript frontend and native
-agent runtime before testing:
+Use Node.js 24.15+, Git, stable Rust and a C compiler for bundled SQLite. From the
+repository root:
 
 ```bash
 npm ci
 npm run build
+npm run build:site
+npm run check
 cargo fmt --all --check
 cargo clippy --locked --all-targets -- -D warnings
 cargo test --locked -p nudgethis --bin nudgethis
-npm run check
 npm test
 ```
 
-For a small fix, open a pull request with the problem, resulting behavior, and
-validation. For larger changes, discuss the design in an issue first. Keep UI
-strings and documentation clear about experimental or simulated features.
-Write public documentation, UI strings and marketing copy in English.
+Default tests create disposable repositories and run with agent execution disabled.
+`npm test` selects `*.safe.test.js`; Rust application tests target the `nudgethis` binary.
+Default checks must not depend on provider credentials or live model calls.
 
-Default tests create disposable Git repositories and run the application with execution
-disabled. They never launch agent executables, fixture agents or models. `npm test` runs
-only `*.safe.test.js`; Rust tests target the `nudgethis` binary. Integration fixtures are
-separate: `NUDGETHIS_ALLOW_AGENT_TESTS=1 npm run test:agents` is an explicit opt-in outside
-default CI. Do not run it when agent tests are prohibited. Never make the default suite
-depend on provider credentials or live model calls. Add focused
-regression coverage for lifecycle, Git safety, process cancellation and API changes.
+## Browser and starter checks
 
-Do not commit tokens, `.env` files, `.nudgethis/`, generated worktrees, or personal
-Git configuration. Avoid dependencies unless their benefit justifies them.
+Set `NUDGETHIS_TEST_BROWSER` to an installed Chrome/Chromium executable before running
+`npm test` to include browser checks. Without it, browser tests are reported as skipped.
+The helpers use headless mode and temporary profiles; never use an existing browser
+profile or debugging session. Linux CI runs these checks with installed Chrome.
 
-Keep public documentation focused on reproducible setup, behavior, limitations and
-contribution guidance. Personal briefs, account instructions, design-tool sessions
-and downloaded agent skills belong outside the tracked product source. Maintain
-the [roadmap](ROADMAP.md) when a capability or release requirement changes.
+To build and preview the maintained Astro and React starters, run:
 
-This project uses the MIT license. By contributing, you agree that your contribution
-will be distributed under the same license.
+```bash
+NUDGETHIS_DISABLE_EXECUTION=1 node scripts/check-starters.js
+```
+
+This downloads the starters' npm dependencies and runs their build/preview commands
+in temporary projects. It does not run agents.
+
+Simulated agent-protocol fixtures are a separate opt-in suite:
+`NUDGETHIS_ALLOW_AGENT_TESTS=1 npm run test:agents`. They are excluded from default CI
+and do not verify live-provider compatibility. See [Agent transports](docs/agents.md#validation).
+
+## Changes and documentation
+
+Keep UI strings and public documentation in English. Describe current behavior and
+limitations; update the relevant guide and [roadmap](ROADMAP.md) when features change.
+Use the [design guide](DESIGN.md) for shared components, themes and accessibility.
+Add focused regression coverage for behavior changes, especially Git operations,
+persistence, lifecycle and API validation.
+
+Keep tokens, `.env` files, `.nudgethis/`, generated worktrees, machine-specific settings,
+private documents and local design-tool records out of commits and published assets.
+Retain third-party licenses and avoid unnecessary dependencies.
+
+Contributions are distributed under the project's [MIT license](LICENSE).

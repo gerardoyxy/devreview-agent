@@ -146,8 +146,6 @@ matching, denied unsupported permissions, provider errors, output limits, timeou
 descendant cleanup, cancellation and task routing through the authenticated API.
 Live provider compatibility and consumption of model credits are not part of the suite.
 
-
 These fixtures are excluded from `npm test` and default CI. They require
-`NUDGETHIS_ALLOW_AGENT_TESTS=1 npm run test:agents`. No agent/model suite or deterministic
-agent demo was exercised for the 0.3 application preview. Its application tests run with
-execution disabled and do not establish transport/provider compatibility.
+`NUDGETHIS_ALLOW_AGENT_TESTS=1 npm run test:agents`. Default application tests run with
+execution disabled; their results do not establish transport or provider compatibility.

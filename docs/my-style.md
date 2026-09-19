@@ -47,7 +47,7 @@ remain explicit user preferences and can be edited or deleted independently.
 
 ## Apply and reuse
 
-**Apply my style** prepares a frontend change for the selected element, a page path, or the
+**Apply my style** prepares a frontend change for the selected element or group, a page path, or the
 project. It attaches the saved profile as a Project context instruction and opens the normal
 composer. Review the request, save a draft or explicitly start the change, then review any
 proposed patch before applying. Execution-disabled mode supports the builder and drafts.
@@ -81,4 +81,4 @@ context limits: 32 items, 16 KiB per item, 128 KiB library and 48 KiB selected s
 Unsupported values or a full context library fail visibly without partially saving a style.
 
 See [API](api.md#my-style), [project context](../README.md#project-context), and
-[foundation evidence](foundations.md).
+[the roadmap](../ROADMAP.md).

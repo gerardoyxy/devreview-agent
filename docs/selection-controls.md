@@ -92,8 +92,9 @@ requires a connection to the local NudgeThis server.
 ## Local API
 
 Authenticated `GET /api/selection-controls` returns `null` before the first save. `POST`
-accepts `{version: 1, revision, pointer, keyboard}`; use revision 0 initially, then the
+accepts `{version: 1, revision, pointer, keyboard, additiveModifier?}`; use revision 0 initially, then the
 revision returned by the server. Invalid bindings return 400 and stale saves return 409.
+`additiveModifier` accepts `control`, `alt`, `shift`, `meta` or `null`; omitted values use Shift.
 Successful saves emit a `selection-controls` event on the authenticated event stream.
 
 ## Verification
@@ -101,5 +102,6 @@ Successful saves emit a `selection-controls` event on the authenticated event st
 `npm test` checks preference validation, authentication, concurrent saves and restart
 persistence with execution disabled. To also exercise real mouse, keyboard and touch
 events, set `NUDGETHIS_TEST_BROWSER` to a Chrome/Chromium executable and run
-`node --test tests/selection-browser.safe.test.js`. CI runs this check on Linux. These
-tests use disposable local pages and never run agents, models or project commands.
+`node --test tests/selection-browser.safe.test.js tests/multi-selection-browser.safe.test.js`.
+CI runs these checks on Linux. They use disposable local pages and never run agents,
+models or project commands.

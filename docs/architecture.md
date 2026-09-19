@@ -32,6 +32,7 @@ default tests run application fixtures with execution disabled. Agent fixtures a
 | `github.rs` | Selected-account GitHub CLI/API access, reviewed publishing, proposals and merge gates |
 | `process.rs` | Bounded, cancellable validation/Git subprocesses with process groups/jobs |
 | `appearance.rs` | Appearance schema constraints and uploaded-font limits |
+| `element_context.rs` | Bounded single/group element context, URL sanitization and target validation |
 | `crates/agent-runtime` | Reusable Rust transport library plus protocol-test executable |
 | `packages/overlay` | TypeScript capture, review and shared appearance editor |
 | `packages/server/public` | Dashboard HTML/CSS/TypeScript, embedded at Rust compile time |
@@ -86,10 +87,18 @@ without public unauthenticated font endpoints or external font URLs. Custom them
 any RGB colors; the editor reports several text contrast pairs and does not guarantee an
 entire custom theme meets WCAG.
 
-## Remaining product work
+## Element selection
 
-Full element identity, multi-select, opt-in screenshots, post-HMR verification, framework
-source evidence and broader provider compatibility remain separate milestones.
+The overlay supports single picks, multiple clicks/taps and rectangular area selection.
+`selection-input.ts` handles gestures; `multi-selection.ts` owns the selected group and
+review controls. Rust validates up to 20 unique targets from one page and a 48 KiB context
+limit. Drafts, conversations and revisions retain that group. Source hints remain unverified;
+changed or ambiguous targets require reselection. See [selection controls](selection-controls.md).
+
+## Remaining work
+
+Verified source mapping, screenshots, post-HMR visual checks and broader provider coverage
+are tracked in [the roadmap](../ROADMAP.md).
 Rust HTTP models currently retain the existing JSON schema; generating TypeScript contracts
 from typed Rust models remains a follow-up, not a runtime dependency on JavaScript.
 
